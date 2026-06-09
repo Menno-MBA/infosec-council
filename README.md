@@ -14,6 +14,24 @@ deliberately conflicting mandates. The disagreement is the product.
 > questions. We borrow the pre-mortem technique from their Red Team lens, but apply it
 > to detection (the Security Operations seat) rather than to offense.
 
+## Install
+
+**Claude Desktop / Claude.ai — no terminal, easiest for non-technical users.**
+Download **[`infosec-council-desktop.zip`](https://github.com/<you>/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
+from the latest release. In the app: **Settings → Capabilities** (turn on *Code
+execution & file creation* and *Skills*) → **Skills → Upload skill** → choose the
+file. Then in any chat type: `convene the council: <your decision> deep`.
+
+**Claude Code (CLI) — one command.**
+
+```bash
+npx github:<you>/infosec-council            # install into this project
+npx github:<you>/infosec-council --global   # install for every project
+```
+
+> The download zip is built automatically by CI and attached to each release —
+> nothing binary is committed to the repo. Maintainers: see *Publish* below.
+
 ## Members
 
 | Member | Mandate | Anchors to |
@@ -229,20 +247,26 @@ The report is fully self-contained: fonts (Fraunces + IBM Plex) are base64-embed
 - **Per-member calibration**: attribute outcomes to individual members' stances to
   learn which advisor's dissent best predicts a bad outcome (needs richer stance logging).
 
-## Publish to GitHub (one repo, both editions)
+## Publish (maintainers)
 
-Everything above lives in a single repository. From the repo root:
+Everything lives in one repository; no build artifacts are committed (`dist/` is
+gitignored). Start private, flip to public when ready.
 
 ```bash
-git init && git add -A && git commit -m "infosec council: CLI + desktop editions"
-gh repo create infosec-council --public --source=. --push
+# 1. create the repo and push (private first)
+gh repo create infosec-council --private --source=. --push
+
+# 2. cut a release — CI builds the desktop zip and attaches it automatically,
+#    which makes the one-click download link in Install work:
+git tag v1.0.0 && git push origin v1.0.0
+
+# 3. when you're ready for the world:
+gh repo visibility public --repo <you>/infosec-council
 ```
 
-Anyone can then use it either way: clone and run `claude` (Path A), or run
-`bash scripts/build-desktop-skill.sh` and upload the ZIP (Path B). `dist/` is
-gitignored, so the build artifact isn't committed — it's regenerated from source. If
-you'd rather ship a ready-made ZIP for non-technical users, attach
-`infosec-council-desktop.zip` to a GitHub Release instead of committing it.
+That's it. CLI users then run `npx github:<you>/infosec-council`; Desktop users
+click the download link under **Install** above. No manual zip building or
+uploading — the `.github/workflows/release.yml` workflow handles it on every tag.
 
 ## License
 

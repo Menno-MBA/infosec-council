@@ -1,0 +1,30 @@
+name: Release desktop skill
+
+# When you push a version tag (e.g. v1.0.0) GitHub builds the uploadable
+# Claude Desktop skill zip and attaches it to the matching Release, so the
+# one-click download link in the README always points at the latest build.
+# Nothing binary is ever committed to the repo.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:        # lets you build it manually from the Actions tab
+
+permissions:
+  contents: write           # required to create/update the Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build the desktop skill zip
+        run: node bin/cli.js build-desktop
+      - name: Attach zip to the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/infosec-council-desktop.zip
+          generate_release_notes: true
