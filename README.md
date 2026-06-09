@@ -1,6 +1,29 @@
-# Information Security Council
+```
+  ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
+  ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
+  ██║     ██║   ██║██╔████╔██║█████╗  ██████╔╝██║   ██║
+  ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║   ██║
+  ███████╗╚██████╔╝██║ ╚═╝ ██║███████╗██║  ██║╚██████╔╝
+  ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
+    L U M É R O   ·   S P I D E R   I N   C Y B E R
+						=====
+     We do the academic research, you get the tools
 
-A Claude Code council of six security experts who deliberate a decision, peer-review
+
+		>>>> Information Security Council <<<<
+```
+
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install)
+
+> **Disclaimer — informational, not professional advice.** This council is a
+> decision-support tool that role-plays security, privacy, compliance, and risk
+> perspectives. Its output is **not** legal, regulatory, or professional security
+> advice, may be incomplete or wrong, and is provided **with no warranty**. You
+> remain responsible for your decisions — validate anything material with a
+> qualified professional. See the license files for the full warranty disclaimers.
+
+
+A Claude Code council of seven security experts who deliberate a decision, peer-review
 each other anonymously, force a debate when agreement looks too clean, and return a
 synthesized verdict. Built for **SMB** reality: limited budget, limited headcount,
 heavy reliance on SaaS and third parties.
@@ -17,7 +40,7 @@ deliberately conflicting mandates. The disagreement is the product.
 ## Install
 
 **Claude Desktop / Claude.ai — no terminal, easiest for non-technical users.**
-Download **[`infosec-council-desktop.zip`](https://github.com/<you>/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
+Download **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
 from the latest release. In the app: **Settings → Capabilities** (turn on *Code
 execution & file creation* and *Skills*) → **Skills → Upload skill** → choose the
 file. Then in any chat type: `convene the council: <your decision> deep`.
@@ -25,8 +48,8 @@ file. Then in any chat type: `convene the council: <your decision> deep`.
 **Claude Code (CLI) — one command.**
 
 ```bash
-npx github:<you>/infosec-council            # install into this project
-npx github:<you>/infosec-council --global   # install for every project
+npx github:Menno-MBA/infosec-council            # install into this project
+npx github:Menno-MBA/infosec-council --global   # install for every project
 ```
 
 > The download zip is built automatically by CI and attached to each release —
@@ -120,8 +143,8 @@ Requires Claude Code v2.1+ and (for the journal/report) `jq`.
 **Fastest — install with npx** (no clone; runs straight from this repo):
 
 ```bash
-npx github:<you>/infosec-council            # install into ./.claude (this project)
-npx github:<you>/infosec-council --global   # install into ~/.claude (every project)
+npx github:Menno-MBA/infosec-council            # install into ./.claude (this project)
+npx github:Menno-MBA/infosec-council --global   # install into ~/.claude (every project)
 ```
 
 Add `--force` to overwrite an existing install. Once published to npm, plain
@@ -130,13 +153,13 @@ Add `--force` to overwrite an existing install. Once published to npm, plain
 **Or clone and run** (agents + skill are auto-detected at project scope):
 
 ```bash
-git clone https://github.com/<you>/infosec-council.git
+git clone https://github.com/Menno-MBA/infosec-council.git
 cd infosec-council
 claude                       # run from the repo → agents + skill are auto-detected (project scope)
 ```
 
 To make it available in **every** project without npx, install globally (or
-`npx github:<you>/infosec-council --global`):
+`npx github:Menno-MBA/infosec-council --global`):
 
 ```bash
 bash scripts/install-cli.sh  # copies agents → ~/.claude/agents, skill → ~/.claude/skills
@@ -148,7 +171,7 @@ Build the uploadable skill, then add it in the app.
 ```bash
 bash scripts/build-desktop-skill.sh   # writes dist/infosec-council-desktop.zip
 # or, cross-platform (no bash/zip needed):
-npx github:<you>/infosec-council build-desktop
+npx github:Menno-MBA/infosec-council build-desktop
 ```
 
 In the app: **Settings → Capabilities**, turn on *Code execution and file creation* and
@@ -261,13 +284,52 @@ gh repo create infosec-council --private --source=. --push
 git tag v1.0.0 && git push origin v1.0.0
 
 # 3. when you're ready for the world:
-gh repo visibility public --repo <you>/infosec-council
+gh repo visibility public --repo Menno-MBA/infosec-council
 ```
 
-That's it. CLI users then run `npx github:<you>/infosec-council`; Desktop users
+That's it. CLI users then run `npx github:Menno-MBA/infosec-council`; Desktop users
 click the download link under **Install** above. No manual zip building or
 uploading — the `.github/workflows/release.yml` workflow handles it on every tag.
 
+## Credits
+
+Built and maintained by **Luméro / Spider in Cyber** — *we do the academic research,
+you get the tools.* Issues, forks, and pull requests are welcome under the licenses
+below. Design influences are credited inline (e.g. the cognitive-lens approach of
+`TorpedoD/claude-council`, from which the pre-mortem technique is adapted).
+
 ## License
 
-MIT — do what you want.
+This project is **dual-licensed** to keep software and content cleanly separated —
+Creative Commons is for the content, not the code:
+
+| Part | Covers | License |
+|---|---|---|
+| **Software** | `bin/`, `scripts/`, `*.sh`, `package.json`, `.github/` | [MIT](LICENSE) |
+| **Council content** | persona prompts (`.claude/agents/`), the `SKILL.md` orchestrators, `frameworks.md`, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
+
+In short: do what you like with the **code** (MIT). If you reuse or adapt the
+**council content**, you must credit *"Luméro / Spider in Cyber"*, link back to this
+repository, indicate your changes, and license your adaptations under **CC BY-SA 4.0**
+(share-alike / copyleft).
+
+© 2026 Luméro / Spider in Cyber.
+
+### Trademark & bundled assets
+
+The **Luméro** name and the spider logo (`.claude/skills/infosec-council/assets/lumero-logo-white.png`)
+are trademarks of Luméro and are **not** covered by the licenses above. If you fork
+this project under your own brand, replace or remove them. The bundled fonts
+(Fraunces, IBM Plex) belong to their respective authors and are distributed under the
+SIL Open Font License.
+
+```
+                                   
+        ++++            ===        
+         ++             ===        
+       + +               - =       
+       **                 ==       
+  ***  *+       + =       ==  ==== 
+  ##*  * *    + +++ ==    ==  ===  
+   # *  * *  +  +++ +=  = = 
+```

@@ -1,3 +1,11 @@
+MIT License — applies to the SOFTWARE in this repository only
+(bin/, scripts/, *.sh, package.json, and the .github/ CI workflow).
+The council CONTENT (persona prompts, SKILL.md files, frameworks.md, docs)
+is licensed separately under CC BY-SA 4.0 — see LICENSE-CC-BY-SA-4.0.txt.
+The Luméro name and logo are trademarks — see the README.
+
+-----------------------------------------------------------------------
+
 MIT License
 
 Copyright (c) 2026 Luméro
