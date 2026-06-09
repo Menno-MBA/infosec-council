@@ -1,0 +1,38 @@
+{
+  "name": "infosec-council",
+  "version": "1.0.0",
+  "description": "A Claude council of seven information-security experts who deliberate a decision, peer-review anonymously, force a debate when consensus is too clean, and return a synthesized verdict. SMB-focused. Ships in two editions from one repo: Claude Code (CLI, sub-agents) and Claude.ai/Desktop (uploadable skill).",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "claude-skill",
+    "agent",
+    "infosec",
+    "security",
+    "ciso",
+    "gdpr",
+    "iso27001",
+    "nis2",
+    "risk",
+    "compliance"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "infosec-council": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    ".claude/",
+    "desktop/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build:desktop": "node bin/cli.js build-desktop"
+  }
+}
