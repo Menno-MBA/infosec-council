@@ -1,4 +1,5 @@
 ```
+                                  ██╗
   ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
   ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
   ██║     ██║   ██║██╔████╔██║█████╗  ██████╔╝██║   ██║
@@ -13,22 +14,22 @@
 		>>>> Information Security Council <<<<
 ```
 
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl)
 
-> **Disclaimer — informational, not professional advice.** This council is a
+> **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
 > perspectives. Its output is **not** legal, regulatory, or professional security
 > advice, may be incomplete or wrong, and is provided **with no warranty**. You
-> remain responsible for your decisions — validate anything material with a
+> remain responsible for your decisions. Validate anything material with a
 > qualified professional. See the license files for the full warranty disclaimers.
 
 
 A Claude Code council of seven security experts who deliberate a decision, peer-review
 each other anonymously, force a debate when agreement looks too clean, and return a
-synthesized verdict. Built for **SMB** reality: limited budget, limited headcount,
+synthesized verdict. Built for European **SMB** reality: limited budget, limited headcount,
 heavy reliance on SaaS and third parties.
 
-It's a **persona council** — one model running as several sub-agents with
+It's a **persona council**, one model running as several sub-agents with
 deliberately conflicting mandates. The disagreement is the product.
 
 > Design note: some councils (e.g. TorpedoD/claude-council) use *cognitive lenses*
@@ -39,20 +40,20 @@ deliberately conflicting mandates. The disagreement is the product.
 
 ## Install
 
-**Claude Desktop / Claude.ai — no terminal, easiest for non-technical users.**
+**Claude Desktop / Claude.ai – no terminal, easiest for non-technical users.**
 Download **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
 from the latest release. In the app: **Settings → Capabilities** (turn on *Code
 execution & file creation* and *Skills*) → **Skills → Upload skill** → choose the
 file. Then in any chat type: `convene the council: <your decision> deep`.
 
-**Claude Code (CLI) — one command.**
+**Claude Code (CLI) – one command.**
 
 ```bash
 npx github:Menno-MBA/infosec-council            # install into this project
 npx github:Menno-MBA/infosec-council --global   # install for every project
 ```
 
-> The download zip is built automatically by CI and attached to each release —
+> The download zip is built automatically by CI and attached to each release;
 > nothing binary is committed to the repo. Maintainers: see *Publish* below.
 
 ## Members
@@ -64,10 +65,10 @@ npx github:Menno-MBA/infosec-council --global   # install for every project
 | Offensive Security Engineer (Red Team) | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK, kill chain, attacker ROI |
 | Security Operations | Detection, response & recovery (run/survive); MDR + owned-tool alerts + tested IR plan | NIST CSF 2.0 DE/RS/RC, SP 800-61r3, MITRE ATT&CK, CIS Control 8, 3-2-1-1-0 backups, GDPR breach handoff to DPO |
 | Compliance Analyst | Maps mandatory EU law vs chosen attestations; evidence + crosswalks ("comply once, satisfy many") | GDPR, NIS2/Cbw, DORA, EU AI Act, CRA (where in scope); ISO 27001:2022, SOC 2 (customer-driven), PCI DSS v4.0.1 |
-| DPO / Privacy | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA + UK GDPR (Arts. 5,6,9,25,30,35-36,33-34,44-49), ROPA, DPIA, transfers (SCC/TIA/DPF), ePrivacy |
+| DPO / Privacy | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA GDPR (Arts. 5, 6, 9, 25, 28, 30, 33–36, 44–49, 83), ROPA, DPIA, ePrivacy (NL Telecommunicatiewet 11.7a), cross-border transfers (SCC/TIA/EU-US DPF), EU AI Act, LINDDUN |
 | Risk Manager | Structures & frames risk two-sidedly (owner owns, mgmt accepts); third-party risk | ISO 31000/27005 right-sized, CIS RAM/IG1, NIST IR 7621; 4 treatment options incl. cyber insurance; appetite vs attitude |
 
-The three security seats form a deliberate triad — Architect (*build* it securely),
+The three security seats form a deliberate triad – Architect (*build* it securely),
 Offensive Security (*break* it), and Security Operations (*see and survive* it failing).
 That tension keeps the room from drifting into "just add another control nobody tests
 or monitors." When offense and operations disagree on feasible-vs-detectable, that gap
@@ -126,21 +127,21 @@ infosec-council/
 
 ## Two ways to run it
 
-The two products differ in one decisive way — **Claude Code has sub-agents; Claude.ai/
-Desktop does not** — so the council ships in two editions from the same repo.
+The two products differ in one decisive way – **Claude Code has sub-agents; Claude.ai/
+Desktop does not** – so the council ships in two editions from the same repo.
 
 | | Claude Code (CLI) | Claude.ai / Desktop (& Cowork) |
 |---|---|---|
 | Install | filesystem `.claude/` (no upload) | upload a skill ZIP in Settings |
 | Advisors | 7 isolated sub-agents, dispatched in parallel | 7 personas role-played in **one** context |
-| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no — sandbox resets per session (export the HTML report instead) |
+| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no – sandbox resets per session (export the HTML report instead) |
 | HTML report | yes | yes (runs in the code-execution sandbox) |
 | Best for | the full, isolated multi-agent experience | quick access in the app, sharing via uploaded skill |
 
-### Path A — Claude Code (CLI)
+### Path A – Claude Code (CLI)
 Requires Claude Code v2.1+ and (for the journal/report) `jq`.
 
-**Fastest — install with npx** (no clone; runs straight from this repo):
+**Fastest – install with npx** (no clone; runs straight from this repo):
 
 ```bash
 npx github:Menno-MBA/infosec-council            # install into ./.claude (this project)
@@ -165,7 +166,7 @@ To make it available in **every** project without npx, install globally (or
 bash scripts/install-cli.sh  # copies agents → ~/.claude/agents, skill → ~/.claude/skills
 ```
 
-### Path B — Claude.ai / Desktop / Cowork
+### Path B – Claude.ai / Desktop / Cowork
 Build the uploadable skill, then add it in the app.
 
 ```bash
@@ -198,18 +199,18 @@ and one concrete next step.
 ## Frameworks & baselines (one place to maintain)
 
 All regulations, standards, guidelines, and technologies live in
-`.claude/skills/infosec-council/frameworks.md` — not scattered across the personas. It has:
+`.claude/skills/infosec-council/frameworks.md`, not scattered across the personas. It has:
 
-- **Part A — configuration knobs** you flip once: the **control baseline** (currently
+- **Part A – configuration knobs** you flip once: the **control baseline** (currently
   `CIS Controls IG1` → change to `IG2`/`IG3` to re-level the whole council), jurisdiction,
   backup standard, MFA standard, default risk posture, quantification depth.
 - **In-scope regimes** toggle: GDPR, ePrivacy, NIS2/Cbw, DORA, EU AI Act, CRA, PCI DSS,
-  SOC 2 — flip a regime to "in scope" and the relevant seats treat it as live.
-- **Part B — reference register**: every subject with its canonical version/level and a
+  SOC 2 – flip a regime to "in scope" and the relevant seats treat it as live.
+- **Part B – reference register**: every subject with its canonical version/level and a
   **cross-reference column** showing which personas cite it.
 
 The personas reference subjects **by name** and inherit the detail from here, and the
-orchestrator injects `frameworks.md` into every member at deliberation time — so a single
+orchestrator injects `frameworks.md` into every member at deliberation time, so a single
 edit (e.g. IG1 → IG2, or a PCI DSS version bump, or bringing NIS2 into scope) propagates
 to all seven seats with no per-persona edits. Maintain catalog facts there; keep the
 persona files for the static *traits* (mandate, method, biases, lane, output contract).
@@ -238,14 +239,14 @@ sudo apt-get install jq  # Linux
   (override the location with `COUNCIL_HOME`). The council tells you each run's `sha`.
 - Record the outcome later, once the decision plays out:
   `council outcome <sha> correct|partial|wrong "short note"`
-- See calibration: `council meta` — hit-rate by confidence level, the high-confidence
+- See calibration: `council meta` – hit-rate by confidence level, the high-confidence
   calls that didn't pan out (the ones worth learning from), and member appearance counts.
 - Recent runs: `council journal [n]`
 
 In Claude Code you just type these in natural language ("council meta", "outcome
 9615ee5e partial, the DPA had gaps") and the skill routes them to the script.
 
-Your journal is data, not code — it lives outside the repo and is gitignored.
+Your journal is data, not code; it lives outside the repo and is gitignored.
 
 ## HTML reports
 
@@ -279,7 +280,7 @@ gitignored). Start private, flip to public when ready.
 # 1. create the repo and push (private first)
 gh repo create infosec-council --private --source=. --push
 
-# 2. cut a release — CI builds the desktop zip and attaches it automatically,
+# 2. cut a release – CI builds the desktop zip and attaches it automatically,
 #    which makes the one-click download link in Install work:
 git tag v1.0.0 && git push origin v1.0.0
 
@@ -289,18 +290,28 @@ gh repo visibility public --repo Menno-MBA/infosec-council
 
 That's it. CLI users then run `npx github:Menno-MBA/infosec-council`; Desktop users
 click the download link under **Install** above. No manual zip building or
-uploading — the `.github/workflows/release.yml` workflow handles it on every tag.
+uploading; the `.github/workflows/release.yml` workflow handles it on every tag.
 
 ## Credits
 
-Built and maintained by **Luméro / Spider in Cyber** — *we do the academic research,
+Built and maintained by **Luméro / Spider in Cyber** – *we do the academic research,
 you get the tools.* Issues, forks, and pull requests are welcome under the licenses
 below. Design influences are credited inline (e.g. the cognitive-lens approach of
 `TorpedoD/claude-council`, from which the pre-mortem technique is adapted).
 
+## Sponsor
+
+This council is brought to you by **[Luméro](https://lumero.nl)**, an independent
+information-security consultancy based in the Netherlands. We turn academic research
+into practical, right-sized security, so growing companies get enterprise-grade
+thinking without the enterprise overhead. Whether it is ISO 27001, NIS2, GDPR, or a
+security roadmap you can actually execute, Luméro helps you move from intent to
+evidence. Ready for hands-on guidance instead of another 100-page report? Visit
+**[lumero.nl](https://lumero.nl)** and let's start the conversation.
+
 ## License
 
-This project is **dual-licensed** to keep software and content cleanly separated —
+This project is **dual-licensed** to keep software and content cleanly separated –
 Creative Commons is for the content, not the code:
 
 | Part | Covers | License |
@@ -322,14 +333,3 @@ are trademarks of Luméro and are **not** covered by the licenses above. If you 
 this project under your own brand, replace or remove them. The bundled fonts
 (Fraunces, IBM Plex) belong to their respective authors and are distributed under the
 SIL Open Font License.
-
-```
-                                   
-        ++++            ===        
-         ++             ===        
-       + +               - =       
-       **                 ==       
-  ***  *+       + =       ==  ==== 
-  ##*  * *    + +++ ==    ==  ===  
-   # *  * *  +  +++ +=  = = 
-```
