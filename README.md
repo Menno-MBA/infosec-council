@@ -294,7 +294,7 @@ uploading; the `.github/workflows/release.yml` workflow handles it on every tag.
 
 ## Credits
 
-Built and maintained by **Luméro / Spider in Cyber** – *we do the academic research,
+Built and maintained by **Luméro** – *we do the academic research,
 you get the tools.* Issues, forks, and pull requests are welcome under the licenses
 below. Design influences are credited inline (e.g. the cognitive-lens approach of
 `TorpedoD/claude-council`, from which the pre-mortem technique is adapted).
@@ -320,15 +320,15 @@ Creative Commons is for the content, not the code:
 | **Council content** | persona prompts (`.claude/agents/`), the `SKILL.md` orchestrators, `frameworks.md`, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
 
 In short: do what you like with the **code** (MIT). If you reuse or adapt the
-**council content**, you must credit *"Luméro / Spider in Cyber"*, link back to this
+**council content**, you must credit *"Luméro"*, link back to this
 repository, indicate your changes, and license your adaptations under **CC BY-SA 4.0**
 (share-alike / copyleft).
 
-© 2026 Luméro / Spider in Cyber.
+© 2026 Luméro All rights reserved
 
 ### Trademark & bundled assets
 
-The **Luméro** name and the spider logo (`.claude/skills/infosec-council/assets/lumero-logo-white.png`)
+The **Luméro** name and the (spider) logo (`.claude/skills/infosec-council/assets/lumero-logo-white.png`)
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork
 this project under your own brand, replace or remove them. The bundled fonts
 (Fraunces, IBM Plex) belong to their respective authors and are distributed under the
