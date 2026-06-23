@@ -1,4 +1,6 @@
-```
+<div align="center">
+
+<pre>
                                   ██╗
   ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
   ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
@@ -6,15 +8,18 @@
   ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║   ██║
   ███████╗╚██████╔╝██║ ╚═╝ ██║███████╗██║  ██║╚██████╔╝
   ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
-    L U M É R O   ·   S P I D E R   I N   C Y B E R
+			 S P I D E R   I N   C Y B E R
 						=====
      We do the academic research, you get the tools
 
 
-		>>>> Information Security Council <<<<
-```
+		&gt;&gt;&gt;&gt; Information Security Council &lt;&lt;&lt;&lt;
+</pre>
 
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/luméro)
+
+</div>
+
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -114,8 +119,8 @@ infosec-council/
 │           ├── journal.sh                     #   decision journal (jq)
 │           ├── report.sh                      #   branded HTML report
 │           └── assets/
-│               ├── lumero-logo-white.png
-│               └── fonts-embedded.css
+│               ├── lumero-logo-complete-black.webp   #   header (light)
+│               └── lumero-logo-complete-white.webp   #   footer (dark)
 ├── desktop/
 │   └── SKILL.md                               # ← Claude.ai/Desktop orchestrator (in-context, no sub-agents)
 ├── scripts/
@@ -215,6 +220,23 @@ edit (e.g. IG1 → IG2, or a PCI DSS version bump, or bringing NIS2 into scope) 
 to all seven seats with no per-persona edits. Maintain catalog facts there; keep the
 persona files for the static *traits* (mandate, method, biases, lane, output contract).
 
+### Strategic context (`context.md`)
+
+Alongside the regulatory config, a second file, `context.md`, holds the organization's
+**strategic** config and is injected into every member too: standing architecture
+preferences (e.g. "Art. 9 / trade-secret data stays on an own EU endpoint, not
+vendor-orchestrated"), categorical risk-appetite boundaries (what is out of appetite
+regardless of ROI), and prior strategic decisions / preferred vendors and patterns. It
+ships as a fill-in template; the council also appends durable organization facts to its
+auto-context block over time.
+
+One deliberate guardrail: house positions in `context.md` are **defaults, not doctrine**.
+The orchestrator injects an explicit licence for any seat to challenge a house position
+(and to say so when it overrides one), so the file informs the council without quietly
+turning an adversarial panel into a confirmation machine.
+
+To use it, fill in Parts A to C with your organization's house positions; the council reads `context.md` automatically and writes only to the Part D auto-context block.
+
 ## Customize
 
 - **Add a member**: drop `.claude/agents/<role>.md` and add it to the member list in
@@ -251,7 +273,7 @@ Your journal is data, not code; it lives outside the repo and is gitignored.
 ## HTML reports
 
 Generate a branded, self-contained HTML dossier for any run (`report.sh`, bundled
-with the skill; needs `jq`). It renders the recommendation with a confidence badge,
+with the skill; needs `jq`). It renders the recommendation with a confidence pill,
 advisor cards, the live conflicts / blind spots / minority report, and a footer.
 
 ```bash
@@ -259,12 +281,18 @@ advisor cards, the live conflicts / blind spots / minority report, and a footer.
 bash .claude/skills/infosec-council/report.sh --sha <sha>
 ```
 
-Branding: the Luméro logo ships with the skill (`assets/lumero-logo-white.png`) and is
-embedded automatically on a dark footer band. Override it by setting `LUMERO_LOGO` to a
-URL or a different local image path; if neither is found, a "Luméro" wordmark is used. Override the strapline with `LUMERO_TAGLINE` (default: *We do the academic
-research, you get the tools.*). In Claude Code, just ask for "a report for <sha>". 
+Styling matches the Luméro website (lumero.nl): white canvas, slate text, the
+blue-to-green brand gradient on the top rule, hero card border and footer, rounded
+pills for confidence, and the system font stack the site uses. The official Luméro
+logo (logomark + wordmark) ships with the skill and is base64-embedded, so the report
+is fully self-contained and renders identically offline with no external requests: the
+black logo on the light header (`assets/lumero-logo-complete-black.webp`) and the white
+logo on the dark footer (`assets/lumero-logo-complete-white.webp`).
 
-The report is fully self-contained: fonts (Fraunces + IBM Plex) are base64-embedded from `assets/fonts-embedded.css`, so it renders identically offline with no external requests. If that asset is removed, it falls back to loading the fonts from Google Fonts.
+Override the logos by setting `LUMERO_LOGO_LIGHT` (header) and/or `LUMERO_LOGO` (footer)
+to a URL or local image path; if a file is missing, a "Luméro" wordmark is used instead.
+Override the strapline with `LUMERO_TAGLINE` (default: *We do the academic research, you
+get the tools.*). In Claude Code, just ask for "a report for <sha>".
 
 ## Roadmap ideas
 
@@ -299,6 +327,14 @@ you get the tools.* Issues, forks, and pull requests are welcome under the licen
 below. Design influences are credited inline (e.g. the cognitive-lens approach of
 `TorpedoD/claude-council`, from which the pre-mortem technique is adapted).
 
+## Feedback & contact
+
+Found a bug, have an idea, or want to propose a new advisor seat or framework? Please open a
+**[GitHub issue](https://github.com/Menno-MBA/infosec-council/issues)**. That keeps feedback
+public, searchable, and easy to track, and it is the fastest route to a fix or a considered
+feature. Prefer a direct line? Reach Menno Verheij on
+**[LinkedIn](https://www.linkedin.com/in/mennoverheij)**.
+
 ## Sponsor
 
 This council is brought to you by **[Luméro](https://lumero.nl)**, an independent
@@ -308,6 +344,8 @@ thinking without the enterprise overhead. Whether it is ISO 27001, NIS2, GDPR, o
 security roadmap you can actually execute, Luméro helps you move from intent to
 evidence. Ready for hands-on guidance instead of another 100-page report? Visit
 **[lumero.nl](https://lumero.nl)** and let's start the conversation.
+
+Found the council useful? The nicest way to say thanks is to **[follow Luméro on LinkedIn](https://www.linkedin.com/company/luméro)**. It costs nothing and helps a small consultancy reach more teams who need right-sized security.
 
 ## License
 
@@ -328,8 +366,8 @@ repository, indicate your changes, and license your adaptations under **CC BY-SA
 
 ### Trademark & bundled assets
 
-The **Luméro** name and the (spider) logo (`.claude/skills/infosec-council/assets/lumero-logo-white.png`)
-are trademarks of Luméro and are **not** covered by the licenses above. If you fork
-this project under your own brand, replace or remove them. The bundled fonts
-(Fraunces, IBM Plex) belong to their respective authors and are distributed under the
-SIL Open Font License.
+The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-complete-*.webp`)
+are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
+project under your own brand, replace or remove them. The HTML report uses the system
+font stack (no bundled webfonts).
+                  

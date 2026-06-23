@@ -2,7 +2,7 @@
 /**
  * infosec-council installer / builder.
  *
- * Zero runtime dependencies — pure Node (>=16), cross-platform (Windows/macOS/Linux).
+ * Zero runtime dependencies – pure Node (>=16), cross-platform (Windows/macOS/Linux).
  *
  * Usage (works straight from the public repo, no npm publish needed):
  *   npx github:<owner>/infosec-council               # install into ./.claude (this project)
@@ -38,7 +38,7 @@ const C = {
 
 function help() {
   console.log(`
-${C.b("infosec-council")} — a Claude council of seven security experts.
+${C.b("infosec-council")} – a Claude council of seven security experts.
 
 ${C.b("Commands")}
   install            Install the council for Claude Code (default)
@@ -84,7 +84,7 @@ function install() {
   const skillSrc = path.join(PKG_ROOT, ".claude", "skills", SKILL_NAME);
 
   if (!fs.existsSync(agentsSrc) || !fs.existsSync(skillSrc)) {
-    console.error(`${C.yellow("!")} Could not find source files under ${PKG_ROOT}/.claude — is the package intact?`);
+    console.error(`${C.yellow("!")} Could not find source files under ${PKG_ROOT}/.claude, is the package intact?`);
     process.exit(1);
   }
 
@@ -198,6 +198,7 @@ function buildDesktop() {
   const skillDir = path.join(PKG_ROOT, ".claude", "skills", SKILL_NAME);
   fs.copyFileSync(path.join(PKG_ROOT, "desktop", "SKILL.md"), path.join(build, "SKILL.md"));
   fs.copyFileSync(path.join(skillDir, "frameworks.md"), path.join(build, "frameworks.md"));
+  fs.copyFileSync(path.join(skillDir, "context.md"), path.join(build, "context.md"));
   fs.copyFileSync(path.join(skillDir, "report.sh"), path.join(build, "report.sh"));
   fs.copyFileSync(path.join(skillDir, "journal.sh"), path.join(build, "journal.sh"));
   copyDir(path.join(skillDir, "assets"), path.join(build, "assets"));
@@ -205,7 +206,7 @@ function buildDesktop() {
     if (f.endsWith(".md")) fs.copyFileSync(path.join(PKG_ROOT, ".claude", "agents", f), path.join(build, "personas", f));
   }
 
-  // zip with the built-in writer — no external tools, works on every OS
+  // zip with the built-in writer – no external tools, works on every OS
   writeZip(build, SKILL_NAME, zipPath);
   console.log(`${C.green("✓")} Built ${C.b(zipPath)}`);
   console.log(`\n  Upload in Claude.ai/Desktop: Settings → Capabilities (enable Code execution`);

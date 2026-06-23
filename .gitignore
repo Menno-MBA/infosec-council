@@ -1,7 +1,7 @@
-# Build output — regenerated from source by scripts/build-desktop-skill.sh or `npx . build-desktop`
+# Build output – regenerated from source by scripts/build-desktop-skill.sh or `npx . build-desktop`
 dist/
 
-# Decision journal — user data, lives outside the repo (also defaults to ~/.infosec-council)
+# Decision journal – user data, lives outside the repo (also defaults to ~/.infosec-council)
 .infosec-council/
 *.jsonl
 

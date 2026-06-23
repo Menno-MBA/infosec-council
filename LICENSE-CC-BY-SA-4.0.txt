@@ -1,4 +1,4 @@
-Information Security Council — COUNCIL CONTENT
+Information Security Council – COUNCIL CONTENT
 (the advisor persona prompts in .claude/agents/, the orchestrator text in the
 SKILL.md files, frameworks.md, and the documentation/prose in this repository)
 
@@ -17,8 +17,8 @@ indicate if changes were made, and (c) license your adaptations under the same
 
 NOTE: This license covers CONTENT only. The software in this repository
 (bin/, scripts/, *.sh, package.json, the CI workflow) is licensed separately
-under the MIT License — see the LICENSE file. The Luméro name and logo are
-trademarks and are NOT licensed under CC BY-SA — see the README.
+under the MIT License, see the LICENSE file. The Luméro name and logo are
+trademarks and are NOT licensed under CC BY-SA, see the README.
 
 =======================================================================
 The full text of the CC BY-SA 4.0 legal code follows.
