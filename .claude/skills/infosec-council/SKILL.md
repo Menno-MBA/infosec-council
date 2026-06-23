@@ -73,7 +73,9 @@ Strip author labels from the Round-1 outputs and feed the full set back to each 
 5. **Blind spots caught**: what cross-exam/debate surfaced that Round 1 missed.
 6. **Minority report**: the strongest dissent worth preserving even if outvoted.
 7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high) and the key assumption it rests on.
-8. **One next step**: the single most useful concrete action.
+8. **Executive summary**: 3 to 5 plain sentences for a busy decision-maker, naming the problem, the call, and why.
+9. **Key risks**: the main risks of the decision, in plain language (a non-expert reads this section first).
+10. **One next step**: the single most useful concrete action.
 
 ## Decision journal (optional, needs jq)
 
@@ -102,13 +104,23 @@ Tell the user the run's sha so they can record the outcome later. If `jq` is mis
 ```
 echo '{
   "question": "...", "mode": "...", "confidence": "...",
-  "recommendation": "...", "key_assumption": "...", "next_step": "...",
-  "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],
+  "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
+  "risks": ["..."], "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],
   "minority_report": "...",
-  "members": [ {"name":"CISO","stance":"...","confidence":"...","summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
+  "members": [ {"name":"dpo","stance":"...","confidence":"...","summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
 }' | bash "<skill_dir>/report.sh"
 ```
-The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can brand it by setting `LUMERO_LOGO` (a URL or local image path) before running; otherwise a Luméro wordmark is used. Route a bare `report <sha>` request to `bash "<skill_dir>/report.sh" --sha <sha>` (renders from the journal).
+
+Fill the report fully, not thinly. The report is two layered: an **executive_summary**
+(3 to 5 plain sentences a busy decision-maker can act on, naming the problem, the call,
+and why) sits up top, and the **detailed analysis** below must carry the real synthesis.
+In particular: **risks** is an array of the main risks of the decision (this is the
+section non-experts look for, never leave it empty); `consensus`, `conflicts`, and
+`blind_spots` are full sentences, not labels; each member gets a real `summary`,
+`assumptions`, and `change_my_mind`. Use the persona key as `name` (ciso, security-architect,
+offensive-security, security-operations, compliance-analyst, dpo, risk-manager); the
+report renders the friendly role title and what that seat covers automatically.
+The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can override the logos with `LUMERO_LOGO_LIGHT` (header) and `LUMERO_LOGO` (footer); otherwise the bundled Luméro wordmark logos are used. Route a bare `report <sha>` request to `bash "<skill_dir>/report.sh" --sha <sha>` (renders from the journal).
 
 ## Required output: CONFIDENCE block
 Every member must end their response with:

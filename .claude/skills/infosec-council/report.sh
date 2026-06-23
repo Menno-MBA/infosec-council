@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# infosec-council HTML report generator (Luméro-branded, plain-language)
+# infosec-council HTML report generator (Luméro-branded, plain-language, two-layer)
 # Renders a council run (rich JSON on stdin, or a sha from the journal) as a
 # self-contained HTML dossier styled to match lumero.nl. Dependency: jq.
 #
 # Branding (optional; sensible defaults are bundled in assets/):
 #   LUMERO_LOGO_LIGHT  logo for the light header. URL or local image (base64-embedded).
-#                      default: assets/lumero-logo-complete-black.webp
-#   LUMERO_LOGO        logo for the dark footer (kept for backward compatibility).
-#                      default: assets/lumero-logo-complete-white.webp
+#                      default: assets/lumero-logo-black.webp
+#   LUMERO_LOGO        logo for the dark footer.
+#                      default: assets/lumero-logo-white.webp
 #   LUMERO_TAGLINE     default below.
 set -euo pipefail
 
@@ -48,8 +48,8 @@ mk_logo() {  # $1 = path-or-url   $2 = css-class (light|dark)
     echo "<span class=\"wordmark $cls\">Lum&eacute;ro</span>"
   fi
 }
-logo_light="$(mk_logo "${LUMERO_LOGO_LIGHT:-$ASSETS/lumero-logo-complete-black.webp}" light)"
-logo_dark="$(mk_logo  "${LUMERO_LOGO:-$ASSETS/lumero-logo-complete-white.webp}" dark)"
+logo_light="$(mk_logo "${LUMERO_LOGO_LIGHT:-$ASSETS/lumero-logo-black.webp}" light)"
+logo_dark="$(mk_logo  "${LUMERO_LOGO:-$ASSETS/lumero-logo-white.webp}" dark)"
 
 # ---- render ------------------------------------------------------------------
 sha="$(echo "$run" | jq -r '.sha // "draft"')"
@@ -57,10 +57,13 @@ out="$REPORT_DIR/council-report-$(date -u +%Y%m%d-%H%M%S)-$sha.html"
 mkdir -p "$REPORT_DIR"
 
 echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg tagline "$TAGLINE" '
-  # text cleaner: strip em-dashes (replace with a comma) then HTML-escape
+  # text cleaner: strip em-dashes (to a comma) then HTML-escape
   def e: (. // "") | gsub("\\s*—\\s*"; ", ") | @html;
   def conf_class: (. // "" | ascii_downcase) as $c
     | if $c=="high" then "high" elif $c=="medium" then "med" elif $c=="low" then "low" else "na" end;
+  # friendly names + role descriptions for the known seats
+  def role_label: ({"ciso":"CISO","security-architect":"Security Architect","offensive-security":"Offensive Security (Red Team)","security-operations":"Security Operations","compliance-analyst":"Compliance Analyst","dpo":"DPO / Privacy","risk-manager":"Risk Manager"}[(.|ascii_downcase)]) // .;
+  def role_desc: ({"ciso":"Security posture, budget, and business enablement","security-architect":"Secure design and technical controls (can we build it safely)","offensive-security":"How a real attacker would try to break it","security-operations":"Detection, monitoring, and incident response (can we spot and survive it)","compliance-analyst":"Standards, regulations, and the evidence to prove compliance","dpo":"Lawful, fair handling of personal data and privacy","risk-manager":"Sizing the risk, risk appetite, and third-party exposure"}[(.|ascii_downcase)]) // "";
   def list_block($items; $title; $lead):
     if ($items|type)=="array" and ($items|length)>0
     then "<section class=\"block\"><h2>" + $title + "</h2><p class=\"lead\">" + $lead + "</p><ul>"
@@ -76,48 +79,52 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + "*{box-sizing:border-box}"
 + "body{margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;}"
 + ".brandrule{height:4px;background:var(--grad);}"
-+ ".wrap{max-width:840px;margin:0 auto;padding:48px 28px 0;}"
-+ ".head{display:flex;align-items:center;gap:14px;margin-bottom:8px;}"
-+ ".brandimg.light{height:40px;width:auto;display:block;}"
-+ ".wordmark{font-weight:800;font-size:24px;color:var(--ink);}.wordmark.dark{color:#fff;}"
++ ".wrap{max-width:860px;margin:0 auto;padding:44px 28px 0;}"
++ ".head{display:flex;align-items:center;gap:14px;margin-bottom:10px;}"
++ ".brandimg.light{height:34px;width:auto;display:block;}"
++ ".wordmark{font-weight:800;font-size:22px;color:var(--ink);}.wordmark.dark{color:#fff;}"
 + ".kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ga);font-weight:600;border-left:2px solid var(--border);padding-left:14px;}"
-+ "h1{font-weight:800;font-size:clamp(28px,4.6vw,42px);line-height:1.12;letter-spacing:-.02em;color:var(--ink);margin:.35em 0 .15em;}"
-+ ".intro{font-size:15px;color:var(--muted);margin:.2em 0 0;max-width:64ch;}"
-+ ".meta{font-family:var(--mono);font-size:12px;color:var(--faint);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;margin:20px 0 0;display:flex;gap:24px;flex-wrap:wrap;}"
++ "h1{font-weight:800;font-size:clamp(27px,4.4vw,40px);line-height:1.13;letter-spacing:-.02em;color:var(--ink);margin:.3em 0 .15em;}"
++ ".intro{font-size:15px;color:var(--muted);margin:.2em 0 0;max-width:66ch;}"
++ ".meta{font-family:var(--mono);font-size:12px;color:var(--faint);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;margin:18px 0 0;display:flex;gap:24px;flex-wrap:wrap;}"
 + ".meta b{color:var(--muted);font-weight:600;}"
 + ".lead{font-size:13px;color:var(--faint);margin:.1em 0 12px;}"
-+ ".verdict{margin:34px 0;border-radius:16px;padding:26px 28px;background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border:1.5px solid transparent;box-shadow:0 10px 30px -12px rgba(2,6,23,.18);}"
++ ".verdict{margin:32px 0 22px;border-radius:16px;padding:26px 28px;background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border:1.5px solid transparent;box-shadow:0 10px 30px -12px rgba(2,6,23,.18);}"
 + ".verdict h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 4px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}"
-+ ".verdict .lead{margin-bottom:14px;}"
-+ ".verdict p{margin:.4em 0;}.rec{font-size:19px;color:var(--ink);font-weight:600;line-height:1.45;}"
++ ".verdict .lead{margin-bottom:14px;}.verdict p{margin:.4em 0;}.rec{font-size:19px;color:var(--ink);font-weight:600;line-height:1.45;}"
 + ".assume{font-size:14px;color:var(--muted);margin-top:10px;}.assume strong{color:var(--ink);}"
 + ".note{font-size:12px;color:var(--faint);margin-top:10px;font-style:italic;}"
 + ".pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}"
 + ".pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}"
-+ "h2.sec{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:44px 0 4px;font-weight:700;}"
-+ "h2.sec + .lead{margin-bottom:16px;}"
-+ ".block{margin:24px 0;}.block h2{font-size:16px;margin:0 0 2px;color:var(--ink);font-weight:700;}.block p{margin:.3em 0;}"
-+ ".block ul{margin:0;padding-left:1.15em;}.block li{margin:.35em 0;}"
++ ".exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}"
++ ".exec h2{font-size:17px;margin:0 0 6px;color:var(--ink);font-weight:800;}.exec p{margin:.4em 0;color:var(--body);font-size:15.5px;}"
++ ".divider{margin:48px 0 18px;padding-top:20px;border-top:1px solid var(--border);}"
++ ".divider h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--ga);margin:0 0 4px;font-weight:700;}"
++ ".divider p{margin:0;font-size:13px;color:var(--faint);}"
++ "h2.sec{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:40px 0 4px;font-weight:700;}"
++ ".block{margin:22px 0;}.block h2{font-size:17px;margin:0 0 2px;color:var(--ink);font-weight:700;}.block p{margin:.3em 0;}"
++ ".block ul{margin:6px 0 0;padding-left:1.15em;}.block li{margin:.4em 0;}"
 + ".minority{border-left:3px solid var(--amber);padding-left:16px;color:var(--body);font-style:italic;}"
-+ ".advisors{display:grid;gap:14px;}"
++ ".advisors{display:grid;gap:14px;margin-top:14px;}"
 + ".advisor{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:0 4px 12px rgba(2,6,23,.05);}"
-+ ".advisor header{display:flex;align-items:center;justify-content:space-between;gap:12px;}"
-+ ".advisor h3{font-size:17px;margin:0;color:var(--ink);font-weight:700;text-transform:capitalize;}"
-+ ".stance{font-family:var(--mono);font-size:12px;color:var(--ga);margin:6px 0 8px;}"
++ ".advisor header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}"
++ ".advisor h3{font-size:17px;margin:0;color:var(--ink);font-weight:700;}"
++ ".role{font-size:12.5px;color:var(--muted);margin:2px 0 8px;}"
++ ".stance{font-family:var(--mono);font-size:12px;color:var(--ga);margin:8px 0;}"
 + ".advisor p.sum{margin:.2em 0;color:var(--body);}"
 + ".advisor dl{margin:12px 0 0;font-size:13px;color:var(--muted);}"
 + ".advisor dt{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-top:10px;color:var(--faint);}"
 + ".advisor dd{margin:3px 0 0;}"
-+ "footer{margin-top:64px;background:var(--footer);padding:44px 20px 50px;text-align:center;border-top:4px solid transparent;border-image:var(--grad) 1;}"
-+ ".brandimg.dark{height:46px;width:auto;display:inline-block;}"
++ "footer{margin-top:60px;background:var(--footer);padding:42px 20px 48px;text-align:center;border-top:4px solid transparent;border-image:var(--grad) 1;}"
++ ".brandimg.dark{height:40px;width:auto;display:inline-block;}"
 + ".tagline{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:#cbd5e1;margin-top:16px;}"
 + ".fineprint{font-size:10px;color:#64748b;margin-top:14px;font-family:var(--mono);}"
-+ "@media(max-width:600px){.wrap{padding-top:32px}.meta{gap:14px}.head{flex-wrap:wrap;gap:10px}}"
++ "@media(max-width:600px){.wrap{padding-top:30px}.meta{gap:14px}.head{flex-wrap:wrap;gap:10px}}"
 + "</style></head><body><div class=\"brandrule\"></div><div class=\"wrap\">"
 
 + "<header class=\"head\">" + $logolight + "<div class=\"kicker\">Security Decision Dossier</div></header>"
 + "<h1>" + (.question|e) + "</h1>"
-+ "<p class=\"intro\">A panel of security advisors reviewed this decision. Below is what they recommend, how sure they are, the risks worth your attention, and where they disagreed, so you can decide with eyes open.</p>"
++ "<p class=\"intro\">A panel of security advisors reviewed this decision. This dossier gives you the recommendation and a short executive summary first, then the full analysis underneath: the risks, where the advisors agreed and disagreed, and each advisor in their own words.</p>"
 + "<div class=\"meta\"><span><b>Depth</b>&nbsp;&nbsp;" + (.mode|e|ascii_upcase) + "</span>"
 + "<span><b>Reference</b>&nbsp;&nbsp;" + (.sha // "draft" | e) + "</span>"
 + (if (.ts // "")|length>0 then "<span>" + (.ts|e) + "</span>" else "" end) + "</div>"
@@ -131,15 +138,24 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + (if (.next_step // "")|length>0 then "<p class=\"assume\"><strong>Do this next:</strong> " + (.next_step|e) + "</p>" else "" end)
 + "</div>"
 
++ (if (.executive_summary // "")|length>0
+   then "<section class=\"exec\"><h2>Executive summary</h2><p>" + (.executive_summary|e) + "</p></section>"
+   else "" end)
+
++ "<div class=\"divider\"><h2>The detailed analysis</h2><p>For readers who want the full picture: the risks, the agreements and trade-offs, and each advisor in their own words.</p></div>"
+
++ list_block(.risks; "Key risks"; "The main risks to weigh before you decide.")
 + (if (.consensus // "")|length>0 then "<section class=\"block\"><h2>Where the advisors agree</h2><p class=\"lead\">Points the whole panel lined up on, so you can treat these as settled.</p><p>" + (.consensus|e) + "</p></section>" else "" end)
-+ list_block(.conflicts; "Where the advisors disagree"; "Open trade-offs that have no single right answer. These are the calls you, as decision-maker, need to make.")
-+ list_block(.blind_spots; "Easy-to-miss risks"; "Things that are simple to overlook but could hurt if ignored.")
++ list_block(.conflicts; "Where the advisors disagree"; "Open trade-offs with no single right answer. These are the calls you, as decision-maker, need to make.")
++ list_block(.blind_spots; "Risks that are easy to miss"; "Subtle points the panel flagged that are simple to overlook.")
 + (if (.minority_report // "")|length>0 then "<section class=\"block\"><h2>The strongest objection</h2><p class=\"lead\">A dissenting view worth keeping in mind, even though most of the panel leaned the other way.</p><p class=\"minority\">" + (.minority_report|e) + "</p></section>" else "" end)
 
 + (if ((.members|type)=="array" and (.members|length)>0)
-   then "<h2 class=\"sec\">The expert panel</h2><p class=\"lead\">Each advisor speaks only from their own area. Where they pull in different directions is exactly the value.</p><div class=\"advisors\">"
+   then "<h2 class=\"sec\">The expert panel</h2><p class=\"lead\">The recommendation above is the synthesis of these independent expert views. Each advisor looked at the decision only through their own lens; where they pull in different directions is exactly the value.</p><div class=\"advisors\">"
       + ([ .members[] |
-          "<article class=\"advisor\"><header><h3>" + (.name|e) + "</h3>"
+          "<article class=\"advisor\"><header><div><h3>" + (.name|role_label|e) + "</h3>"
+        + (((.name|role_desc)) as $rd | if ($rd|length)>0 then "<p class=\"role\">" + ($rd|e) + "</p>" else "" end)
+        + "</div>"
         + "<span class=\"pill " + (.confidence|conf_class) + "\">" + (.confidence // "n/a"|e) + "</span></header>"
         + (if (.stance // "")|length>0 then "<p class=\"stance\">" + (.stance|e) + "</p>" else "" end)
         + (if (.summary // "")|length>0 then "<p class=\"sum\">" + (.summary|e) + "</p>" else "" end)

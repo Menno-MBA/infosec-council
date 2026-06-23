@@ -65,9 +65,9 @@ After synthesis you may append durable org facts as dated bullets inside the `CO
    (hide which is which) and, for each, note where the others are wrong and what they
    missed. Forced debate trigger: if consensus looks too clean, argue the strongest
    case against it before synthesizing.
-3. **Chairman synthesis** – Decision · Mode + advisors used · Consensus (and whether it's
-   trustworthy) · Live conflicts (as tradeoffs) · Blind spots caught · Minority report ·
-   Recommendation (with confidence + key assumption) · One next step.
+3. **Chairman synthesis** – Recommendation (with confidence + key assumption) · Executive
+   summary (3 to 5 plain sentences) · Key risks (plain language) · Where advisors agree ·
+   Trade-offs they disagree on · Blind spots · Minority report · One next step.
 
 ## Required output: CONFIDENCE block
 End every advisor's turn with:
@@ -79,11 +79,18 @@ UNKNOWNS: <what I don't know that matters>
 ```
 
 ## Branded HTML report
-This skill bundles `report.sh` and `assets/` (logo + embedded fonts). When the user
+This skill bundles `report.sh` and `assets/` (the Luméro logos). When the user
 wants a report, build the run JSON (see field list in report.sh's header) and run it
 in the code-execution sandbox:
 `bash report.sh < run.json` (or `bash report.sh --sha <sha>`). It writes a fully
 self-contained `council-report-*.html`; offer it to the user as a download.
+
+Fill the JSON fully: include an `executive_summary` (3 to 5 plain sentences for a busy
+decision-maker) and a `risks` array (the main risks, never empty), alongside
+`consensus`, `conflicts`, `blind_spots`, `minority_report`, and per-member `summary`,
+`assumptions`, and `change_my_mind`. Use the persona key as each member `name` (ciso,
+security-architect, offensive-security, security-operations, compliance-analyst, dpo,
+risk-manager); the report shows the friendly role title and its remit automatically.
 
 ## Journaling note (important difference from Claude Code)
 The desktop/sandbox filesystem is EPHEMERAL; it resets between sessions, so the
