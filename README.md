@@ -1,5 +1,4 @@
 <div align="center">
-
 <pre>
                                   ██╗
   ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
@@ -15,11 +14,15 @@
 
 		&gt;&gt;&gt;&gt; Information Security Council &lt;&lt;&lt;&lt;
 </pre>
-
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/luméro)
-
+<p>
+<a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-blue.svg" alt="Code: MIT"></a>
+<a href="LICENSE-CC-BY-SA-4.0.txt"><img src="https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg" alt="Content: CC BY-SA 4.0"></a>
+<a href="#install"><img src="https://img.shields.io/badge/install-npx-success.svg" alt="Install: npx"></a>
+<a href="#install"><img src="https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg" alt="Editions: CLI + Desktop"></a>
+<a href="https://lumero.nl"><img src="https://img.shields.io/badge/website-lumero.nl-orange.svg" alt="Website"></a>
+<a href="https://www.linkedin.com/company/lumero"><img src="https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&amp;logoColor=white" alt="LinkedIn: Luméro"></a>
+</p>
 </div>
-
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -345,7 +348,7 @@ security roadmap you can actually execute, Luméro helps you move from intent to
 evidence. Ready for hands-on guidance instead of another 100-page report? Visit
 **[lumero.nl](https://lumero.nl)** and let's start the conversation.
 
-Found the council useful? The nicest way to say thanks is to **[follow Luméro on LinkedIn](https://www.linkedin.com/company/luméro)**. It costs nothing and helps a small consultancy reach more teams who need right-sized security.
+Found the council useful? The nicest way to say thanks is to **[follow Luméro on LinkedIn](https://www.linkedin.com/company/lumero)**. It costs nothing and helps a small consultancy reach more teams who need right-sized security.
 
 ## License
 
