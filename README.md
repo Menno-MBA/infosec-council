@@ -10,8 +10,6 @@
 			 S P I D E R   I N   C Y B E R
 						=====
      We do the academic research, you get the tools
-
-
 		&gt;&gt;&gt;&gt; Information Security Council &lt;&lt;&lt;&lt;
 </pre>
 <p>
