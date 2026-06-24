@@ -107,6 +107,8 @@ echo '{
   "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
   "risks": ["..."], "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],
   "minority_report": "...",
+  "options": [ {"option":"A. ...","effort":"...","risk_reduction":"...","cost":"...","reversibility":"...","verdict":"..."} ],
+  "risk_appetite": "...", "highest_leverage": "...",
   "members": [ {"name":"dpo","stance":"...","confidence":"...","summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
 }' | bash "<skill_dir>/report.sh"
 ```
@@ -120,6 +122,8 @@ section non-experts look for, never leave it empty); `consensus`, `conflicts`, a
 `assumptions`, and `change_my_mind`. Use the persona key as `name` (ciso, security-architect,
 offensive-security, security-operations, compliance-analyst, dpo, risk-manager); the
 report renders the friendly role title and what that seat covers automatically.
+
+**Deep mode adds the decision-science pass.** Populate `options` (the realistic choices, each with effort, risk_reduction, cost, reversibility, and a one-line verdict), `risk_appetite` (the explicit owner risk-appetite check: which option fits which posture, who accepts the residual risk), and `highest_leverage` (the single move that shrinks risk most). These render as an option-comparison table plus a risk-appetite callout, so do not drop them from a deep run.
 The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can override the logos with `LUMERO_LOGO_LIGHT` (header) and `LUMERO_LOGO` (footer); otherwise the bundled Luméro wordmark logos are used. Route a bare `report <sha>` request to `bash "<skill_dir>/report.sh" --sha <sha>` (renders from the journal).
 
 ## Required output: CONFIDENCE block

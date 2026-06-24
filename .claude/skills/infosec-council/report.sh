@@ -61,6 +61,8 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
   def e: (. // "") | gsub("\\s*—\\s*"; ", ") | @html;
   def conf_class: (. // "" | ascii_downcase) as $c
     | if $c=="high" then "high" elif $c=="medium" then "med" elif $c=="low" then "low" else "na" end;
+  def vclass: (. // "" | ascii_downcase) as $v
+    | if ($v|test("recommend|best")) then "vg" elif ($v|test("reckless|avoid|do not")) then "vr" else "va" end;
   # friendly names + role descriptions for the known seats
   def role_label: ({"ciso":"CISO","security-architect":"Security Architect","offensive-security":"Offensive Security (Red Team)","security-operations":"Security Operations","compliance-analyst":"Compliance Analyst","dpo":"DPO / Privacy","risk-manager":"Risk Manager"}[(.|ascii_downcase)]) // .;
   def role_desc: ({"ciso":"Security posture, budget, and business enablement","security-architect":"Secure design and technical controls (can we build it safely)","offensive-security":"How a real attacker would try to break it","security-operations":"Detection, monitoring, and incident response (can we spot and survive it)","compliance-analyst":"Standards, regulations, and the evidence to prove compliance","dpo":"Lawful, fair handling of personal data and privacy","risk-manager":"Sizing the risk, risk appetite, and third-party exposure"}[(.|ascii_downcase)]) // "";
@@ -94,6 +96,13 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + ".verdict .lead{margin-bottom:14px;}.verdict p{margin:.4em 0;}.rec{font-size:19px;color:var(--ink);font-weight:600;line-height:1.45;}"
 + ".assume{font-size:14px;color:var(--muted);margin-top:10px;}.assume strong{color:var(--ink);}"
 + ".note{font-size:12px;color:var(--faint);margin-top:10px;font-style:italic;}"
++ "table.opts{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:13px;}"
++ "table.opts th,table.opts td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top;}"
++ "table.opts th{background:var(--surface);font-weight:700;color:var(--ink);font-size:11px;text-transform:uppercase;letter-spacing:.03em;}"
++ ".vc{font-weight:700;white-space:nowrap;}.vc.vg{color:var(--green);}.vc.vr{color:#b91c1c;}.vc.va{color:var(--amber);}"
++ ".appetite{margin:18px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--ga);border-radius:10px;padding:14px 16px;}"
++ ".appetite h3{margin:0 0 4px;font-size:14px;color:var(--ink);font-weight:700;}.appetite p{margin:0;font-size:14px;color:var(--body);}"
++ ".leverage{margin:14px 0 0;font-size:15px;color:var(--ink);}.leverage strong{color:var(--ga);}"
 + ".pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}"
 + ".pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}"
 + ".exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}"
@@ -142,6 +151,15 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
    then "<section class=\"exec\"><h2>Executive summary</h2><p>" + (.executive_summary|e) + "</p></section>"
    else "" end)
 
++ (if ((.options|type)=="array" and (.options|length)>0)
+   then "<section class=\"block\"><h2>Decision-science pass</h2><p class=\"lead\">The realistic options side by side: effort, risk reduction, ongoing cost, reversibility, and the verdict.</p>"
+      + "<table class=\"opts\"><thead><tr><th>Option</th><th>Effort</th><th>Risk reduction</th><th>Ongoing cost</th><th>Reversibility</th><th>Verdict</th></tr></thead><tbody>"
+      + ([ .options[] | "<tr><td><strong>" + (.option // .name // ""|e) + "</strong></td><td>" + (.effort // ""|e) + "</td><td>" + (.risk_reduction // ""|e) + "</td><td>" + (.cost // .ongoing_cost // ""|e) + "</td><td>" + (.reversibility // ""|e) + "</td><td class=\"vc " + (.verdict|vclass) + "\">" + (.verdict // ""|e) + "</td></tr>" ] | join(""))
+      + "</tbody></table>"
+      + (if (.risk_appetite // "")|length>0 then "<div class=\"appetite\"><h3>Risk-appetite check (owner decision)</h3><p>" + (.risk_appetite|e) + "</p></div>" else "" end)
+      + (if (.highest_leverage // "")|length>0 then "<p class=\"leverage\"><strong>Highest-leverage move:</strong> " + (.highest_leverage|e) + "</p>" else "" end)
+      + "</section>"
+   else "" end)
 + "<div class=\"divider\"><h2>The detailed analysis</h2><p>For readers who want the full picture: the risks, the agreements and trade-offs, and each advisor in their own words.</p></div>"
 
 + list_block(.risks; "Key risks"; "The main risks to weigh before you decide.")
