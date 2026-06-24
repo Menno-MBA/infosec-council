@@ -2,7 +2,7 @@
 
 **One decision, seven expert lenses, one synthesized verdict. Built for EU SMEs.**
 
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero)
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -35,6 +35,9 @@ Download **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-
 from the latest release. In the app: **Settings → Capabilities** (turn on *Code
 execution & file creation* and *Skills*) → **Skills → Upload skill** → choose the
 file. Then in any chat type: `convene the council: <your decision> -deep`.
+
+**ChatGPT (custom GPT) – nothing to install, just open it.**
+Use the council straight inside ChatGPT: **[Information Security Council by Luméro](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero)**. Type your decision and add `-deep` for the full treatment. Requires a ChatGPT account; keep *Code Interpreter* on so it can generate the branded HTML report.
 
 **Claude Code (CLI) – one command.**
 
@@ -116,6 +119,17 @@ infosec-council/
 │               └── lumero-logo-white.webp   #   footer (dark)
 ├── desktop/
 │   └── SKILL.md                               # ← Claude.ai/Desktop orchestrator (in-context, no sub-agents)
+├── chatgpt/                                  # ← ChatGPT (custom GPT) edition
+│   ├── INSTRUCTIONS.md                        #   the GPT "Instructions" field
+│   ├── SETUP.md                               #   build steps + all field values
+│   └── knowledge/                             #   upload these as GPT Knowledge
+│       ├── council-personas.md
+│       ├── frameworks.md
+│       ├── context.md
+│       ├── report.py                          #   Python report generator (Code Interpreter)
+│       ├── CREDITS.md
+│       ├── lumero-logo-black.webp
+│       └── lumero-logo-white.webp
 ├── scripts/
 │   ├── install-cli.sh                         #   copy .claude/* into ~/.claude (global CLI use)
 │   └── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
@@ -123,18 +137,17 @@ infosec-council/
     └── infosec-council-desktop.zip
 ```
 
-## Two ways to run it
+## Three ways to run it
 
-The two products differ in one decisive way – **Claude Code has sub-agents; Claude.ai/
-Desktop does not** – so the council ships in two editions from the same repo.
+The editions differ in one decisive way: Claude Code has real sub-agents, while Claude.ai/Desktop and the ChatGPT GPT role-play the panel in a single context. Same council, three editions, one repo.
 
-| | Claude Code (CLI) | Claude.ai / Desktop (& Cowork) |
-|---|---|---|
-| Install | filesystem `.claude/` (no upload) | upload a skill ZIP in Settings |
-| Advisors | 7 isolated sub-agents, dispatched in parallel | 7 personas role-played in **one** context |
-| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no – sandbox resets per session (export the HTML report instead) |
-| HTML report | yes | yes (runs in the code-execution sandbox) |
-| Best for | the full, isolated multi-agent experience | quick access in the app, sharing via uploaded skill |
+| | Claude Code (CLI) | Claude.ai / Desktop (& Cowork) | ChatGPT (custom GPT) |
+|---|---|---|---|
+| Install | filesystem `.claude/` (no upload) | upload a skill ZIP in Settings | open the GPT link (nothing to install) |
+| Advisors | 7 isolated sub-agents, dispatched in parallel | 7 personas role-played in **one** context | 7 personas role-played in **one** context |
+| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no – sandbox resets per session (export the HTML report instead) | no (export the HTML report) |
+| HTML report | yes | yes (runs in the code-execution sandbox) | yes (via Code Interpreter) |
+| Best for | the full, isolated multi-agent experience | quick access in the app, sharing via uploaded skill | anyone who lives in ChatGPT; zero setup |
 
 ### Path A – Claude Code (CLI)
 Requires Claude Code v2.1+ and (for the journal/report) `jq`.
