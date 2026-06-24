@@ -6,9 +6,11 @@
   ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║   ██║
   ███████╗╚██████╔╝██║ ╚═╝ ██║███████╗██║  ██║╚██████╔╝
   ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
-			 S P I D E R   I N   C Y B E R
+    L U M É R O   ·   S P I D E R   I N   C Y B E R
 						=====
      We do the academic research, you get the tools
+
+
 		>>>> Information Security Council <<<<
 ```
 
