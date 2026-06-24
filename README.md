@@ -353,4 +353,3 @@ The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-lo
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
 project under your own brand, replace or remove them. The HTML report uses the system
 font stack (no bundled webfonts).
-                  
