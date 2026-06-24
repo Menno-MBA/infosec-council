@@ -1,18 +1,6 @@
-```
-                                  ██╗
-  ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
-  ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
-  ██║     ██║   ██║██╔████╔██║█████╗  ██████╔╝██║   ██║
-  ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║   ██║
-  ███████╗╚██████╔╝██║ ╚═╝ ██║███████╗██║  ██║╚██████╔╝
-  ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
-    L U M É R O   ·   S P I D E R   I N   C Y B E R
-						=====
-     We do the academic research, you get the tools
+# Information Security Council
 
-
-		>>>> Information Security Council <<<<
-```
+**Luméro · Spider in Cyber.** We do the academic research, you get the tools.
 
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/lumero)
 
