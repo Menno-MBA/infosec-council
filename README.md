@@ -1,5 +1,4 @@
-<div align="center">
-<pre>
+```
                                   ██╗
   ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
   ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
@@ -10,17 +9,10 @@
 			 S P I D E R   I N   C Y B E R
 						=====
      We do the academic research, you get the tools
-		&gt;&gt;&gt;&gt; Information Security Council &lt;&lt;&lt;&lt;
-</pre>
-<p>
-<a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-blue.svg" alt="Code: MIT"></a>
-<a href="LICENSE-CC-BY-SA-4.0.txt"><img src="https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg" alt="Content: CC BY-SA 4.0"></a>
-<a href="#install"><img src="https://img.shields.io/badge/install-npx-success.svg" alt="Install: npx"></a>
-<a href="#install"><img src="https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg" alt="Editions: CLI + Desktop"></a>
-<a href="https://lumero.nl"><img src="https://img.shields.io/badge/website-lumero.nl-orange.svg" alt="Website"></a>
-<a href="https://www.linkedin.com/company/lumero"><img src="https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&amp;logoColor=white" alt="LinkedIn: Luméro"></a>
-</p>
-</div>
+		>>>> Information Security Council <<<<
+```
+
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/lumero)
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -120,8 +112,8 @@ infosec-council/
 │           ├── journal.sh                     #   decision journal (jq)
 │           ├── report.sh                      #   branded HTML report
 │           └── assets/
-│               ├── lumero-logo-complete-black.webp   #   header (light)
-│               └── lumero-logo-complete-white.webp   #   footer (dark)
+│               ├── lumero-logo-black.webp   #   header (light)
+│               └── lumero-logo-white.webp   #   footer (dark)
 ├── desktop/
 │   └── SKILL.md                               # ← Claude.ai/Desktop orchestrator (in-context, no sub-agents)
 ├── scripts/
@@ -285,10 +277,10 @@ bash .claude/skills/infosec-council/report.sh --sha <sha>
 Styling matches the Luméro website (lumero.nl): white canvas, slate text, the
 blue-to-green brand gradient on the top rule, hero card border and footer, rounded
 pills for confidence, and the system font stack the site uses. The official Luméro
-logo (logomark + wordmark) ships with the skill and is base64-embedded, so the report
+wordmark logo ships with the skill and is base64-embedded, so the report
 is fully self-contained and renders identically offline with no external requests: the
-black logo on the light header (`assets/lumero-logo-complete-black.webp`) and the white
-logo on the dark footer (`assets/lumero-logo-complete-white.webp`).
+black logo on the light header (`assets/lumero-logo-black.webp`) and the white
+logo on the dark footer (`assets/lumero-logo-white.webp`).
 
 Override the logos by setting `LUMERO_LOGO_LIGHT` (header) and/or `LUMERO_LOGO` (footer)
 to a URL or local image path; if a file is missing, a "Luméro" wordmark is used instead.
@@ -367,7 +359,7 @@ repository, indicate your changes, and license your adaptations under **CC BY-SA
 
 ### Trademark & bundled assets
 
-The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-complete-*.webp`)
+The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-*.webp`)
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
 project under your own brand, replace or remove them. The HTML report uses the system
 font stack (no bundled webfonts).
