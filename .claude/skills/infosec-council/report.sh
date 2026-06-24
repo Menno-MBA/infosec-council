@@ -14,7 +14,7 @@ set -euo pipefail
 COUNCIL_HOME="${COUNCIL_HOME:-$HOME/.infosec-council}"
 JOURNAL="$COUNCIL_HOME/journal.jsonl"
 REPORT_DIR="${COUNCIL_REPORT_DIR:-.}"
-TAGLINE="${LUMERO_TAGLINE:-We do the academic research, you get the tools.}"
+TAGLINE="${LUMERO_TAGLINE:-We do the academic research, you get the infosec tools.}"
 
 die() { echo "council-report: $*" >&2; exit 1; }
 command -v jq >/dev/null 2>&1 || die "jq is required (brew install jq / apt-get install jq)."

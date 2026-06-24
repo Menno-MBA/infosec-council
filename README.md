@@ -1,20 +1,8 @@
-```
-                                  ██╗
-  ██╗     ██╗   ██╗███╗   ███╗███████╗██████╗  ██████╗
-  ██║     ██║   ██║████╗ ████║██╔════╝██╔══██╗██╔═══██╗
-  ██║     ██║   ██║██╔████╔██║█████╗  ██████╔╝██║   ██║
-  ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║   ██║
-  ███████╗╚██████╔╝██║ ╚═╝ ██║███████╗██║  ██║╚██████╔╝
-  ╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝
-    L U M É R O   ·   S P I D E R   I N   C Y B E R
-                        =====
-     We do the academic research, you get the tools
+# Information Security Council
 
+**One decision, seven expert lenses, one synthesized verdict. Built for EU SMEs.**
 
-        >>>> Information Security Council <<<<
-```
-
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Luméro)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro)
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -24,19 +12,21 @@
 > qualified professional. See the license files for the full warranty disclaimers.
 
 
-A Claude Code council of seven security experts who deliberate a decision, peer-review
+A council of seven security experts who deliberate a decision, peer-review
 each other anonymously, force a debate when agreement looks too clean, and return a
-synthesized verdict. Built for European **SMB** reality: limited budget, limited headcount,
+synthesized verdict. Built for European **SME** reality: limited budget, limited headcount,
 heavy reliance on SaaS and third parties.
 
 It's a **persona council**, one model running as several sub-agents with
 deliberately conflicting mandates. The disagreement is the product.
 
-> Design note: some councils (e.g. TorpedoD/claude-council) use *cognitive lenses*
-> (Red Team, First Principles, Outsider...) that apply to any decision. This one uses
-> *domain experts*, which give more directly usable answers to security/privacy/risk
-> questions. We borrow the pre-mortem technique from their Red Team lens, but apply it
-> to detection (the Security Operations seat) rather than to offense.
+> Design note: the council architecture, the depth modes (Quick/Standard/Deep), the anonymized
+> peer review, the forced debate when consensus looks too clean, the chairman synthesis with a
+> minority report, and the decision journal, is adapted from
+> [`TorpedoD/claude-council`](https://github.com/TorpedoD/claude-council), an open-source
+> multi-agent decision framework. This edition fixes a panel of security *domain experts*
+> (rather than general thinking lenses), so the verdict maps directly onto security, privacy,
+> compliance, and risk decisions. Among other things, the attack and detection pre-mortems are its own additions.
 
 ## Install
 
@@ -44,7 +34,7 @@ deliberately conflicting mandates. The disagreement is the product.
 Download **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
 from the latest release. In the app: **Settings → Capabilities** (turn on *Code
 execution & file creation* and *Skills*) → **Skills → Upload skill** → choose the
-file. Then in any chat type: `convene the council: <your decision> deep`.
+file. Then in any chat type: `convene the council: <your decision> -deep`.
 
 **Claude Code (CLI) – one command.**
 
@@ -60,13 +50,13 @@ npx github:Menno-MBA/infosec-council --global   # install for every project
 
 | Member | Mandate | Anchors to |
 |---|---|---|
-| CISO | Posture vs. business enablement, budget, incident readiness | ISO 27001 ISMS, NIST CSF, SOC 2 |
-| Security Architect | Secure-by-design & default; configures/hardens bought SaaS, identity-first (build) | Threat Modeling Manifesto + STRIDE/LINDDUN, cloud shared-responsibility, CIS Benchmarks/SCuBA, zero trust, CIS IG1 |
-| Offensive Security Engineer (Red Team) | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK, kill chain, attacker ROI |
-| Security Operations | Detection, response & recovery (run/survive); MDR + owned-tool alerts + tested IR plan | NIST CSF 2.0 DE/RS/RC, SP 800-61r3, MITRE ATT&CK, CIS Control 8, 3-2-1-1-0 backups, GDPR breach handoff to DPO |
-| Compliance Analyst | Maps mandatory EU law vs chosen attestations; evidence + crosswalks ("comply once, satisfy many") | GDPR, NIS2/Cbw, DORA, EU AI Act, CRA (where in scope); ISO 27001:2022, SOC 2 (customer-driven), PCI DSS v4.0.1 |
-| DPO / Privacy | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA GDPR (Arts. 5, 6, 9, 25, 28, 30, 33–36, 44–49, 83), ROPA, DPIA, ePrivacy (NL Telecommunicatiewet 11.7a), cross-border transfers (SCC/TIA/EU-US DPF), EU AI Act, LINDDUN |
-| Risk Manager | Structures & frames risk two-sidedly (owner owns, mgmt accepts); third-party risk | ISO 31000/27005 right-sized, CIS RAM/IG1, NIST IR 7621; 4 treatment options incl. cyber insurance; appetite vs attitude |
+| CISO | Posture vs. business enablement, budget, incident readiness | ISO 27001 (ISMS), NIST CSF, CIS Controls (IG1) |
+| Security Architect | Secure-by-design & default; configures/hardens bought SaaS, identity-first (build) | Threat modeling (STRIDE), secure-by-design, CIS Benchmarks, zero trust |
+| Offensive Security Engineer (Red Team) | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK; attacker's-eye view |
+| Security Operations | Detection, response & recovery (run/survive); MDR + owned-tool alerts + tested IR plan | NIST CSF (detect/respond/recover), NIST incident-response guidance, MITRE ATT&CK, tested backups, GDPR breach handoff |
+| Compliance Analyst | Maps mandatory EU law vs chosen attestations; evidence + crosswalks ("comply once, satisfy many") | EU regimes in scope (GDPR, NIS2, EU AI Act; DORA/CRA/PCI DSS where applicable), ISO 27001, SOC 2 |
+| DPO / Privacy | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA GDPR (lawful basis, ROPA, DPIA, transfers), ePrivacy, EU AI Act |
+| Risk Manager | Structures & frames risk two-sidedly (owner owns, mgmt accepts); third-party risk | ISO 31000/27005 (right-sized), CIS RAM, NIST small-business guidance, cyber insurance |
 
 The three security seats form a deliberate triad – Architect (*build* it securely),
 Offensive Security (*break* it), and Security Operations (*see and survive* it failing).
@@ -76,13 +66,13 @@ is itself a finding.
 
 ## Depth modes
 
-Append the mode to your question, or let the council pick (defaults to Standard).
+Append a depth flag (`-quick`, `-standard`, or `-deep`) to your question, or let the council pick (defaults to Standard).
 
 | Mode | When | Members | Peer review | Debate |
 |---|---|---|---|---|
 | **Quick** | Low-stakes, reversible in a day | 3 most relevant | No | No |
-| **Standard** | Default | All 6 | Yes | Only if consensus is suspiciously clean |
-| **Deep** | High-stakes, costly to reverse | All 6 + decision-science pass | Yes | Always |
+| **Standard** | Default | All 7 | Yes | Only if consensus is suspiciously clean |
+| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass | Yes | Always |
 
 Every member ends with a **CONFIDENCE block** (confidence / assumptions / what would
 change my mind / unknowns) so the verdict is calibrated, not just asserted.
@@ -96,8 +86,15 @@ from them by a build script.
 ```
 infosec-council/
 ├── README.md
-├── LICENSE
+├── LICENSE                                   # MIT (the code)
+├── LICENSE-CC-BY-SA-4.0.txt                  # CC BY-SA 4.0 (the council content)
+├── package.json                              # npx installer metadata
 ├── .gitignore
+├── bin/
+│   └── cli.js                                # npx installer / desktop-zip builder
+├── .github/
+│   └── workflows/
+│       └── release.yml                       # CI: builds + attaches the desktop zip on tag
 ├── .claude/                                  # ← Claude Code (CLI) reads this directly
 │   ├── agents/                               #   one sub-agent per advisor (CLI only)
 │   │   ├── ciso.md
@@ -111,8 +108,9 @@ infosec-council/
 │       └── infosec-council/
 │           ├── SKILL.md                       #   orchestrator (dispatches sub-agents)
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
+│           ├── context.md                     #   strategic house-context (fill-in template)
 │           ├── journal.sh                     #   decision journal (jq)
-│           ├── report.sh                      #   branded HTML report
+│           ├── report.sh                      #   Luméro's branded HTML report
 │           └── assets/
 │               ├── lumero-logo-black.webp   #   header (light)
 │               └── lumero-logo-white.webp   #   footer (dark)
@@ -148,8 +146,10 @@ npx github:Menno-MBA/infosec-council            # install into ./.claude (this p
 npx github:Menno-MBA/infosec-council --global   # install into ~/.claude (every project)
 ```
 
-Add `--force` to overwrite an existing install. Once published to npm, plain
-`npx infosec-council` works too.
+Add `--force` to overwrite an existing install. **There is no auto-update:** to move to a
+newer version later, re-run the same command with `--force` and `@main` (the `@main` skips
+the npx cache), for example `npx --yes github:Menno-MBA/infosec-council@main --force`. Once
+published to npm, plain `npx infosec-council` works too.
 
 **Or clone and run** (agents + skill are auto-detected at project scope):
 
@@ -178,23 +178,33 @@ npx github:Menno-MBA/infosec-council build-desktop
 In the app: **Settings → Capabilities**, turn on *Code execution and file creation* and
 *Skills*; then **Customize → Skills** (Team/Enterprise: *Settings → Skills* first) →
 **+ Create skill / Upload skill** → choose `dist/infosec-council-desktop.zip`. Toggle it
-on. Then in any chat: `convene the council: <your decision> deep`. (On Free/Pro/Max the
+on. Then in any chat: `convene the council: <your decision> -deep`. (On Free/Pro/Max the
 Skills upload lives under Customize → Skills; on Team/Enterprise an owner must enable
 Skills org-wide first.)
 
 ## Use
 
+In Claude Code (CLI), call the skill explicitly with its slash command, followed by
+your decision and (optionally) a depth mode:
+
 ```
-convene the council: we want to let the team use a new AI note-taker that joins
-our customer calls and stores transcripts. ~25 staff, B2B SaaS, SOC 2 in progress.
-Should we, and under what conditions? deep
+/infosec-council we want to let the team use a new AI note-taker that joins our
+customer calls and stores transcripts. ~25 staff, B2B SaaS, SOC 2 in progress.
+Should we, and under what conditions? -deep
 ```
 
-The richer the context (size, sector, data types, frameworks you carry, constraints),
-the sharper the verdict. The council runs independent analysis, anonymized
-cross-examination (with forced debate when agreement is too clean), and a chairman
-synthesis that ends with a recommendation, a confidence level, a minority report,
-and one concrete next step.
+It also responds to natural language (in Claude Code, and in Claude.ai/Desktop once the
+skill is enabled):
+
+```
+convene the council: <your decision> -deep
+```
+
+Append `-quick`, `-standard`, or `-deep` to set the depth (default: Standard). The richer
+the context (size, sector, data types, frameworks you carry, constraints), the sharper
+the verdict. The council runs independent analysis, anonymized cross-examination (with
+forced debate when agreement is too clean), and a chairman synthesis that ends with a
+recommendation, a confidence level, a minority report, and one concrete next step.
 
 ## Frameworks & baselines (one place to maintain)
 
@@ -267,27 +277,19 @@ Your journal is data, not code; it lives outside the repo and is gitignored.
 
 ## HTML reports
 
-Generate a branded, self-contained HTML dossier for any run (`report.sh`, bundled
-with the skill; needs `jq`). It renders the recommendation with a confidence pill,
-advisor cards, the live conflicts / blind spots / minority report, and a footer.
+The council turns any run into a branded, self-contained HTML dossier in the Luméro
+house style (`report.sh`, bundled with the skill; needs `jq`). It lays out the
+recommendation and confidence, an executive summary, the decision-science option
+comparison, the key risks, where the advisors agreed and disagreed, the minority report,
+and each advisor in their own words. Fonts and the Luméro logo are embedded, so it
+renders identically offline with no external requests.
 
 ```bash
 # from a fresh run (the council does this for you), or from the journal by sha:
 bash .claude/skills/infosec-council/report.sh --sha <sha>
 ```
 
-Styling matches the Luméro website (lumero.nl): white canvas, slate text, the
-blue-to-green brand gradient on the top rule, hero card border and footer, rounded
-pills for confidence, and the system font stack the site uses. The official Luméro
-wordmark logo ships with the skill and is base64-embedded, so the report
-is fully self-contained and renders identically offline with no external requests: the
-black logo on the light header (`assets/lumero-logo-black.webp`) and the white
-logo on the dark footer (`assets/lumero-logo-white.webp`).
-
-Override the logos by setting `LUMERO_LOGO_LIGHT` (header) and/or `LUMERO_LOGO` (footer)
-to a URL or local image path; if a file is missing, a "Luméro" wordmark is used instead.
-Override the strapline with `LUMERO_TAGLINE` (default: *We do the academic research, you
-get the tools.*). In Claude Code, just ask for "a report for <sha>".
+In Claude Code, just ask for "a report for <sha>".
 
 ## Roadmap ideas
 
@@ -318,9 +320,14 @@ uploading; the `.github/workflows/release.yml` workflow handles it on every tag.
 ## Credits
 
 Built and maintained by **Luméro** – *we do the academic research,
-you get the tools.* Issues, forks, and pull requests are welcome under the licenses
-below. Design influences are credited inline (e.g. the cognitive-lens approach of
-`TorpedoD/claude-council`, from which the pre-mortem technique is adapted).
+you get the infosec tools.* Issues, forks, and pull requests are welcome under the licenses
+below. The multi-agent council architecture is adapted from
+[`TorpedoD/claude-council`](https://github.com/TorpedoD/claude-council), an open-source
+multi-agent decision framework (MIT-licensed): the Quick/Standard/Deep depth modes, the
+anonymized peer review, the forced adversarial debate when consensus looks too clean, the
+chairman synthesis that preserves a minority report, and the JSONL decision journal all
+originate there. This edition specializes that framework for information security, with a
+fixed panel of security domain experts, and adds the attack and detection pre-mortems.
 
 ## Feedback & contact
 
@@ -340,7 +347,7 @@ security roadmap you can actually execute, Luméro helps you move from intent to
 evidence. Ready for hands-on guidance instead of another 100-page report? Visit
 **[lumero.nl](https://lumero.nl)** and let's start the conversation.
 
-Found the council useful? The nicest way to say thanks is to **[follow Luméro on LinkedIn](https://www.linkedin.com/company/Luméro)**. It costs nothing and helps a small consultancy reach more teams who need right-sized security.
+Found the council useful? The nicest way to say thanks is to **[follow Luméro on LinkedIn](https://www.linkedin.com/company/Lum%C3%A9ro)**. It costs nothing and helps a small consultancy reach more teams who need right-sized security.
 
 ## License
 
@@ -357,7 +364,7 @@ In short: do what you like with the **code** (MIT). If you reuse or adapt the
 repository, indicate your changes, and license your adaptations under **CC BY-SA 4.0**
 (share-alike / copyleft).
 
-© 2026 Luméro All rights reserved
+© 2026 Luméro. The Luméro name and logos are reserved trademarks; the code and content are licensed as stated above.
 
 ### Trademark & bundled assets
 

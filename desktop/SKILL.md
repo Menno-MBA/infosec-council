@@ -4,7 +4,7 @@ description: >
   Convene a panel of seven information-security experts (CISO, Security Architect,
   Offensive Security Engineer, Security Operations, Compliance Analyst, DPO, Risk
   Manager) to deliberate a security, privacy, compliance, architecture, or risk
-  decision and return a synthesized verdict. SMB-focused. Use when the user says
+  decision and return a synthesized verdict. SME-focused. Use when the user says
   "convene the council", "council this", "ask the security council", "stress-test
   this decision", or poses a high-stakes question where one view isn't enough.
 ---
@@ -28,7 +28,7 @@ faithfully, one advisor at a time:
 - `personas/risk-manager.md`         – quantified risk + third-party/vendor risk
 
 ## Depth modes
-Append `quick`, `standard`, or `deep`; default Standard.
+Append `-quick`, `-standard`, or `-deep`; default Standard.
 - **Quick** – the 3 most relevant advisors, no peer review, no debate (reversible, low-stakes).
 - **Standard** – all 7, anonymized peer review, debate only if consensus is suspiciously clean (>= 6 of 7 agree).
 - **Deep** – all 7 + a decision-science comparison pass (cost/risk-reduction/effort/reversibility), always debate.
@@ -103,4 +103,4 @@ keep the journal in a connected Google Drive / file rather than the sandbox.
 - Write the synthesis and every report field in plain business language for a non-technical reader: name the problem, the risk, and what to do. Avoid insider jargon (for example "load-bearing", "forged in disagreement", "preserve the minority", "unresolved tradeoffs"); say it plainly. Do not use em-dashes; use commas, semicolons, or short sentences.
 - Skip the council for trivial/factual questions.
 - Surface hard legal/regulatory stoppers (e.g. GDPR) as gates, not opinions.
-- Scale to SMB reality: limited budget, limited headcount, heavy SaaS reliance.
+- Scale to SME reality: limited budget, limited headcount, heavy SaaS reliance.

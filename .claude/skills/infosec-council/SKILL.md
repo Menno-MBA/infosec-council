@@ -1,7 +1,7 @@
 ---
 name: infosec-council
 description: >
-  Convene a panel of information-security experts (CISO, Security Architect, Compliance Analyst, Risk Manager, DPO, Security Operations, and an Offensive Security / Exploitation Expert) to deliberate a security, privacy, compliance, architecture, or risk decision and return a synthesized verdict. Built for SMB   context. Use when the user says "convene the council", "council this", "ask the security council", "stress-test this decision", or poses a high-stakes security/privacy/compliance/risk question where one view isn't enough.
+  Convene a panel of information-security experts (CISO, Security Architect, Compliance Analyst, Risk Manager, DPO, Security Operations, and an Offensive Security / Exploitation Expert) to deliberate a security, privacy, compliance, architecture, or risk decision and return a synthesized verdict. Built for SME context. Use when the user says "convene the council", "council this", "ask the security council", "stress-test this decision", or poses a high-stakes security/privacy/compliance/risk question where one view isn't enough.
 ---
 
 # Information Security Council
@@ -21,15 +21,15 @@ These three form the core security triad and are deliberate counterweights: the 
 
 ## Depth modes
 
-Pick a mode from the user's phrasing; default to Standard. The user can force one by appending `quick`, `standard`, or `deep` to their question.
+Pick a mode from the user's phrasing; default to Standard. The user can force one by appending a depth flag, `-quick`, `-standard`, or `-deep`, to their question.
 
 | Mode | Trigger | Members | Peer review | Debate | Decision-science pass |
 | --- | --- | --- | --- | --- | --- |
-| Quick | `quick` suffix; low-stakes, reversible within a day | 2 most relevant to the question | No | No | No |
+| Quick | `-quick` flag; low-stakes, reversible within a day | 3 most relevant to the question | No | No | No |
 | Standard | default | all members | Yes | Only if consensus is suspiciously clean (>= 6 of 7 agree) | No |
-| Deep | `deep` suffix; high-stakes, costly to reverse | all members | Yes | Always | Yes |
+| Deep | `-deep` flag; high-stakes, costly to reverse | all members | Yes | Always | Yes |
 
-- **Quick**: select the 2 members whose mandate is most relevant (e.g. a pure privacy question maps to compliance-analyst, dpo). State which 2 you picked and why.
+- **Quick**: select the 3 members whose mandate is most relevant (e.g. a pure privacy question maps to compliance-analyst, dpo). State which 3 you picked and why.
 - **Deep**: after cross-exam, add a decision-science pass. Lay the options in a comparison (cost / risk-reduction / effort / reversibility), do an explicit risk-appetite check, and surface the highest-leverage option.
 
 ## Shared baseline (single source of truth)
@@ -141,5 +141,5 @@ UNKNOWNS: <what I don't know that matters>
 - Write the synthesis and every report field in plain business language for a non-technical reader: name the problem, the risk, and what to do. Avoid insider jargon (for example "load-bearing", "forged in disagreement", "preserve the minority", "unresolved tradeoffs"); say it plainly. Do not use em-dashes; use commas, semicolons, or short sentences.
 - If the question is factual, trivial, or has an obvious answer, say so and skip the council.
 - Surface hard legal/regulatory stoppers (e.g. GDPR, NIS2/Cbw) as gates, not opinions.
-- Scale advice to SMB reality: limited budget, limited capacity (headcount), IT-suppliers reliance.
+- Scale advice to SME reality: limited budget, limited capacity (headcount), IT-suppliers reliance.
 - Keep the final verdict tight. Long enough to be defensible, short enough to act on.
