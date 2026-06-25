@@ -1,8 +1,8 @@
-# Information Security Council
+# Luméro Information Security Council
 
 **One decision, seven expert lenses, one synthesized verdict. Built for EU SMEs.**
 
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -49,7 +49,7 @@ npx github:Menno-MBA/infosec-council --global   # install for every project
 > The download zip is built automatically by CI and attached to each release;
 > nothing binary is committed to the repo. Maintainers: see *Publish* below.
 
-## Members
+## The expert panel
 
 | Member | Mandate | Anchors to |
 |---|---|---|
@@ -342,6 +342,18 @@ chairman synthesis that preserves a minority report, and the JSONL decision jour
 originate there. This edition specializes that framework for information security, with a
 fixed panel of security domain experts, and adds the attack and detection pre-mortems.
 
+## Contributing
+
+Improvements are welcome: a new advisor seat, a sharper persona mandate, a `frameworks.md`
+update, or a fix. Open an issue to discuss first, or send a pull request. Contributors who
+help improve the council are credited here and in the release notes. By contributing you
+agree your changes are licensed under the project's terms (MIT for code, CC BY-SA 4.0 for
+content).
+
+### Contributors
+
+- **Luméro** (maintainer)
+
 ## Feedback & contact
 
 Found a bug, have an idea, or want to propose a new advisor seat or framework? Please open a
@@ -384,4 +396,4 @@ repository, indicate your changes, and license your adaptations under **CC BY-SA
 The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-*.webp`)
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
 project under your own brand, replace or remove them. The HTML report uses the system
-font stack (no bundled webfonts).
+font stack (no bundled we
