@@ -12,7 +12,7 @@
 > qualified professional. See the license files for the full warranty disclaimers.
 
 
-A council of seven security experts who deliberate a decision, peer-review
+A expert panel of seven security experts who deliberate a decision, peer-review
 each other anonymously, force a debate when agreement looks too clean, and return a
 synthesized verdict. Built for European **SME** reality: limited budget, limited headcount,
 heavy reliance on SaaS and third parties.
