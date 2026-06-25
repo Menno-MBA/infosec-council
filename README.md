@@ -1,6 +1,6 @@
 # Luméro Information Security Council
 
-**One decision, seven expert lenses, one synthesized verdict. Built for EU SMEs.**
+**Stress-test a security, privacy, compliance or risk decision, or a live incident: seven domain experts debate it and return one clear verdict. Calibrated to EU-SME reality.**
 
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
 
@@ -9,13 +9,16 @@
 > perspectives. Its output is **not** legal, regulatory, or professional security
 > advice, may be incomplete or wrong, and is provided **with no warranty**. You
 > remain responsible for your decisions. Validate anything material with a
-> qualified professional. See the license files for the full warranty disclaimers.
+> qualified professional. See the license files for the full warranty disclaimers. It is a
+> point-in-time read, not continuous monitoring; re-run it when the decision, the facts, or the
+> rules change.
 
 
-A expert panel of seven security experts who deliberate a decision, peer-review
-each other anonymously, force a debate when agreement looks too clean, and return a
-synthesized verdict. Built for European **SME** reality: limited budget, limited headcount,
-heavy reliance on SaaS and third parties.
+Stress-test a high-stakes decision before you commit, or pressure-test a live incident or
+situation. An expert panel of seven security
+advisors deliberates it, peer-reviews each other anonymously, forces a debate when agreement
+looks too clean, and returns one synthesized verdict. Built for European **SME** reality:
+limited budget, limited headcount, heavy reliance on SaaS and third parties.
 
 It's a **persona council**, one model running as several sub-agents with
 deliberately conflicting mandates. The disagreement is the product.
@@ -113,7 +116,8 @@ infosec-council/
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
 │           ├── context.md                     #   strategic house-context (fill-in template)
 │           ├── journal.sh                     #   decision journal (jq)
-│           ├── report.sh                      #   Luméro's branded HTML report
+│           ├── report.js                      #   Luméro's branded HTML report (Node, no deps; default)
+│           ├── report.sh                      #   same report, bash + jq (alternative)
 │           └── assets/
 │               ├── lumero-logo-black.webp   #   header (light)
 │               └── lumero-logo-white.webp   #   footer (dark)
@@ -150,7 +154,7 @@ The editions differ in one decisive way: Claude Code has real sub-agents, while 
 | Best for | the full, isolated multi-agent experience | quick access in the app, sharing via uploaded skill | anyone who lives in ChatGPT; zero setup |
 
 ### Path A – Claude Code (CLI)
-Requires Claude Code v2.1+ and (for the journal/report) `jq`.
+Requires Claude Code v2.1+. The decision journal needs `jq`; the HTML report needs only Node (or `jq` for the bash version).
 
 **Recommended models (cost vs quality).** Run Claude Code itself on **Opus** (it does the
 framing and the final synthesis), while the seven advisors run as sub-agents on **Sonnet**
@@ -240,6 +244,14 @@ the verdict. The council runs independent analysis, anonymized cross-examination
 forced debate when agreement is too clean), and a chairman synthesis that ends with a
 recommendation, a confidence level, a minority report, and one concrete next step.
 
+**It assesses live incidents too, not just forward decisions.** For example:
+
+```
+ask the council: a phishing email led to a compromised Microsoft 365 account with new
+mailbox forwarding rules. What is the blast radius, the response, and our GDPR and NIS2
+notification duties? -deep
+```
+
 ## Frameworks & baselines (one place to maintain)
 
 All regulations, standards, guidelines, and technologies live in
@@ -275,6 +287,16 @@ The orchestrator injects an explicit licence for any seat to challenge a house p
 turning an adversarial panel into a confirmation machine.
 
 To use it, fill in Parts A to C with your organization's house positions; the council reads `context.md` automatically and writes only to the Part D auto-context block.
+
+### Grounding: the output is only as good as what you feed it
+
+The council reasons over what it is grounded in, so the quality of the verdict tracks the quality of the inputs. Three layers of grounding matter, in order of impact:
+
+1. **The question** – concrete situation, constraints, and what decision you actually face. A vague prompt yields a generic answer; a specific one ("we run Microsoft 365 Business Premium, 40 staff, no in-house IT, considering Copilot") lets the seats reason about *your* reality.
+2. **Strategic context** (`context.md`) – your organization's house positions, risk-appetite boundaries, architecture preferences, and prior decisions. Without it the council assumes a generic EU SME; with it the advice is calibrated to how you actually operate.
+3. **Framework detail** (`frameworks.md`) – the in-scope regimes, the control baseline, and the canonical standard versions/levels the seats cite. The fuller and more accurate this catalog, the more precise the compliance and control reasoning.
+
+Treat the result as a point-in-time read, calibrated to the context you supplied. Thin grounding gives a sound but generic answer; rich grounding gives advice specific enough to act on. Re-run it when the question, the facts, or the rules change.
 
 ## Customize
 
@@ -312,14 +334,18 @@ Your journal is data, not code; it lives outside the repo and is gitignored.
 ## HTML reports
 
 The council turns any run into a branded, self-contained HTML dossier in the Luméro
-house style (`report.sh`, bundled with the skill; needs `jq`). It lays out the
-recommendation and confidence, an executive summary, the decision-science option
-comparison, the key risks, where the advisors agreed and disagreed, the minority report,
-and each advisor in their own words. Fonts and the Luméro logo are embedded, so it
-renders identically offline with no external requests.
+house style. Two interchangeable generators ship with the skill and produce identical
+output: `report.js` (Node, zero dependencies, the default) and `report.sh` (bash, needs
+`jq`). The Node version is recommended, especially on Windows, where `jq` is usually
+absent. It lays out the recommendation and confidence, an executive summary, the
+decision-science option comparison, the key risks, where the advisors agreed and
+disagreed, the minority report, and each advisor in their own words. Fonts and the Luméro
+logo are embedded (base64), so it renders identically offline with no external requests.
 
 ```bash
 # from a fresh run (the council does this for you), or from the journal by sha:
+node .claude/skills/infosec-council/report.js --sha <sha>
+# or, if you have jq but not Node:
 bash .claude/skills/infosec-council/report.sh --sha <sha>
 ```
 

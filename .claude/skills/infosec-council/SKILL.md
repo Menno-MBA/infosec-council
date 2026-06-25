@@ -101,7 +101,7 @@ echo '{
 ```
 Tell the user the run's sha so they can record the outcome later. If `jq` is missing, skip logging silently and mention once that journaling needs `jq`.
 
-**HTML report.** A `report.sh` sits beside `journal.sh` in this skill's directory. After synthesis, offer (or, if the user asked for a report, produce) a branded HTML dossier. Build a rich JSON object with these fields and pipe it to the script:
+**HTML report.** Two generators sit beside `journal.sh` in this skill's directory and produce the identical branded dossier: `report.js` (Node, zero dependencies, **preferred**) and `report.sh` (bash, needs `jq`). **Use `report.js` by default** because it needs no `jq` (which is missing on most Windows machines) and base64-embeds the brand logos, so the header and footer always show the real logo. Only fall back to `report.sh` if Node is unavailable. **Never hand-roll your own report generator**; if one script errors, switch to the other rather than improvising HTML (an improvised script drops the logos). After synthesis, offer (or, if the user asked for a report, produce) the dossier. Build a rich JSON object with these fields and pipe it to the generator:
 ```
 echo '{
   "question": "...", "mode": "...", "confidence": "...",
@@ -112,8 +112,9 @@ echo '{
   "options": [ {"option":"A. ...","effort":"...","risk_reduction":"...","cost":"...","reversibility":"...","verdict":"..."} ],
   "risk_appetite": "...", "highest_leverage": "...",
   "members": [ {"name":"dpo","stance":"...","confidence":"...","summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
-}' | bash "<skill_dir>/report.sh"
+}' | node "<skill_dir>/report.js"      # preferred; or: | bash "<skill_dir>/report.sh"
 ```
+On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" < input.json` rather than fighting shell quoting in a single `echo`.
 
 Fill the report fully, not thinly. The report is two layered: an **executive_summary**
 (3 to 5 plain sentences a busy decision-maker can act on, naming the problem, the call,
@@ -126,7 +127,7 @@ offensive-security, security-operations, compliance-analyst, dpo, risk-manager);
 report renders the friendly role title and what that seat covers automatically.
 
 **Deep mode adds the decision-science pass.** Populate `options` (the realistic choices, each with effort, risk_reduction, cost, reversibility, and a one-line verdict), `risk_appetite` (the explicit owner risk-appetite check: which option fits which posture, who accepts the residual risk), and `highest_leverage` (the single move that shrinks risk most). These render as an option-comparison table plus a risk-appetite callout, so do not drop them from a deep run.
-The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can override the logos with `LUMERO_LOGO_LIGHT` (header) and `LUMERO_LOGO` (footer); otherwise the bundled Luméro wordmark logos are used. Route a bare `report <sha>` request to `bash "<skill_dir>/report.sh" --sha <sha>` (renders from the journal).
+The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can override the logos with `LUMERO_LOGO_LIGHT` (header) and `LUMERO_LOGO` (footer); otherwise the bundled Luméro wordmark logos are used. Route a bare `report <sha>` request to `node "<skill_dir>/report.js" --sha <sha>` (or `bash "<skill_dir>/report.sh" --sha <sha>`); both render from the journal.
 
 ## Required output: CONFIDENCE block
 Every member must end their response with:
