@@ -63,6 +63,10 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
     | if $c=="high" then "high" elif $c=="medium" then "med" elif $c=="low" then "low" else "na" end;
   def vclass: (. // "" | ascii_downcase) as $v
     | if ($v|test("recommend|best")) then "vg" elif ($v|test("reckless|avoid|do not")) then "vr" else "va" end;
+  def rmatrix: {"severe":{"rare":"High","possible":"Critical","likely":"Critical"},"serious":{"rare":"Medium","possible":"High","likely":"Critical"},"limited":{"rare":"Low","possible":"Low","likely":"Medium"}};
+  def rlevelclass: {"Low":"low","Medium":"med","High":"high","Critical":"crit"}[.];
+  def implabel: {"limited":"Limited","serious":"Serious","severe":"Severe"}[.];
+  def liklabel: {"rare":"Rare","possible":"Possible","likely":"Likely"}[.];
   # friendly names + role descriptions for the known seats
   def role_label: ({"ciso":"CISO","security-architect":"Security Architect","offensive-security":"Offensive Security (Red Team)","security-operations":"Security Operations","compliance-analyst":"Compliance Analyst","dpo":"DPO / Privacy","risk-manager":"Risk Manager"}[(.|ascii_downcase)]) // .;
   def role_desc: ({"ciso":"Security posture, budget, and business enablement","security-architect":"Secure design and technical controls (can we build it safely)","offensive-security":"How a real attacker would try to break it","security-operations":"Detection, monitoring, and incident response (can we spot and survive it)","compliance-analyst":"Standards, regulations, and the evidence to prove compliance","dpo":"Lawful, fair handling of personal data and privacy","risk-manager":"Sizing the risk, risk appetite, and third-party exposure"}[(.|ascii_downcase)]) // "";
@@ -87,7 +91,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + ".wordmark{font-weight:800;font-size:22px;color:var(--ink);}.wordmark.dark{color:#fff;}"
 + ".kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ga);font-weight:600;border-left:2px solid var(--border);padding-left:14px;}"
 + "h1{font-weight:800;font-size:clamp(27px,4.4vw,40px);line-height:1.13;letter-spacing:-.02em;color:var(--ink);margin:.3em 0 .15em;}"
-+ ".intro{font-size:15px;color:var(--muted);margin:.2em 0 0;max-width:66ch;}"
++ ".intro{font-size:15px;color:var(--muted);margin:.2em 0 0;}"
 + ".meta{font-family:var(--mono);font-size:12px;color:var(--faint);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;margin:18px 0 0;display:flex;gap:24px;flex-wrap:wrap;}"
 + ".meta b{color:var(--muted);font-weight:600;}"
 + ".lead{font-size:13px;color:var(--faint);margin:.1em 0 12px;}"
@@ -103,6 +107,16 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + ".appetite{margin:18px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--ga);border-radius:10px;padding:14px 16px;}"
 + ".appetite h3{margin:0 0 4px;font-size:14px;color:var(--ink);font-weight:700;}.appetite p{margin:0;font-size:14px;color:var(--body);}"
 + ".leverage{margin:14px 0 0;font-size:15px;color:var(--ink);}.leverage strong{color:var(--ga);}"
++ ".expo{margin:14px 0 0;}"
++ ".expohead{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:12px;}.expohead b{color:var(--ink);}"
++ ".expoband{font-weight:700;text-transform:uppercase;letter-spacing:.06em;}"
++ ".band-low{color:#15803d;}.band-moderate{color:#b45309;}.band-high{color:#c2410c;}.band-critical{color:#b91c1c;}"
++ ".expobar{position:relative;height:12px;border-radius:9999px;background:linear-gradient(90deg,#15803d 0%,#a3b817 38%,#e0a800 62%,#d23b2e 100%);}"
++ ".expomark{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--ink);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(255,255,255,.65),0 2px 8px rgba(0,0,0,.35);}"
++ ".expolabels{display:flex;justify-content:space-between;margin-top:9px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);}"
++ ".riskmeta2{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}"
++ ".riskwhy{margin:12px 0 0;color:var(--body);font-size:14px;}"
++ ".risklegend{margin:12px 0 0;font-size:12.5px;color:var(--muted);}.risklegend summary{cursor:pointer;color:var(--ga);font-weight:600;}.risklegend p{margin:6px 0;}"
 + ".pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}"
 + ".pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}"
 + ".exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}"
@@ -146,6 +160,25 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + (if (.key_assumption // "")|length>0 then "<p class=\"assume\"><strong>This advice depends on:</strong> " + (.key_assumption|e) + "</p>" else "" end)
 + (if (.next_step // "")|length>0 then "<p class=\"assume\"><strong>Do this next:</strong> " + (.next_step|e) + "</p>" else "" end)
 + "</div>"
+
++ ((.risk_score // {}) as $rs
+   | (($rs.impact // "")|ascii_downcase) as $imp
+   | (($rs.likelihood // "")|ascii_downcase) as $lik
+   | ({"limited":2,"serious":3,"severe":5}[$imp]) as $in
+   | ({"rare":2,"possible":3,"likely":5}[$lik]) as $ln
+   | if ($in != null and $ln != null)
+     then ($in*$ln) as $score
+       | (if $score<=6 then ["Low","low"] elif $score<=12 then ["Moderate","moderate"] elif $score<=18 then ["High","high"] else ["Critical","critical"] end) as $b
+       | (($score/25*100)|round) as $pos
+       | "<section class=\"block\"><h2>Risk rating</h2><p class=\"lead\">A qualitative read of this decision: impact against likelihood, mapped to an exposure score. It rates the decision or change, not only a vulnerability.</p>"
+       + "<div class=\"expo\"><div class=\"expohead\">Risk exposure &middot; <b>" + ($score|tostring) + "/25</b> &middot; <span class=\"expoband band-" + $b[1] + "\">" + $b[0] + "</span></div>"
+       + "<div class=\"expobar\"><span class=\"expomark\" style=\"left:" + ($pos|tostring) + "%\"></span></div>"
+       + "<div class=\"expolabels\"><span>Low</span><span>Moderate</span><span>High</span><span>Critical</span></div>"
+       + "<p class=\"riskmeta2\">Impact: " + ({"limited":"Limited","serious":"Serious","severe":"Severe"}[$imp]) + " &middot; Likelihood: " + ({"rare":"Rare","possible":"Possible","likely":"Likely"}[$lik]) + "</p></div>"
+       + (if (($rs.rationale // "")|length>0) then "<p class=\"riskwhy\">" + ($rs.rationale|e) + "</p>" else "" end)
+       + "<details class=\"risklegend\"><summary>What the scale means</summary><p><strong>Impact:</strong> Limited (minor service impact, low cost); Serious (moderate to serious damage, high cost, possible legal consequences); Severe (severe legal consequences, lasting damage or outage).</p><p><strong>Likelihood:</strong> Rare (conceivable but unlikely); Possible (unlikely but plausible in edge cases); Likely (almost certain to materialize).</p><p><strong>Exposure</strong> = impact x likelihood, scored out of 25.</p></details>"
+       + "</section>"
+     else "" end)
 
 + (if (.executive_summary // "")|length>0
    then "<section class=\"exec\"><h2>Executive summary</h2><p>" + (.executive_summary|e) + "</p></section>"

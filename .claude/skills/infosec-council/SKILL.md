@@ -75,6 +75,7 @@ Strip author labels from the Round-1 outputs and feed the full set back to each 
 7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high) and the key assumption it rests on.
 8. **Executive summary**: 3 to 5 plain sentences for a busy decision-maker, naming the problem, the call, and why.
 9. **Key risks**: the main risks of the decision, in plain language (a non-expert reads this section first).
+9b. **Risk rating**: score the decision on the qualitative impact x likelihood scale in `frameworks.md` (impact: limited/serious/severe; likelihood: rare/possible/likely) with a one-line rationale. It rates the decision or change, not only a vulnerability.
 10. **One next step**: the single most useful concrete action.
 
 ## Decision journal (optional, needs jq)
@@ -106,6 +107,7 @@ echo '{
   "question": "...", "mode": "...", "confidence": "...",
   "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
   "risks": ["..."], "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],
+  "risk_score": {"impact":"limited|serious|severe","likelihood":"rare|possible|likely","rationale":"..."},
   "minority_report": "...",
   "options": [ {"option":"A. ...","effort":"...","risk_reduction":"...","cost":"...","reversibility":"...","verdict":"..."} ],
   "risk_appetite": "...", "highest_leverage": "...",

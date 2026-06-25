@@ -25,6 +25,34 @@ Flip a value here and every persona inherits it.
 | Default risk posture | Owner-set, elicit and make explicit | averse / neutral / seeking |
 | Quantification depth | Qualitative / semi-quantitative | Promote to FAIR-style money-quant only past IG2 or on a regulatory driver |
 
+### Risk scoring scale (qualitative)
+
+The council rates each decision on a qualitative impact x likelihood scale, and the report
+renders it as a 3x3 matrix. It rates the decision or change, not only a vulnerability.
+
+| Impact | Meaning |
+|---|---|
+| **Limited** | Minor impact on service; light damage at minimal cost. |
+| **Serious** | Moderate to serious damage, high cost, possible legal consequences. |
+| **Severe** | Severe legal consequences; lasting damage or being put out of operation. |
+
+| Likelihood | Meaning |
+|---|---|
+| **Rare** | Conceivable, but unlikely. |
+| **Possible** | Unlikely, but plausible in edge cases. |
+| **Likely** | Almost certain that the risk materializes. |
+
+Exposure score = impact x likelihood, where impact is Limited 2 / Serious 3 / Severe 5 and
+likelihood is Rare 2 / Possible 3 / Likely 5, giving a score out of 25. The report renders it
+as a horizontal exposure bar with a marker, banded as:
+
+| Exposure score | Band |
+|---|---|
+| 1 to 6 | Low |
+| 7 to 12 | Moderate |
+| 13 to 18 | High |
+| 19 to 25 | Critical |
+
 ### In-scope regulatory regimes (toggle as the business changes)
 
 | Regime | In scope? | Trigger to flip "Yes" |

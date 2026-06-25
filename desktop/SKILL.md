@@ -86,7 +86,7 @@ in the code-execution sandbox:
 self-contained `council-report-*.html`; offer it to the user as a download.
 
 Fill the JSON fully: include an `executive_summary` (3 to 5 plain sentences for a busy
-decision-maker) a `risks` array (main risks, never empty), and for a deep run the decision-science fields `options` (each with effort, risk_reduction, cost, reversibility, verdict), `risk_appetite`, and `highest_leverage`, alongside
+decision-maker) a `risks` array (main risks, never empty), a `risk_score` ({impact: limited/serious/severe, likelihood: rare/possible/likely, rationale}) scored on the frameworks.md scale, and for a deep run the decision-science fields `options` (each with effort, risk_reduction, cost, reversibility, verdict), `risk_appetite`, and `highest_leverage`, alongside
 `consensus`, `conflicts`, `blind_spots`, `minority_report`, and per-member `summary`,
 `assumptions`, and `change_my_mind`. Use the persona key as each member `name` (ciso,
 security-architect, offensive-security, security-operations, compliance-analyst, dpo,
