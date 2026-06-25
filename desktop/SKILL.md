@@ -1,12 +1,13 @@
 ---
 name: infosec-council
 description: >
-  Convene a panel of seven information-security experts (CISO, Security Architect,
-  Offensive Security Engineer, Security Operations, Compliance Analyst, DPO, Risk
-  Manager) to deliberate a security, privacy, compliance, architecture, or risk
-  decision and return a synthesized verdict. SME-focused. Use when the user says
-  "convene the council", "council this", "ask the security council", "stress-test
-  this decision", or poses a high-stakes question where one view isn't enough.
+  Ask a panel of seven information-security experts (CISO, Security Architect,
+  Offensive Security / Red Team, Security Operations, Compliance Analyst, DPO, Risk
+  Manager) for advice: they deliberate a security, privacy, compliance, architecture,
+  or risk decision and return a clear verdict (recommendation, risks, next step).
+  Built for EU SMEs. Use when the user says "ask the council", "ask the panel for
+  advice", "council this", "convene the council", "stress-test this decision", or
+  poses a high-stakes question where one view isn't enough.
 ---
 
 # Information Security Council (Claude.ai / Desktop edition)

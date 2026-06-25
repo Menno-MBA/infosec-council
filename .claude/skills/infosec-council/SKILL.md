@@ -1,7 +1,7 @@
 ---
 name: infosec-council
 description: >
-  Convene a panel of information-security experts (CISO, Security Architect, Compliance Analyst, Risk Manager, DPO, Security Operations, and an Offensive Security / Exploitation Expert) to deliberate a security, privacy, compliance, architecture, or risk decision and return a synthesized verdict. Built for SME context. Use when the user says "convene the council", "council this", "ask the security council", "stress-test this decision", or poses a high-stakes security/privacy/compliance/risk question where one view isn't enough.
+  Ask a panel of seven information-security experts (CISO, Security Architect, Offensive Security / Red Team, Security Operations, Compliance Analyst, DPO, Risk Manager) for advice: they deliberate a security, privacy, compliance, architecture, or risk decision and return a clear verdict with a recommendation, the key risks, and a next step. Built for EU SMEs. Use when the user says "ask the council", "ask the panel for advice", "council this", "convene the council", "stress-test this decision", or poses a high-stakes security/privacy/compliance/risk question where one view isn't enough.
 ---
 
 # Information Security Council
@@ -67,7 +67,7 @@ Strip author labels from the Round-1 outputs and feed the full set back to each 
 ### Round 3. Chairman synthesis (you write this)
 0. **Frame check**: did any member challenge the premise? If a materially superior alternative surfaced, lead with it. Do not bury a "right answer to the wrong question" finding inside the recommendation.
 1. **Decision**: restate what is being decided, one line.
-2. **Mode used**: and which members were convened.
+2. **Mode used**: and which members were consulted.
 3. **Consensus**: where members agreed, and whether that agreement is trustworthy.
 4. **Live conflicts**: unresolved disagreements as tradeoffs, not mush.
 5. **Blind spots caught**: what cross-exam/debate surfaced that Round 1 missed.
@@ -82,11 +82,11 @@ Strip author labels from the Round-1 outputs and feed the full set back to each 
 
 A `journal.sh` script sits in this skill's own directory. If `jq` is available, use it.
 
-**Command routing.** Before convening, check what the user actually asked:
-- `outcome <sha> <correct|partial|wrong> [note]` runs `journal.sh outcome ...`; do NOT convene the council.
-- `meta` runs `journal.sh meta`, then summarize the calibration in plain language (which confidence levels are trustworthy, what the high-confidence misses teach). Do NOT convene.
-- `journal [n]` runs `journal.sh journal` and shows recent runs. Do NOT convene.
-- Anything else: convene the council normally, then log it (below).
+**Command routing.** Before running the council, check what the user actually asked:
+- `outcome <sha> <correct|partial|wrong> [note]` runs `journal.sh outcome ...`; do not run the council.
+- `meta` runs `journal.sh meta`, then summarize the calibration in plain language (which confidence levels are trustworthy, what the high-confidence misses teach). Do not run the council.
+- `journal [n]` runs `journal.sh journal` and shows recent runs. Do not run the council.
+- Anything else: run the council normally, then log it (below).
 
 **Logging a run.** After you deliver the Round-3 synthesis, append the run. Build a compact JSON object and pipe it to the script (path is this skill's directory):
 ```
