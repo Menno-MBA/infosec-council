@@ -304,10 +304,17 @@ bash .claude/skills/infosec-council/report.sh --sha <sha>
 
 In Claude Code, just ask for "a report for <sha>".
 
-## Roadmap ideas
+## Roadmap
 
-- **Per-member calibration**: attribute outcomes to individual members' stances to
-  learn which advisor's dissent best predicts a bad outcome (needs richer stance logging).
+Direction is maintainer-led: Luméro curates the core council logic so every edition (CLI,
+Desktop, GPT) behaves the same. The items below are under consideration, not commitments.
+Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
+(CC BY-SA) you are free to fork and change the logic yourself.
+
+- **Per-advisor calibration**: over time, track which advisor's dissent most often turns out
+  to be right, so the council can learn whose warnings to weight more heavily. This needs the
+  decision journal to record each advisor's stance per run, then compare those stances against
+  the outcomes you log later.
 
 ## Publish (maintainers)
 
@@ -396,4 +403,4 @@ repository, indicate your changes, and license your adaptations under **CC BY-SA
 The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-*.webp`)
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
 project under your own brand, replace or remove them. The HTML report uses the system
-font stack (no bundled we
+font stack (no bundl
