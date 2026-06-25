@@ -19,6 +19,7 @@ const path = require("path");
 const zlib = require("zlib");
 
 const PKG_ROOT = path.resolve(__dirname, "..");
+const VERSION = (() => { try { return require(path.join(PKG_ROOT, "package.json")).version; } catch (e) { return "?"; } })();
 const SKILL_NAME = "infosec-council";
 
 // --- tiny arg parse ------------------------------------------------------
@@ -28,6 +29,7 @@ const cmd = argv.find((a) => !a.startsWith("-")) || "install";
 const GLOBAL = flags.has("--global") || flags.has("-g");
 const FORCE = flags.has("--force") || flags.has("-f");
 const HELP = flags.has("--help") || flags.has("-h");
+const SHOWVER = flags.has("--version") || flags.has("-v");
 
 const C = {
   b: (s) => `\x1b[1m${s}\x1b[0m`,
@@ -107,8 +109,9 @@ function install() {
 
   console.log(`${C.green("✓")} Installed ${C.b(String(nAgents) + " agents")} → ${agentsDest}`);
   console.log(`${C.green("✓")} Installed skill ${C.b(SKILL_NAME)} → ${skillDest}`);
+  console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
-  console.log(`  ${C.dim("convene the council: <your decision> deep")}\n`);
+  console.log(`  ${C.dim("ask the council: <your decision> -deep")}\n`);
 }
 
 // --- minimal, dependency-free .zip writer (deflate) -----------------------
@@ -213,7 +216,8 @@ function buildDesktop() {
   console.log(`  & file creation, and Skills), then Skills → Upload skill → choose the zip.\n`);
 }
 
-if (HELP || cmd === "help") help();
+if (SHOWVER || cmd === "version") console.log(`infosec-council v${VERSION}`);
+else if (HELP || cmd === "help") help();
 else if (cmd === "install") install();
 else if (cmd === "build-desktop" || cmd === "build") buildDesktop();
 else {

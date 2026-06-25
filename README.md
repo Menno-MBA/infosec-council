@@ -152,6 +152,12 @@ The editions differ in one decisive way: Claude Code has real sub-agents, while 
 ### Path A – Claude Code (CLI)
 Requires Claude Code v2.1+ and (for the journal/report) `jq`.
 
+**Recommended models (cost vs quality).** Run Claude Code itself on **Opus** (it does the
+framing and the final synthesis), while the seven advisors run as sub-agents on **Sonnet**
+(set with `model: sonnet` in each persona file). Opus for everything works but burns far more
+tokens. To force the advisors onto Sonnet regardless of your session model, set the environment
+variable `CLAUDE_CODE_SUBAGENT_MODEL=sonnet`.
+
 **Fastest – install with npx** (no clone; runs straight from this repo):
 
 ```bash
@@ -178,6 +184,21 @@ To make it available in **every** project without npx, install globally (or
 ```bash
 bash scripts/install-cli.sh  # copies agents → ~/.claude/agents, skill → ~/.claude/skills
 ```
+
+### Updating
+
+npx does not auto-update; it keeps the version you first installed. To upgrade, re-run the
+install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
+
+```bash
+npx github:Menno-MBA/infosec-council#v1.5.3 --force --global
+```
+
+Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
+page. The installer prints the version it set; check yours anytime with
+`npx github:Menno-MBA/infosec-council --version`. Then close and reopen Claude Code so it loads
+the new version. (Still seeing the old text? An older copy in your home folder is being used; the
+`--global` re-install above overwrites it.)
 
 ### Path B – Claude.ai / Desktop / Cowork
 Build the uploadable skill, then add it in the app.
