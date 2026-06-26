@@ -52,6 +52,51 @@ npx github:Menno-MBA/infosec-council --global   # install for every project
 > The download zip is built automatically by CI and attached to each release;
 > nothing binary is committed to the repo. Maintainers: see *Publish* below.
 
+## Use
+
+In Claude Code (CLI), call the skill explicitly with its slash command, followed by
+your decision and (optionally) a depth mode:
+
+```
+/infosec-council we want to let the team use a new AI note-taker that joins our
+customer calls and stores transcripts. ~25 staff, B2B SaaS, SOC 2 in progress.
+Should we, and under what conditions? -deep
+```
+
+It also responds to natural language (in Claude Code, and in Claude.ai/Desktop once the
+skill is enabled). "convene the council", "council this", and "ask the panel for advice" trigger it too:
+
+```
+ask the council: <your decision> -deep
+```
+
+Append `-quick`, `-standard`, or `-deep` to set the depth (default: Standard). The richer
+the context (size, sector, data types, frameworks you carry, constraints), the sharper
+the verdict. The council runs independent analysis, anonymized cross-examination (with
+forced debate when agreement is too clean), and a chairman synthesis that ends with a
+recommendation, a confidence level, a minority report, and one concrete next step.
+
+**It assesses live incidents too, not just forward decisions.** For example:
+
+```
+ask the council: a phishing email led to a compromised Microsoft 365 account with new
+mailbox forwarding rules. What is the blast radius, the response, and our GDPR and NIS2
+notification duties? -deep
+```
+
+## Depth modes
+
+Append a depth flag (`-quick`, `-standard`, or `-deep`) to your question, or let the council pick (defaults to Standard).
+
+| Mode | When | Members | Peer review | Debate |
+|---|---|---|---|---|
+| **Quick** | Low-stakes, reversible in a day | 3 most relevant | No | No |
+| **Standard** | Default | All 7 | Yes | Only if consensus is suspiciously clean |
+| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass | Yes | Always |
+
+Every member ends with a **CONFIDENCE block** (confidence / assumptions / what would
+change my mind / unknowns) so the verdict is calibrated, not just asserted.
+
 ## The expert panel
 
 | Member | Mandate | Anchors to |
@@ -69,77 +114,6 @@ Offensive Security (*break* it), and Security Operations (*see and survive* it f
 That tension keeps the room from drifting into "just add another control nobody tests
 or monitors." When offense and operations disagree on feasible-vs-detectable, that gap
 is itself a finding.
-
-## Depth modes
-
-Append a depth flag (`-quick`, `-standard`, or `-deep`) to your question, or let the council pick (defaults to Standard).
-
-| Mode | When | Members | Peer review | Debate |
-|---|---|---|---|---|
-| **Quick** | Low-stakes, reversible in a day | 3 most relevant | No | No |
-| **Standard** | Default | All 7 | Yes | Only if consensus is suspiciously clean |
-| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass | Yes | Always |
-
-Every member ends with a **CONFIDENCE block** (confidence / assumptions / what would
-change my mind / unknowns) so the verdict is calibrated, not just asserted.
-
-## Repository structure
-
-One repo serves both Claude Code (CLI) and Claude.ai/Desktop. Personas, scripts, and
-assets have a single source of truth under `.claude/`; the desktop skill is assembled
-from them by a build script.
-
-```
-infosec-council/
-├── README.md
-├── LICENSE                                   # MIT (the code)
-├── LICENSE-CC-BY-SA-4.0.txt                  # CC BY-SA 4.0 (the council content)
-├── package.json                              # npx installer metadata
-├── .gitignore
-├── bin/
-│   └── cli.js                                # npx installer / desktop-zip builder
-├── .github/
-│   └── workflows/
-│       └── release.yml                       # CI: builds + attaches the desktop zip on tag
-├── .claude/                                  # ← Claude Code (CLI) reads this directly
-│   ├── agents/                               #   one sub-agent per advisor (CLI only)
-│   │   ├── ciso.md
-│   │   ├── security-architect.md
-│   │   ├── offensive-security.md
-│   │   ├── security-operations.md
-│   │   ├── compliance-analyst.md
-│   │   ├── dpo.md
-│   │   └── risk-manager.md
-│   └── skills/
-│       └── infosec-council/
-│           ├── SKILL.md                       #   orchestrator (dispatches sub-agents)
-│           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
-│           ├── context.md                     #   strategic house-context (fill-in template)
-│           ├── journal.sh                     #   decision journal (jq)
-│           ├── report.js                      #   Luméro's branded HTML report (Node, no deps; default)
-│           ├── report.sh                      #   same report, bash + jq (alternative)
-│           └── assets/
-│               ├── lumero-logo-black.webp   #   header (light)
-│               └── lumero-logo-white.webp   #   footer (dark)
-├── desktop/
-│   └── SKILL.md                               # ← Claude.ai/Desktop orchestrator (in-context, no sub-agents)
-├── chatgpt/                                  # ← ChatGPT (custom GPT) edition
-│   ├── INSTRUCTIONS.md                        #   the GPT "Instructions" field
-│   ├── SETUP.md                               #   build steps + all field values
-│   └── knowledge/                             #   upload these as GPT Knowledge
-│       ├── council-personas.md
-│       ├── frameworks.md
-│       ├── context.md
-│       ├── report.py                          #   Python report generator (Code Interpreter)
-│       ├── CREDITS.md
-│       ├── lumero-logo-black.webp
-│       └── lumero-logo-white.webp
-├── scripts/
-│   ├── install-cli.sh                         #   copy .claude/* into ~/.claude (global CLI use)
-│   └── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
-└── dist/                                      # build output (gitignored)
-    └── infosec-council-desktop.zip
-```
 
 ## Three ways to run it
 
@@ -220,37 +194,50 @@ on. Then in any chat: `ask the council: <your decision> -deep`. (On Free/Pro/Max
 Skills upload lives under Customize → Skills; on Team/Enterprise an owner must enable
 Skills org-wide first.)
 
-## Use
+## HTML reports
 
-In Claude Code (CLI), call the skill explicitly with its slash command, followed by
-your decision and (optionally) a depth mode:
+The council turns any run into a branded, self-contained HTML dossier in the Luméro
+house style. Two interchangeable generators ship with the skill and produce identical
+output: `report.js` (Node, zero dependencies, the default) and `report.sh` (bash, needs
+`jq`). The Node version is recommended, especially on Windows, where `jq` is usually
+absent. It lays out the recommendation and confidence, an executive summary, the
+decision-science option comparison, the key risks, where the advisors agreed and
+disagreed, the minority report, and each advisor in their own words. Fonts and the Luméro
+logo are embedded (base64), so it renders identically offline with no external requests.
 
+```bash
+# from a fresh run (the council does this for you), or from the journal by sha:
+node .claude/skills/infosec-council/report.js --sha <sha>
+# or, if you have jq but not Node:
+bash .claude/skills/infosec-council/report.sh --sha <sha>
 ```
-/infosec-council we want to let the team use a new AI note-taker that joins our
-customer calls and stores transcripts. ~25 staff, B2B SaaS, SOC 2 in progress.
-Should we, and under what conditions? -deep
+
+In Claude Code, just ask for "a report for <sha>".
+
+## Decision journal
+
+The council logs each run and lets you record how the decision actually turned out,
+so you can see over time whether your high-confidence calls are trustworthy. It's a
+single script (`journal.sh`, bundled with the skill) and needs only `jq`.
+
+```bash
+# Install jq if you don't have it
+brew install jq        # macOS
+sudo apt-get install jq  # Linux
 ```
 
-It also responds to natural language (in Claude Code, and in Claude.ai/Desktop once the
-skill is enabled). "convene the council", "council this", and "ask the panel for advice" trigger it too:
+- Every council run is appended automatically to `~/.infosec-council/journal.jsonl`
+  (override the location with `COUNCIL_HOME`). The council tells you each run's `sha`.
+- Record the outcome later, once the decision plays out:
+  `council outcome <sha> correct|partial|wrong "short note"`
+- See calibration: `council meta` – hit-rate by confidence level, the high-confidence
+  calls that didn't pan out (the ones worth learning from), and member appearance counts.
+- Recent runs: `council journal [n]`
 
-```
-ask the council: <your decision> -deep
-```
+In Claude Code you just type these in natural language ("council meta", "outcome
+9615ee5e partial, the DPA had gaps") and the skill routes them to the script.
 
-Append `-quick`, `-standard`, or `-deep` to set the depth (default: Standard). The richer
-the context (size, sector, data types, frameworks you carry, constraints), the sharper
-the verdict. The council runs independent analysis, anonymized cross-examination (with
-forced debate when agreement is too clean), and a chairman synthesis that ends with a
-recommendation, a confidence level, a minority report, and one concrete next step.
-
-**It assesses live incidents too, not just forward decisions.** For example:
-
-```
-ask the council: a phishing email led to a compromised Microsoft 365 account with new
-mailbox forwarding rules. What is the blast radius, the response, and our GDPR and NIS2
-notification duties? -deep
-```
+Your journal is data, not code; it lives outside the repo and is gitignored.
 
 ## Frameworks & baselines (one place to maintain)
 
@@ -306,51 +293,6 @@ Treat the result as a point-in-time read, calibrated to the context you supplied
   If two members always agree, sharpen their conflicting mandates.
 - **Swap regulatory anchors** to your jurisdiction/sector (e.g. HIPAA, DORA, FedRAMP).
 
-## Decision journal
-
-The council logs each run and lets you record how the decision actually turned out,
-so you can see over time whether your high-confidence calls are trustworthy. It's a
-single script (`journal.sh`, bundled with the skill) and needs only `jq`.
-
-```bash
-# Install jq if you don't have it
-brew install jq        # macOS
-sudo apt-get install jq  # Linux
-```
-
-- Every council run is appended automatically to `~/.infosec-council/journal.jsonl`
-  (override the location with `COUNCIL_HOME`). The council tells you each run's `sha`.
-- Record the outcome later, once the decision plays out:
-  `council outcome <sha> correct|partial|wrong "short note"`
-- See calibration: `council meta` – hit-rate by confidence level, the high-confidence
-  calls that didn't pan out (the ones worth learning from), and member appearance counts.
-- Recent runs: `council journal [n]`
-
-In Claude Code you just type these in natural language ("council meta", "outcome
-9615ee5e partial, the DPA had gaps") and the skill routes them to the script.
-
-Your journal is data, not code; it lives outside the repo and is gitignored.
-
-## HTML reports
-
-The council turns any run into a branded, self-contained HTML dossier in the Luméro
-house style. Two interchangeable generators ship with the skill and produce identical
-output: `report.js` (Node, zero dependencies, the default) and `report.sh` (bash, needs
-`jq`). The Node version is recommended, especially on Windows, where `jq` is usually
-absent. It lays out the recommendation and confidence, an executive summary, the
-decision-science option comparison, the key risks, where the advisors agreed and
-disagreed, the minority report, and each advisor in their own words. Fonts and the Luméro
-logo are embedded (base64), so it renders identically offline with no external requests.
-
-```bash
-# from a fresh run (the council does this for you), or from the journal by sha:
-node .claude/skills/infosec-council/report.js --sha <sha>
-# or, if you have jq but not Node:
-bash .claude/skills/infosec-council/report.sh --sha <sha>
-```
-
-In Claude Code, just ask for "a report for <sha>".
-
 ## Roadmap
 
 Direction is maintainer-led: Luméro curates the core council logic so every edition (CLI,
@@ -362,6 +304,64 @@ Suggestions are welcome (see [Contributing](#contributing)), and because the pro
   to be right, so the council can learn whose warnings to weight more heavily. This needs the
   decision journal to record each advisor's stance per run, then compare those stances against
   the outcomes you log later.
+
+## Repository structure
+
+One repo serves both Claude Code (CLI) and Claude.ai/Desktop. Personas, scripts, and
+assets have a single source of truth under `.claude/`; the desktop skill is assembled
+from them by a build script.
+
+```
+infosec-council/
+├── README.md
+├── LICENSE                                   # MIT (the code)
+├── LICENSE-CC-BY-SA-4.0.txt                  # CC BY-SA 4.0 (the council content)
+├── package.json                              # npx installer metadata
+├── .gitignore
+├── bin/
+│   └── cli.js                                # npx installer / desktop-zip builder
+├── .github/
+│   └── workflows/
+│       └── release.yml                       # CI: builds + attaches the desktop zip on tag
+├── .claude/                                  # ← Claude Code (CLI) reads this directly
+│   ├── agents/                               #   one sub-agent per advisor (CLI only)
+│   │   ├── ciso.md
+│   │   ├── security-architect.md
+│   │   ├── offensive-security.md
+│   │   ├── security-operations.md
+│   │   ├── compliance-analyst.md
+│   │   ├── dpo.md
+│   │   └── risk-manager.md
+│   └── skills/
+│       └── infosec-council/
+│           ├── SKILL.md                       #   orchestrator (dispatches sub-agents)
+│           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
+│           ├── context.md                     #   strategic house-context (fill-in template)
+│           ├── journal.sh                     #   decision journal (jq)
+│           ├── report.js                      #   Luméro's branded HTML report (Node, no deps; default)
+│           ├── report.sh                      #   same report, bash + jq (alternative)
+│           └── assets/
+│               ├── lumero-logo-black.webp   #   header (light)
+│               └── lumero-logo-white.webp   #   footer (dark)
+├── desktop/
+│   └── SKILL.md                               # ← Claude.ai/Desktop orchestrator (in-context, no sub-agents)
+├── chatgpt/                                  # ← ChatGPT (custom GPT) edition
+│   ├── INSTRUCTIONS.md                        #   the GPT "Instructions" field
+│   ├── SETUP.md                               #   build steps + all field values
+│   └── knowledge/                             #   upload these as GPT Knowledge
+│       ├── council-personas.md
+│       ├── frameworks.md
+│       ├── context.md
+│       ├── report.py                          #   Python report generator (Code Interpreter)
+│       ├── CREDITS.md
+│       ├── lumero-logo-black.webp
+│       └── lumero-logo-white.webp
+├── scripts/
+│   ├── install-cli.sh                         #   copy .claude/* into ~/.claude (global CLI use)
+│   └── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
+└── dist/                                      # build output (gitignored)
+    └── infosec-council-desktop.zip
+```
 
 ## Publish (maintainers)
 
@@ -450,4 +450,4 @@ repository, indicate your changes, and license your adaptations under **CC BY-SA
 The **Luméro** name and logos (`.claude/skills/infosec-council/assets/lumero-logo-*.webp`)
 are trademarks of Luméro and are **not** covered by the licenses above. If you fork this
 project under your own brand, replace or remove them. The HTML report uses the system
-font stack (no bundl
+font stack (no bundled web fonts), so it renders consistently across systems with no external requests.
