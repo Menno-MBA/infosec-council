@@ -1,0 +1,23 @@
+{
+  "name": "lumero",
+  "owner": {
+    "name": "Luméro",
+    "url": "https://lumero.nl"
+  },
+  "metadata": {
+    "description": "Luméro's Claude Code plugins: right-sized security tooling for growing companies.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "infosec-council",
+      "source": "./",
+      "description": "Seven security experts deliberate a decision and return one calibrated verdict. EU-SME focused: CISO, Security Architect, Offensive Security, Security Operations, Compliance, DPO, Risk.",
+      "version": "1.6.0",
+      "author": { "name": "Luméro", "url": "https://lumero.nl" },
+      "homepage": "https://github.com/Menno-MBA/infosec-council",
+      "license": "MIT",
+      "keywords": ["security", "ciso", "gdpr", "nis2", "iso27001", "risk", "compliance", "council"]
+    }
+  ]
+}

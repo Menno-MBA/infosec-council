@@ -31,6 +31,17 @@ deliberately conflicting mandates. The disagreement is the product.
 > (rather than general thinking lenses), so the verdict maps directly onto security, privacy,
 > compliance, and risk decisions. Among other things, the attack and detection pre-mortems are its own additions.
 
+### What makes this council different
+
+The defensible differentiators, in order:
+
+1. **The calibration journal with outcomes.** Every run is logged with each seat's stance, a confidence level, and a numeric probability. You record later how the decision actually turned out, and `council meta` scores the panel with a Brier score, not just a hit-rate. Over time you learn whether its "high confidence" is worth anything, which is the one thing a one-shot answer can never tell you.
+2. **The EU-SME regulatory register.** A single maintained file (`frameworks.md`) carries the in-scope regimes, the control baseline, and the canonical standard versions, each with a "last verified" date. The advice is calibrated to Dutch and EU small-business reality, not a generic global default.
+3. **The build/break/run triad.** The Security Architect (build it securely), Offensive Security (break it), and Security Operations (see and survive it failing) are deliberate counterweights. Where they disagree on feasible-versus-detectable is itself a finding.
+4. **The attack and detection pre-mortems.** The red-team and operations seats reason backwards from a breach that has already happened, which surfaces failure paths a forward-looking design review misses.
+
+Everything else in the mechanism (independent first-round analysis, anonymized cross-examination, forced debate, the minority report) is shared with the wider "LLM council" family and is there to fight one failure mode: a panel that agrees by conformity instead of by reasoning.
+
 ## Install
 
 **Claude Desktop / Claude.ai – no terminal, easiest for non-technical users.**
@@ -49,7 +60,19 @@ npx github:Menno-MBA/infosec-council            # install into this project
 npx github:Menno-MBA/infosec-council --global   # install for every project
 ```
 
-> The download zip is built automatically by CI and attached to each release;
+**Claude Code plugin (works in Cowork on desktop too) – marketplace install.**
+
+```
+/plugin marketplace add Menno-MBA/infosec-council
+/plugin install infosec-council@lumero
+```
+
+The same council, packaged as a versioned Claude Code plugin. It runs in the terminal and in
+Cowork on the desktop app, where it dispatches the real seven sub-agents rather than role-playing
+them in one context like the uploadable skill does. Updates arrive through `/plugin update` when a
+new version ships, and the plugin never overwrites your tuned `context.md` or `frameworks.md`.
+
+> The download zips are built automatically by CI and attached to each release;
 > nothing binary is committed to the repo. Maintainers: see *Publish* below.
 
 ## Use
@@ -88,14 +111,38 @@ notification duties? -deep
 
 Append a depth flag (`-quick`, `-standard`, or `-deep`) to your question, or let the council pick (defaults to Standard).
 
-| Mode | When | Members | Peer review | Debate |
+| Mode | When | Members | Peer review + ranking | Debate |
 |---|---|---|---|---|
-| **Quick** | Low-stakes, reversible in a day | 3 most relevant | No | No |
+| **Quick** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | No | No |
 | **Standard** | Default | All 7 | Yes | Only if consensus is suspiciously clean |
-| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass | Yes | Always |
+| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Yes | Always |
+| **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Yes (live) | Always |
 
-Every member ends with a **CONFIDENCE block** (confidence / assumptions / what would
-change my mind / unknowns) so the verdict is calibrated, not just asserted.
+Every member ends with a **required output block** (stance / confidence / probability /
+assumptions / what would change my mind / unknowns) so the verdict is calibrated, not just
+asserted. The **stance** (go / conditional-go / no-go / defer / reframe) makes the convergence
+and debate triggers mechanical; the **probability** (a number, not just low/med/high) is what the
+decision journal scores over time.
+
+**Boardroom mode** runs the panel as live [agent-teams](https://code.claude.com/docs/en/agent-teams)
+teammates who cross-examine each other directly instead of through the chairman. It needs the
+experimental flag `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; without it, `-boardroom` falls back to
+Deep. Independence still comes first (each seat commits its own position before reading the others),
+and the round cap still holds, because live peer exchange is exactly where agreement-by-conformity
+compounds.
+
+**How the room converges.** After the anonymized cross-examination, each seat scores the others on
+how well their position would survive scrutiny (1 to 5). The council then reads the stances: if the
+panel genuinely converged after being challenged it stops early; if it agreed too easily it is pushed
+through a forced debate where the dissenter must write a concrete pre-mortem ("it is 12 months later
+and this failed, here is the story"); if it stays split, the split is reported as a real trade-off
+rather than smoothed away. Deliberation is capped at two exchanges (three in Deep and Boardroom),
+because more rounds trade tokens for conformity, not accuracy.
+
+**Grounding.** Any seat that leans on a regulation's status, a deadline, a standard version, or a
+vendor fact that could have moved must verify it against a primary source or mark it `UNVERIFIED`;
+the chairman lists any unverified load-bearing fact next to the confidence, so you can see what the
+verdict is standing on.
 
 ## The expert panel
 
@@ -169,7 +216,7 @@ npx does not auto-update; it keeps the version you first installed. To upgrade, 
 install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
 
 ```bash
-npx github:Menno-MBA/infosec-council#v1.5.3 --force --global
+npx github:Menno-MBA/infosec-council#v1.6.0 --force --global
 ```
 
 Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
@@ -217,22 +264,25 @@ In Claude Code, just ask for "a report for <sha>".
 ## Decision journal
 
 The council logs each run and lets you record how the decision actually turned out,
-so you can see over time whether your high-confidence calls are trustworthy. It's a
-single script (`journal.sh`, bundled with the skill) and needs only `jq`.
-
-```bash
-# Install jq if you don't have it
-brew install jq        # macOS
-sudo apt-get install jq  # Linux
-```
+so you can see over time whether your high-confidence calls are trustworthy. Two
+interchangeable scripts ship with the skill: `journal.js` (Node, zero dependencies,
+the default, and the one that works on Windows and inside the Desktop/Cowork sandbox)
+and `journal.sh` (bash, needs `jq`). You do not need `jq` if you have Node.
 
 - Every council run is appended automatically to `~/.infosec-council/journal.jsonl`
-  (override the location with `COUNCIL_HOME`). The council tells you each run's `sha`.
+  (override the location with `COUNCIL_HOME`; set `COUNCIL_ORG` to keep one client's
+  journal and house-context out of another's, which matters for consultancies). The
+  council tells you each run's `sha`, and stores a stable `family` id so reruns of the
+  same decision stay linked.
 - Record the outcome later, once the decision plays out:
   `council outcome <sha> correct|partial|wrong "short note"`
-- See calibration: `council meta` – hit-rate by confidence level, the high-confidence
-  calls that didn't pan out (the ones worth learning from), and member appearance counts.
-- Recent runs: `council journal [n]`
+- See calibration: `council meta` gives hit-rate **and a Brier score** by confidence
+  level (the Brier score uses each run's numeric probability, so it is a real calibration
+  measure, not just a bucket count), the high-confidence calls that didn't pan out (the
+  ones worth learning from), and member appearance counts.
+- Recent runs: `council journal [n]`. Comparable past runs before a new decision:
+  `council lookback "<the decision>"` (the council also does this automatically before
+  Round 1, so a similar past outcome informs the new verdict).
 
 In Claude Code you just type these in natural language ("council meta", "outcome
 9615ee5e partial, the DPA had gaps") and the skill routes them to the script.
@@ -300,10 +350,17 @@ Desktop, GPT) behaves the same. The items below are under consideration, not com
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
 
+**Recently shipped (v1.6.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
+and the full report `council-mechanism-review-2026-07-11.md`): stance and probability in the
+output block, Brier-scored calibration, convergence detection with early stopping, a scored
+anonymous ranking, a synthesis audit, Boardroom (agent-teams) mode, a grounding rule, per-org
+journals, a Node journal, and packaging as a Claude Code plugin. Because each run now records
+every seat's stance and probability, the per-advisor calibration below is finally unblocked.
+
 - **Per-advisor calibration**: over time, track which advisor's dissent most often turns out
-  to be right, so the council can learn whose warnings to weight more heavily. This needs the
-  decision journal to record each advisor's stance per run, then compare those stances against
-  the outcomes you log later.
+  to be right, so the council can learn whose warnings to weight more heavily. The prerequisite
+  (recording each advisor's stance per run) now exists; what remains is comparing those stances
+  against the outcomes you log later.
 
 ## Repository structure
 
@@ -314,12 +371,16 @@ from them by a build script.
 ```
 infosec-council/
 ├── README.md
+├── CHANGELOG.md                              # what changed per release
 ├── LICENSE                                   # MIT (the code)
 ├── LICENSE-CC-BY-SA-4.0.txt                  # CC BY-SA 4.0 (the council content)
 ├── package.json                              # npx installer metadata
 ├── .gitignore
+├── .claude-plugin/                           # ← makes the repo a Claude Code plugin + marketplace
+│   ├── plugin.json                           #   plugin manifest (points at .claude/ sources)
+│   └── marketplace.json                      #   one-line `/plugin marketplace add` distribution
 ├── bin/
-│   └── cli.js                                # npx installer / desktop-zip builder
+│   └── cli.js                                # npx installer / desktop-zip + plugin-zip builder
 ├── .github/
 │   └── workflows/
 │       └── release.yml                       # CI: builds + attaches the desktop zip on tag
@@ -337,7 +398,8 @@ infosec-council/
 │           ├── SKILL.md                       #   orchestrator (dispatches sub-agents)
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
 │           ├── context.md                     #   strategic house-context (fill-in template)
-│           ├── journal.sh                     #   decision journal (jq)
+│           ├── journal.js                     #   decision journal (Node, no deps; default; Brier score + lookback)
+│           ├── journal.sh                     #   decision journal (bash + jq; alternative)
 │           ├── report.js                      #   Luméro's branded HTML report (Node, no deps; default)
 │           ├── report.sh                      #   same report, bash + jq (alternative)
 │           └── assets/
@@ -358,7 +420,9 @@ infosec-council/
 │       └── lumero-logo-white.webp
 ├── scripts/
 │   ├── install-cli.sh                         #   copy .claude/* into ~/.claude (global CLI use)
-│   └── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
+│   ├── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
+│   ├── sync-chatgpt.js                        #   regenerate chatgpt/knowledge from canonical sources (CI-checked)
+│   └── test-reports.js                        #   golden-file test for the report generators
 └── dist/                                      # build output (gitignored)
     └── infosec-council-desktop.zip
 ```

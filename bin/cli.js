@@ -28,6 +28,7 @@ const flags = new Set(argv.filter((a) => a.startsWith("-")));
 const cmd = argv.find((a) => !a.startsWith("-")) || "install";
 const GLOBAL = flags.has("--global") || flags.has("-g");
 const FORCE = flags.has("--force") || flags.has("-f");
+const RESET = flags.has("--reset-config");
 const HELP = flags.has("--help") || flags.has("-h");
 const SHOWVER = flags.has("--version") || flags.has("-v");
 
@@ -45,12 +46,16 @@ ${C.b("infosec-council")} – a Claude council of seven security experts.
 ${C.b("Commands")}
   install            Install the council for Claude Code (default)
   build-desktop      Build the uploadable Claude.ai/Desktop skill zip
+  build-plugin       Build a standalone Claude Code plugin (dir + zip)
   help               Show this message
 
 ${C.b("Install options")}
   --global, -g       Install into ~/.claude (available in every project)
                      default: ./.claude (this project only)
-  --force, -f        Overwrite an existing install
+  --force, -f        Overwrite an existing install (keeps your context.md and
+                     backs up a customized frameworks.md to frameworks.md.prev)
+  --reset-config     With --force, also overwrite your context.md and frameworks.md
+                     with the shipped templates (you lose local tuning)
 
 ${C.b("Examples")}
   npx github:<owner>/${SKILL_NAME}            ${C.dim("# project-scoped install")}
@@ -103,13 +108,43 @@ function install() {
     fs.copyFileSync(path.join(agentsSrc, f), path.join(agentsDest, f));
     nAgents++;
   }
+  // Preserve user-owned config across an upgrade (the whole skill folder is
+  // about to be replaced). context.md is pure user config; frameworks.md is a
+  // hybrid (we ship register updates, the user tunes the Part A knobs). Losing
+  // either on `--force` was a real data-loss bug, so guard against it unless the
+  // user explicitly asks for --reset-config.
+  const notes = [];
+  let keepContext = null;
+  let prevFrameworks = null;
+  if (fs.existsSync(skillDest) && !RESET) {
+    const ctxOld = path.join(skillDest, "context.md");
+    if (fs.existsSync(ctxOld)) keepContext = fs.readFileSync(ctxOld);
+    const fwOld = path.join(skillDest, "frameworks.md");
+    const fwNew = path.join(skillSrc, "frameworks.md");
+    if (fs.existsSync(fwOld) && fs.existsSync(fwNew) && !fs.readFileSync(fwOld).equals(fs.readFileSync(fwNew))) {
+      prevFrameworks = fs.readFileSync(fwOld);
+    }
+  }
+
   // skill: replace the whole folder
   if (fs.existsSync(skillDest)) fs.rmSync(skillDest, { recursive: true, force: true });
   copyDir(skillSrc, skillDest);
 
+  // restore preserved config
+  if (keepContext != null) {
+    fs.writeFileSync(path.join(skillDest, "context.md"), keepContext);
+    notes.push("kept your existing context.md (your house positions were not touched)");
+  }
+  if (prevFrameworks != null) {
+    fs.writeFileSync(path.join(skillDest, "frameworks.md.prev"), prevFrameworks);
+    notes.push("shipped an updated frameworks.md; your previous copy is saved as frameworks.md.prev, re-apply any tuned knobs (control baseline, in-scope regimes)");
+  }
+
   console.log(`${C.green("✓")} Installed ${C.b(String(nAgents) + " agents")} → ${agentsDest}`);
   console.log(`${C.green("✓")} Installed skill ${C.b(SKILL_NAME)} → ${skillDest}`);
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
+  for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
+  if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
   console.log(`  ${C.dim("ask the council: <your decision> -deep")}\n`);
 }
@@ -202,7 +237,9 @@ function buildDesktop() {
   fs.copyFileSync(path.join(PKG_ROOT, "desktop", "SKILL.md"), path.join(build, "SKILL.md"));
   fs.copyFileSync(path.join(skillDir, "frameworks.md"), path.join(build, "frameworks.md"));
   fs.copyFileSync(path.join(skillDir, "context.md"), path.join(build, "context.md"));
+  fs.copyFileSync(path.join(skillDir, "report.js"), path.join(build, "report.js"));
   fs.copyFileSync(path.join(skillDir, "report.sh"), path.join(build, "report.sh"));
+  fs.copyFileSync(path.join(skillDir, "journal.js"), path.join(build, "journal.js"));
   fs.copyFileSync(path.join(skillDir, "journal.sh"), path.join(build, "journal.sh"));
   copyDir(path.join(skillDir, "assets"), path.join(build, "assets"));
   for (const f of fs.readdirSync(path.join(PKG_ROOT, ".claude", "agents"))) {
@@ -216,10 +253,53 @@ function buildDesktop() {
   console.log(`  & file creation, and Skills), then Skills → Upload skill → choose the zip.\n`);
 }
 
+// --- assemble a standalone Claude Code plugin (default root layout) ----------
+function buildPlugin() {
+  const dist = path.join(PKG_ROOT, "dist");
+  const build = path.join(dist, `${SKILL_NAME}-plugin`);
+  const zipPath = path.join(dist, `${SKILL_NAME}-plugin.zip`);
+
+  fs.rmSync(build, { recursive: true, force: true });
+  fs.rmSync(zipPath, { force: true });
+  fs.mkdirSync(path.join(build, ".claude-plugin"), { recursive: true });
+
+  // Manifest with the DEFAULT root layout: agents/ and skills/ auto-discovered,
+  // so this artifact does not depend on the .claude/ custom-path manifest.
+  const manifest = {
+    name: SKILL_NAME,
+    displayName: "Information Security Council",
+    version: VERSION,
+    description:
+      "A council of seven information-security experts (CISO, Security Architect, Offensive Security, Security Operations, Compliance, DPO, Risk) who deliberate a decision, cross-examine anonymously, force a debate when consensus is too clean, and return one calibrated verdict. EU-SME focused.",
+    author: { name: "Luméro", url: "https://lumero.nl" },
+    homepage: "https://lumero.nl",
+    repository: "https://github.com/Menno-MBA/infosec-council",
+    license: "MIT",
+    keywords: ["security", "ciso", "gdpr", "nis2", "iso27001", "risk", "compliance", "council", "dpo"]
+  };
+  fs.writeFileSync(path.join(build, ".claude-plugin", "plugin.json"), JSON.stringify(manifest, null, 2) + "\n");
+
+  // components at the plugin root (NOT under .claude/)
+  copyDir(path.join(PKG_ROOT, ".claude", "agents"), path.join(build, "agents"));
+  copyDir(path.join(PKG_ROOT, ".claude", "skills"), path.join(build, "skills"));
+  for (const f of ["README.md", "LICENSE", "LICENSE-CC-BY-SA-4.0.txt"]) {
+    const s = path.join(PKG_ROOT, f);
+    if (fs.existsSync(s)) fs.copyFileSync(s, path.join(build, f));
+  }
+
+  writeZip(build, SKILL_NAME, zipPath);
+  console.log(`${C.green("✓")} Built plugin dir ${C.b(build)}`);
+  console.log(`${C.green("✓")} Built plugin zip ${C.b(zipPath)}`);
+  console.log(`\n  Test locally:   ${C.dim("claude --plugin-dir " + build)}`);
+  console.log(`  Or via zip:     ${C.dim("claude --plugin-dir " + zipPath)}`);
+  console.log(`  Marketplace:    ${C.dim("/plugin marketplace add Menno-MBA/infosec-council")}\n`);
+}
+
 if (SHOWVER || cmd === "version") console.log(`infosec-council v${VERSION}`);
 else if (HELP || cmd === "help") help();
 else if (cmd === "install") install();
 else if (cmd === "build-desktop" || cmd === "build") buildDesktop();
+else if (cmd === "build-plugin") buildPlugin();
 else {
   console.error(`Unknown command: ${cmd}\n`);
   help();

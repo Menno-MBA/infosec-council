@@ -37,7 +37,7 @@ Seven security advisors (CISO, architect, red team, ops, compliance, DPO, risk) 
 
 ```
 Ask the council: should we let an AI note-taker join customer calls and store transcripts? ~25 staff, B2B SaaS, SOC 2 in progress. -deep
-Council this: we want to move our file shares to SharePoint/OneDrive. Risks and conditions? -standard
+Ask the council: a phishing email led to a compromised Microsoft 365 account with new mailbox forwarding rules. Blast radius, response, and our GDPR/NIS2 notification duties? -deep
 Ask the council: do we need a DPO, and what are our NIS2 obligations as a 60-person EU SaaS?
 Stress-test this: adopting a US marketing tool that processes customer emails. -deep
 ```

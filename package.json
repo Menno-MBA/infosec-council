@@ -1,6 +1,6 @@
 {
   "name": "infosec-council",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "A Claude council of seven information-security experts who deliberate a decision, peer-review anonymously, force a debate when consensus is too clean, and return a synthesized verdict. SMB-focused. Ships in two editions from one repo: Claude Code (CLI, sub-agents) and Claude.ai/Desktop (uploadable skill).",
   "keywords": [
     "claude",

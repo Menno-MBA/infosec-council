@@ -74,9 +74,18 @@ function confClass(c) {
 }
 function vClass(v) {
   v = String(v == null ? '' : v).toLowerCase();
-  if (/recommend|best/.test(v)) return 'vg';
-  if (/reckless|avoid|do not/.test(v)) return 'vr';
+  // test negatives FIRST: "not recommended" / "do not recommend" contain "recommend"
+  if (/reckless|avoid|do not|don't|not recommend|no-go/.test(v)) return 'vr';
+  if (/recommend|best|go\b/.test(v)) return 'vg';
   return 'va';
+}
+const CONVERGED_LABEL = {
+  'after-challenge': 'the panel converged after being challenged',
+  'split': 'the panel stayed split, so the trade-offs below are real choices for you',
+  'forced-debate': 'consensus was stress-tested in a forced debate before it was trusted'
+};
+function convergedLabel(v) {
+  return CONVERGED_LABEL[String(v == null ? '' : v).toLowerCase()] || '';
 }
 const ROLE_LABEL = {
   'ciso': 'CISO', 'security-architect': 'Security Architect',
@@ -168,6 +177,7 @@ const CSS = [
   '.risklegend{margin:12px 0 0;font-size:12.5px;color:var(--muted);}.risklegend summary{cursor:pointer;color:var(--ga);font-weight:600;}.risklegend p{margin:6px 0;}',
   '.pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}',
   '.pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}',
+  '.pill.prob{color:var(--ga);background:rgba(32,128,162,.08);margin-left:6px;}',
   '.exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}',
   '.exec h2{font-size:17px;margin:0 0 6px;color:var(--ink);font-weight:800;}.exec p{margin:.4em 0;color:var(--body);font-size:15.5px;}',
   '.divider{margin:48px 0 18px;padding-top:20px;border-top:1px solid var(--border);}',
@@ -248,6 +258,21 @@ function optionsBlock() {
   return html;
 }
 
+// ---- peer ranking block -----------------------------------------------------
+function rankingBlock() {
+  if (!(Array.isArray(run.ranking) && run.ranking.length > 0)) return '';
+  const rows = run.ranking.slice().sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+  let html = '<section class="block"><h2>How the panel rated each other</h2>'
+    + '<p class="lead">In anonymized cross-examination each advisor scored the others on how well their position would survive scrutiny (1 to 5, higher is sounder). This is a signal, not a vote, and it never overrides a hard legal stop.</p>'
+    + '<table class="opts"><thead><tr><th>Position</th><th>Peer score</th><th>Note</th></tr></thead><tbody>';
+  html += rows.map(function (r) {
+    const sc = (typeof r.score === 'number') ? r.score.toFixed(1) : e(g(r, 'score'));
+    return '<tr><td><strong>' + e(g(r, 'position')) + '</strong></td><td>' + sc + ' / 5</td><td>' + e(g(r, 'note')) + '</td></tr>';
+  }).join('');
+  html += '</tbody></table></section>';
+  return html;
+}
+
 // ---- members block ----------------------------------------------------------
 function membersBlock() {
   if (!(Array.isArray(run.members) && run.members.length > 0)) return '';
@@ -257,8 +282,8 @@ function membersBlock() {
     const rd = roleDesc(m.name);
     if (len(rd) > 0) a += '<p class="role">' + e(rd) + '</p>';
     a += '</div>';
-    a += '<span class="pill ' + confClass(m.confidence) + '">' + e(m.confidence != null ? m.confidence : 'n/a') + '</span></header>';
-    if (len(g(m, 'stance')) > 0) a += '<p class="stance">' + e(m.stance) + '</p>';
+    a += '<span class="pill ' + confClass(m.confidence) + '">' + e(m.confidence != null ? m.confidence : 'n/a') + (typeof m.probability === 'number' ? ' &middot; ' + m.probability + '%' : '') + '</span></header>';
+    if (len(g(m, 'stance')) > 0) a += '<p class="stance">Stance: ' + e(m.stance) + '</p>';
     if (len(g(m, 'summary')) > 0) a += '<p class="sum">' + e(m.summary) + '</p>';
     a += '<dl>';
     if (len(g(m, 'assumptions')) > 0) a += '<dt>What they assume</dt><dd>' + e(m.assumptions) + '</dd>';
@@ -284,9 +309,13 @@ let out = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
   + '<div class="verdict"><h2>What we recommend</h2>'
   + '<p class="lead">The bottom-line advice, and how strongly the panel backs it.</p>'
   + '<p class="rec">' + e(g(run, 'recommendation')) + '</p>'
-  + '<p><span class="pill ' + confClass(run.confidence) + '">Confidence: ' + e(g(run, 'confidence')) + '</span></p>'
-  + '<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low).</p>'
+  + '<p><span class="pill ' + confClass(run.confidence) + '">Confidence: ' + e(g(run, 'confidence')) + '</span>'
+  + (typeof run.probability === 'number' ? '<span class="pill prob">' + run.probability + '% it survives a 12-month review</span>' : '')
+  + '</p>'
+  + '<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>'
+  + (len(convergedLabel(g(run, 'converged'))) > 0 ? '<p class="note">Panel outcome: ' + convergedLabel(run.converged) + '.</p>' : '')
   + (len(g(run, 'key_assumption')) > 0 ? '<p class="assume"><strong>This advice depends on:</strong> ' + e(run.key_assumption) + '</p>' : '')
+  + (Array.isArray(run.unverified) && run.unverified.length > 0 ? '<p class="assume"><strong>Not independently verified (check before relying):</strong> ' + e(run.unverified.join('; ')) + '</p>' : '')
   + (len(g(run, 'next_step')) > 0 ? '<p class="assume"><strong>Do this next:</strong> ' + e(run.next_step) + '</p>' : '')
   + '</div>'
   + riskBlock()
@@ -298,6 +327,7 @@ let out = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
   + listBlock(run.conflicts, 'Where the advisors disagree', 'Open trade-offs with no single right answer. These are the calls you, as decision-maker, need to make.')
   + listBlock(run.blind_spots, 'Risks that are easy to miss', 'Subtle points the panel flagged that are simple to overlook.')
   + (len(g(run, 'minority_report')) > 0 ? '<section class="block"><h2>The strongest objection</h2><p class="lead">A dissenting view worth keeping in mind, even though most of the panel leaned the other way.</p><p class="minority">' + e(run.minority_report) + '</p></section>' : '')
+  + rankingBlock()
   + membersBlock()
   + '</div><footer>' + logoDark
   + '<div class="tagline">' + htmlEscape(TAGLINE) + '</div>'

@@ -62,11 +62,12 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
   def conf_class: (. // "" | ascii_downcase) as $c
     | if $c=="high" then "high" elif $c=="medium" then "med" elif $c=="low" then "low" else "na" end;
   def vclass: (. // "" | ascii_downcase) as $v
-    | if ($v|test("recommend|best")) then "vg" elif ($v|test("reckless|avoid|do not")) then "vr" else "va" end;
-  def rmatrix: {"severe":{"rare":"High","possible":"Critical","likely":"Critical"},"serious":{"rare":"Medium","possible":"High","likely":"Critical"},"limited":{"rare":"Low","possible":"Low","likely":"Medium"}};
-  def rlevelclass: {"Low":"low","Medium":"med","High":"high","Critical":"crit"}[.];
-  def implabel: {"limited":"Limited","serious":"Serious","severe":"Severe"}[.];
-  def liklabel: {"rare":"Rare","possible":"Possible","likely":"Likely"}[.];
+    | if ($v|test("reckless|avoid|do not|don.t|not recommend|no-go")) then "vr" elif ($v|test("recommend|best|go\\b")) then "vg" else "va" end;
+  def converged_label: (. // "" | ascii_downcase) as $c
+    | if $c=="after-challenge" then "the panel converged after being challenged"
+      elif $c=="split" then "the panel stayed split, so the trade-offs below are real choices for you"
+      elif $c=="forced-debate" then "consensus was stress-tested in a forced debate before it was trusted"
+      else "" end;
   # friendly names + role descriptions for the known seats
   def role_label: ({"ciso":"CISO","security-architect":"Security Architect","offensive-security":"Offensive Security (Red Team)","security-operations":"Security Operations","compliance-analyst":"Compliance Analyst","dpo":"DPO / Privacy","risk-manager":"Risk Manager"}[(.|ascii_downcase)]) // .;
   def role_desc: ({"ciso":"Security posture, budget, and business enablement","security-architect":"Secure design and technical controls (can we build it safely)","offensive-security":"How a real attacker would try to break it","security-operations":"Detection, monitoring, and incident response (can we spot and survive it)","compliance-analyst":"Standards, regulations, and the evidence to prove compliance","dpo":"Lawful, fair handling of personal data and privacy","risk-manager":"Sizing the risk, risk appetite, and third-party exposure"}[(.|ascii_downcase)]) // "";
@@ -119,6 +120,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + ".risklegend{margin:12px 0 0;font-size:12.5px;color:var(--muted);}.risklegend summary{cursor:pointer;color:var(--ga);font-weight:600;}.risklegend p{margin:6px 0;}"
 + ".pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}"
 + ".pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}"
++ ".pill.prob{color:var(--ga);background:rgba(32,128,162,.08);margin-left:6px;}"
 + ".exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}"
 + ".exec h2{font-size:17px;margin:0 0 6px;color:var(--ink);font-weight:800;}.exec p{margin:.4em 0;color:var(--body);font-size:15.5px;}"
 + ".divider{margin:48px 0 18px;padding-top:20px;border-top:1px solid var(--border);}"
@@ -155,9 +157,13 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + "<div class=\"verdict\"><h2>What we recommend</h2>"
 + "<p class=\"lead\">The bottom-line advice, and how strongly the panel backs it.</p>"
 + "<p class=\"rec\">" + (.recommendation|e) + "</p>"
-+ "<p><span class=\"pill " + (.confidence|conf_class) + "\">Confidence: " + (.confidence|e) + "</span></p>"
-+ "<p class=\"note\">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low).</p>"
++ "<p><span class=\"pill " + (.confidence|conf_class) + "\">Confidence: " + (.confidence|e) + "</span>"
++ (if (.probability|type)=="number" then "<span class=\"pill prob\">" + (.probability|tostring) + "% it survives a 12-month review</span>" else "" end)
++ "</p>"
++ "<p class=\"note\">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>"
++ ((.converged|converged_label) as $cl | if ($cl|length)>0 then "<p class=\"note\">Panel outcome: " + $cl + ".</p>" else "" end)
 + (if (.key_assumption // "")|length>0 then "<p class=\"assume\"><strong>This advice depends on:</strong> " + (.key_assumption|e) + "</p>" else "" end)
++ (if ((.unverified|type)=="array" and (.unverified|length)>0) then "<p class=\"assume\"><strong>Not independently verified (check before relying):</strong> " + (.unverified|join("; ")|e) + "</p>" else "" end)
 + (if (.next_step // "")|length>0 then "<p class=\"assume\"><strong>Do this next:</strong> " + (.next_step|e) + "</p>" else "" end)
 + "</div>"
 
@@ -201,14 +207,20 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + list_block(.blind_spots; "Risks that are easy to miss"; "Subtle points the panel flagged that are simple to overlook.")
 + (if (.minority_report // "")|length>0 then "<section class=\"block\"><h2>The strongest objection</h2><p class=\"lead\">A dissenting view worth keeping in mind, even though most of the panel leaned the other way.</p><p class=\"minority\">" + (.minority_report|e) + "</p></section>" else "" end)
 
++ (if ((.ranking|type)=="array" and (.ranking|length)>0)
+   then "<section class=\"block\"><h2>How the panel rated each other</h2><p class=\"lead\">In anonymized cross-examination each advisor scored the others on how well their position would survive scrutiny (1 to 5, higher is sounder). This is a signal, not a vote, and it never overrides a hard legal stop.</p><table class=\"opts\"><thead><tr><th>Position</th><th>Peer score</th><th>Note</th></tr></thead><tbody>"
+      + ([ .ranking | sort_by(-(.score // 0)) | .[] | "<tr><td><strong>" + (.position // ""|e) + "</strong></td><td>" + ((.score // 0)|tostring) + " / 5</td><td>" + (.note // ""|e) + "</td></tr>" ] | join(""))
+      + "</tbody></table></section>"
+   else "" end)
+
 + (if ((.members|type)=="array" and (.members|length)>0)
    then "<h2 class=\"sec\">The expert panel</h2><p class=\"lead\">The recommendation above is the synthesis of these independent expert views. Each advisor looked at the decision only through their own lens; where they pull in different directions is exactly the value.</p><div class=\"advisors\">"
       + ([ .members[] |
           "<article class=\"advisor\"><header><div><h3>" + (.name|role_label|e) + "</h3>"
         + (((.name|role_desc)) as $rd | if ($rd|length)>0 then "<p class=\"role\">" + ($rd|e) + "</p>" else "" end)
         + "</div>"
-        + "<span class=\"pill " + (.confidence|conf_class) + "\">" + (.confidence // "n/a"|e) + "</span></header>"
-        + (if (.stance // "")|length>0 then "<p class=\"stance\">" + (.stance|e) + "</p>" else "" end)
+        + "<span class=\"pill " + (.confidence|conf_class) + "\">" + (.confidence // "n/a"|e) + (if (.probability|type)=="number" then " &middot; " + (.probability|tostring) + "%" else "" end) + "</span></header>"
+        + (if (.stance // "")|length>0 then "<p class=\"stance\">Stance: " + (.stance|e) + "</p>" else "" end)
         + (if (.summary // "")|length>0 then "<p class=\"sum\">" + (.summary|e) + "</p>" else "" end)
         + "<dl>"
         + (if (.assumptions // "")|length>0 then "<dt>What they assume</dt><dd>" + (.assumptions|e) + "</dd>" else "" end)

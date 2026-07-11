@@ -1,0 +1,24 @@
+{
+  "name": "infosec-council",
+  "displayName": "Information Security Council",
+  "version": "1.6.0",
+  "description": "A council of seven information-security experts (CISO, Security Architect, Offensive Security, Security Operations, Compliance, DPO, Risk) who deliberate a security, privacy, compliance, architecture, or risk decision, cross-examine each other anonymously, force a debate when consensus is too clean, and return one calibrated verdict with a minority report. Built for EU SMEs.",
+  "author": {
+    "name": "Luméro",
+    "url": "https://lumero.nl"
+  },
+  "homepage": "https://lumero.nl",
+  "repository": "https://github.com/Menno-MBA/infosec-council",
+  "license": "MIT",
+  "keywords": ["security", "ciso", "gdpr", "nis2", "iso27001", "risk", "compliance", "council", "dpo", "privacy"],
+  "skills": "./.claude/skills/",
+  "agents": [
+    "./.claude/agents/ciso.md",
+    "./.claude/agents/security-architect.md",
+    "./.claude/agents/offensive-security.md",
+    "./.claude/agents/security-operations.md",
+    "./.claude/agents/compliance-analyst.md",
+    "./.claude/agents/dpo.md",
+    "./.claude/agents/risk-manager.md"
+  ]
+}

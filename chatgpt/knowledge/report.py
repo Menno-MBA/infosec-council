@@ -32,9 +32,17 @@ def conf_class(v):
 
 def vclass(v):
     s = (v or "").lower()
-    if re.search(r"recommend|best", s): return "vg"
-    if re.search(r"reckless|avoid|do not", s): return "vr"
+    # test negatives FIRST: "not recommended" / "do not recommend" contain "recommend"
+    if re.search(r"reckless|avoid|do not|don't|not recommend|no-go", s): return "vr"
+    if re.search(r"recommend|best|go\b", s): return "vg"
     return "va"
+
+def converged_label(v):
+    return {
+        "after-challenge": "the panel converged after being challenged",
+        "split": "the panel stayed split, so the trade-offs below are real choices for you",
+        "forced-debate": "consensus was stress-tested in a forced debate before it was trusted",
+    }.get((v or "").strip().lower(), "")
 
 ROLE_LABEL = {"ciso":"CISO","security-architect":"Security Architect","offensive-security":"Offensive Security (Red Team)","security-operations":"Security Operations","compliance-analyst":"Compliance Analyst","dpo":"DPO / Privacy","risk-manager":"Risk Manager"}
 ROLE_DESC  = {"ciso":"Security posture, budget, and business enablement","security-architect":"Secure design and technical controls (can we build it safely)","offensive-security":"How a real attacker would try to break it","security-operations":"Detection, monitoring, and incident response (can we spot and survive it)","compliance-analyst":"Standards, regulations, and the evidence to prove compliance","dpo":"Lawful, fair handling of personal data and privacy","risk-manager":"Sizing the risk, risk appetite, and third-party exposure"}
@@ -98,6 +106,7 @@ h1{font-weight:800;font-size:clamp(27px,4.4vw,40px);line-height:1.13;letter-spac
 .note{font-size:12px;color:var(--faint);margin-top:10px;font-style:italic;}
 .pill{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:9999px;border:1px solid currentColor;font-weight:600;}
 .pill.high{color:var(--green);background:rgba(21,128,61,.08);}.pill.med{color:var(--amber);background:rgba(180,83,9,.08);}.pill.low,.pill.na{color:var(--slate);background:rgba(100,116,139,.08);}
+.pill.prob{color:var(--ga);background:rgba(32,128,162,.08);margin-left:6px;}
 .exec{margin:22px 0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;}.exec h2{font-size:17px;margin:0 0 6px;color:var(--ink);font-weight:800;}.exec p{margin:.4em 0;color:var(--body);font-size:15.5px;}
 .divider{margin:48px 0 18px;padding-top:20px;border-top:1px solid var(--border);}.divider h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--ga);margin:0 0 4px;font-weight:700;}.divider p{margin:0;font-size:13px;color:var(--faint);}
 h2.sec{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:40px 0 4px;font-weight:700;}
@@ -151,9 +160,16 @@ def make_report(run, out_dir="."):
     # verdict
     parts.append('<div class="verdict"><h2>What we recommend</h2><p class="lead">The bottom-line advice, and how strongly the panel backs it.</p>')
     parts.append(f'<p class="rec">{e(g("recommendation"))}</p>')
-    parts.append(f'<p><span class="pill {conf_class(g("confidence"))}">Confidence: {e(g("confidence"))}</span></p>')
-    parts.append('<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low).</p>')
+    prob = g("probability")
+    prob_pill = f'<span class="pill prob">{prob}% it survives a 12-month review</span>' if isinstance(prob, (int, float)) else ""
+    parts.append(f'<p><span class="pill {conf_class(g("confidence"))}">Confidence: {e(g("confidence"))}</span>{prob_pill}</p>')
+    parts.append('<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>')
+    cl = converged_label(g("converged"))
+    if cl: parts.append(f'<p class="note">Panel outcome: {cl}.</p>')
     if g("key_assumption"): parts.append(f'<p class="assume"><strong>This advice depends on:</strong> {e(g("key_assumption"))}</p>')
+    unv = g("unverified")
+    if isinstance(unv, list) and unv:
+        parts.append(f'<p class="assume"><strong>Not independently verified (check before relying):</strong> {e("; ".join(unv))}</p>')
     if g("next_step"): parts.append(f'<p class="assume"><strong>Do this next:</strong> {e(g("next_step"))}</p>')
     parts.append("</div>")
     parts.append(risk_block(g("risk_score")))
@@ -189,6 +205,17 @@ def make_report(run, out_dir="."):
     if g("minority_report"):
         parts.append(f'<section class="block"><h2>The strongest objection</h2><p class="lead">A dissenting view worth keeping in mind, even though most of the panel leaned the other way.</p><p class="minority">{e(g("minority_report"))}</p></section>')
 
+    ranking = g("ranking")
+    if isinstance(ranking, list) and ranking:
+        rrows = ""
+        for r in sorted(ranking, key=lambda x: -(x.get("score") or 0)):
+            rg = r.get
+            sc = f'{rg("score"):.1f}' if isinstance(rg("score"), (int, float)) else e(rg("score") or "")
+            rrows += f'<tr><td><strong>{e(rg("position"))}</strong></td><td>{sc} / 5</td><td>{e(rg("note"))}</td></tr>'
+        parts.append('<section class="block"><h2>How the panel rated each other</h2><p class="lead">In anonymized cross-examination each advisor scored the others on how well their position would survive scrutiny (1 to 5, higher is sounder). This is a signal, not a vote, and it never overrides a hard legal stop.</p>'
+                     '<table class="opts"><thead><tr><th>Position</th><th>Peer score</th><th>Note</th></tr></thead><tbody>'
+                     + rrows + '</tbody></table></section>')
+
     members = g("members")
     if isinstance(members, list) and members:
         parts.append('<h2 class="sec">The expert panel</h2><p class="lead">The recommendation above is the synthesis of these independent expert views. Each advisor looked at the decision only through their own lens; where they pull in different directions is exactly the value.</p><div class="advisors">')
@@ -199,8 +226,10 @@ def make_report(run, out_dir="."):
             desc = ROLE_DESC.get(key, "")
             card = f'<article class="advisor"><header><div><h3>{e(label)}</h3>'
             if desc: card += f'<p class="role">{e(desc)}</p>'
-            card += f'</div><span class="pill {conf_class(mg("confidence"))}">{e(mg("confidence") or "n/a")}</span></header>'
-            if mg("stance"): card += f'<p class="stance">{e(mg("stance"))}</p>'
+            mprob = mg("probability")
+            mprob_txt = f' &middot; {mprob}%' if isinstance(mprob, (int, float)) else ""
+            card += f'</div><span class="pill {conf_class(mg("confidence"))}">{e(mg("confidence") or "n/a")}{mprob_txt}</span></header>'
+            if mg("stance"): card += f'<p class="stance">Stance: {e(mg("stance"))}</p>'
             if mg("summary"): card += f'<p class="sum">{e(mg("summary"))}</p>'
             card += "<dl>"
             if mg("assumptions"): card += f'<dt>What they assume</dt><dd>{e(mg("assumptions"))}</dd>'

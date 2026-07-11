@@ -27,10 +27,18 @@ jobs:
             tr -d '\000' < "$f" > "$f.tmp"
             if ! cmp -s "$f" "$f.tmp"; then mv "$f.tmp" "$f"; echo "stripped NUL bytes from $f"; else rm -f "$f.tmp"; fi
           done
+      - name: Check the ChatGPT knowledge folder is in sync with canonical sources
+        run: node scripts/sync-chatgpt.js --check
+      - name: Report generator tests (golden file + report.js/report.sh parity)
+        run: node scripts/test-reports.js
       - name: Build the desktop skill zip
         run: node bin/cli.js build-desktop
-      - name: Attach zip to the GitHub Release
+      - name: Build the Claude Code plugin zip
+        run: node bin/cli.js build-plugin
+      - name: Attach zips to the GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/infosec-council-desktop.zip
+          files: |
+            dist/infosec-council-desktop.zip
+            dist/infosec-council-plugin.zip
           generate_release_notes: true
