@@ -268,7 +268,7 @@ npx does not auto-update; it keeps the version you first installed. To upgrade, 
 install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
 
 ```bash
-npx github:Menno-MBA/infosec-council#v1.6.0 --force --global
+npx github:Menno-MBA/infosec-council#v1.7.0 --force --global
 ```
 
 Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
@@ -415,7 +415,7 @@ observed-impact anchoring), an optional report **subtitle**, and three operation
 ECSF role profiles, plus a router in the council so operational requests reach the right skill
 instead of a decision dossier. See `CHANGELOG.md`.
 
-**Recently shipped (v1.6.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
+**Recently shipped (v1.7.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
 and the full report `council-mechanism-review-2026-07-11.md`): stance and probability in the
 output block, Brier-scored calibration, convergence detection with early stopping, a scored
 anonymous ranking, a synthesis audit, Boardroom (agent-teams) mode, a grounding rule, per-org
