@@ -1,5 +1,46 @@
 # Changelog
 
+## v1.7.0 (2026-07-20)
+
+This release upgrades the risk model, polishes the report, and extends the council into a
+four-skill security suite.
+
+### Risk matrix: 3x3 to 5x5
+- The qualitative risk scale is now a standard 5x5 heat map. Impact is negligible / minor /
+  moderate / major / severe (1 to 5) and likelihood is rare / unlikely / possible / likely /
+  almost certain (1 to 5), giving an exposure score out of 25 banded Low (1 to 4), Moderate
+  (5 to 9), High (10 to 15), Critical (16 to 25). This removes the old 3x3 dead zone (only
+  {4,6,9,10,15,25} were reachable, so "about 20 out of 25" could not be expressed).
+- Observed-impact anchoring: an adverse impact that is already observed or confirmed is scored
+  Almost certain, not Possible. The report now renders inherent and residual exposure as two
+  markers on the bar, so the gap is the visible value of the recommendation. The Deep-mode
+  synthesis audit now checks that the likelihood does not contradict an observed fact.
+- The three report generators (report.js, report.sh, report.py) still accept the legacy 3-level
+  words so older journal entries render. Byte parity between report.js and report.sh is kept and
+  tested.
+
+### Report polish
+- New optional `subtitle` field: a long framing renders as a smaller line under the title, so
+  the H1 stays a crisp one-line decision instead of a run-on.
+
+### Team skills (red, blue, incident)
+- Three operational skills join the council, each producing a working artifact instead of a
+  verdict, with seats grounded in the ENISA ECSF role profiles:
+  - `infosec-redteam`: Threat Intelligence Specialist, Penetration Tester, and a safety lead
+    (Auditor + Legal) produce an Adversary Emulation Plan. Authorized, RoE-gated, isolated-range
+    only.
+  - `infosec-blueteam`: SOC Incident Responder, Threat Hunter, and Architect + Implementer
+    produce a Detection & Hardening Plan (log-source map, detections, hunts, hardening backlog).
+  - `infosec-incidentteam`: Incident Responder, Digital Forensics Investigator, and Legal &
+    Compliance (DPO) produce an Incident Response Report (timeline, containment, evidence
+    register, notification clocks, decision log).
+- The council SKILL now routes: operational exercises go to the matching team skill instead of
+  being turned into a decision dossier, and the team skills escalate genuine judgment calls back
+  to the council. The four skills share one `frameworks.md`.
+- Packaging: `plugin.json` lists the nine new team personas (skills auto-glob), the npx installer
+  installs the team skills alongside the council, and the Claude.ai/Desktop council edition stays
+  council-only (its build no longer ingests the team personas).
+
 ## v1.6.0 (2026-07-11)
 
 This release implements the July 2026 mechanism review of the council. That review

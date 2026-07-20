@@ -54,38 +54,58 @@ def _logo(name, cls):
         return f'<img class="brandimg {cls}" src="data:image/webp;base64,{b}" alt="Lumero">'
     return f'<span class="wordmark {cls}">Lum&eacute;ro</span>'
 
-IMP_LABEL = {"limited":"Limited","serious":"Serious","severe":"Severe"}
-LIK_LABEL = {"rare":"Rare","possible":"Possible","likely":"Likely"}
-IMP_N = {"limited":2,"serious":3,"severe":5}
-LIK_N = {"rare":2,"possible":3,"likely":5}
+IMP_LABEL = {"negligible":"Negligible","minor":"Minor","limited":"Limited","moderate":"Moderate","serious":"Serious","major":"Major","severe":"Severe"}
+LIK_LABEL = {"rare":"Rare","unlikely":"Unlikely","possible":"Possible","likely":"Likely","almost certain":"Almost certain","almost-certain":"Almost certain","certain":"Almost certain"}
+IMP_N = {"negligible":1,"minor":2,"limited":2,"moderate":3,"serious":3,"major":4,"severe":5}
+LIK_N = {"rare":1,"unlikely":2,"possible":3,"likely":4,"almost certain":5,"almost-certain":5,"certain":5}
 
 def _band(score):
-    if score <= 6:  return ("Low","low")
-    if score <= 12: return ("Moderate","moderate")
-    if score <= 18: return ("High","high")
+    if score <= 4:  return ("Low","low")
+    if score <= 9:  return ("Moderate","moderate")
+    if score <= 15: return ("High","high")
     return ("Critical","critical")
+
+def _score_one(o):
+    if not isinstance(o, dict):
+        return None
+    imp = (o.get("impact") or "").strip().lower()
+    lik = (o.get("likelihood") or "").strip().lower()
+    if imp not in IMP_N or lik not in LIK_N:
+        return None
+    n = IMP_N[imp] * LIK_N[lik]
+    band, cls = _band(n)
+    return {"n": n, "band": band, "cls": cls, "pos": round(n / 25 * 100),
+            "impL": IMP_LABEL[imp], "likL": LIK_LABEL[lik],
+            "rat": (o.get("rationale") or "")}
 
 def risk_block(rs):
     if not isinstance(rs, dict):
         return ""
-    imp = (rs.get("impact") or "").strip().lower()
-    lik = (rs.get("likelihood") or "").strip().lower()
-    if imp not in IMP_N or lik not in LIK_N:
+    inh_src = rs.get("inherent") or rs.get("residual") or rs
+    res_src = rs.get("residual") or rs.get("inherent") or rs
+    inh = _score_one(inh_src)
+    res = _score_one(res_src)
+    if inh is None and res is None:
         return ""
-    score = IMP_N[imp] * LIK_N[lik]
-    band, cls = _band(score)
-    pos = round(score / 25 * 100)
-    why = f'<p class="riskwhy">{e(rs.get("rationale"))}</p>' if rs.get("rationale") else ""
+    if inh is None: inh = res
+    if res is None: res = inh
+    rat_i = inh["rat"]
+    rat_r = res["rat"] if (res["rat"] and res["rat"] != inh["rat"]) else ""
+    why = ""
+    if rat_i:
+        why += f'<p class="riskwhy"><strong>Inherent.</strong> {e(rat_i)}</p>'
+    if rat_r:
+        why += f'<p class="riskwhy"><strong>Residual.</strong> {e(rat_r)}</p>'
     legend = ('<details class="risklegend"><summary>What the scale means</summary>'
-              '<p><strong>Impact:</strong> Limited (minor service impact, low cost); Serious (moderate to serious damage, high cost, possible legal consequences); Severe (severe legal consequences, lasting damage or outage).</p>'
-              '<p><strong>Likelihood:</strong> Rare (conceivable but unlikely); Possible (unlikely but plausible in edge cases); Likely (almost certain to materialize).</p>'
-              '<p><strong>Exposure</strong> = impact x likelihood, scored out of 25.</p></details>')
+              '<p><strong>Impact:</strong> Negligible (minimal service impact, negligible cost); Minor (limited service impact, low cost); Moderate (moderate to serious damage, high cost, possible legal consequences); Major (major damage, high cost, likely legal or regulatory consequences); Severe (severe legal consequences, lasting damage or being put out of operation).</p>'
+              '<p><strong>Likelihood:</strong> Rare (conceivable but unlikely); Unlikely (could occur but is not expected); Possible (unlikely but plausible in edge cases); Likely (more likely than not to occur); Almost certain (occurring now or virtually certain to materialize). An impact that has already been observed is scored Almost certain, not Possible.</p>'
+              '<p><strong>Inherent</strong> is exposure before the recommended response; <strong>residual</strong> is what remains after it. <strong>Exposure</strong> = impact x likelihood (each scored 1 to 5), scored out of 25.</p></details>')
     return ('<section class="block"><h2>Risk rating</h2>'
-            '<p class="lead">A qualitative read of this decision: impact against likelihood, mapped to an exposure score. It rates the decision or change, not only a vulnerability.</p>'
-            f'<div class="expo"><div class="expohead">Risk exposure &middot; <b>{score}/25</b> &middot; <span class="expoband band-{cls}">{band}</span></div>'
-            f'<div class="expobar"><span class="expomark" style="left:{pos}%"></span></div>'
+            '<p class="lead">A qualitative read of this decision: impact against likelihood, mapped to an exposure score. It shows inherent exposure (before the recommended response) and residual exposure (after it); the gap is the value of the recommendation.</p>'
+            f'<div class="expo"><div class="expohead">Risk exposure &middot; inherent <b>{inh["n"]}/25</b> <span class="expoband band-{inh["cls"]}">{inh["band"]}</span> &rarr; residual <b>{res["n"]}/25</b> <span class="expoband band-{res["cls"]}">{res["band"]}</span></div>'
+            f'<div class="expobar"><span class="expomark inh" style="left:{inh["pos"]}%"></span><span class="expomark" style="left:{res["pos"]}%"></span></div>'
             '<div class="expolabels"><span>Low</span><span>Moderate</span><span>High</span><span>Critical</span></div>'
-            f'<p class="riskmeta2">Impact: {IMP_LABEL[imp]} &middot; Likelihood: {LIK_LABEL[lik]}</p></div>'
+            f'<p class="riskmeta2">Inherent: impact {inh["impL"]} &middot; likelihood {inh["likL"]} &nbsp;&middot;&nbsp; Residual: impact {res["impL"]} &middot; likelihood {res["likL"]}</p></div>'
             f'{why}{legend}</section>')
 
 CSS = """
@@ -97,6 +117,7 @@ CSS = """
 .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ga);font-weight:600;border-left:2px solid var(--border);padding-left:14px;}
 h1{font-weight:800;font-size:clamp(27px,4.4vw,40px);line-height:1.13;letter-spacing:-.02em;color:var(--ink);margin:.3em 0 .15em;}
 .intro{font-size:15px;color:var(--muted);margin:.2em 0 0;}
+.subtitle{font-size:15.5px;color:var(--body);margin:.4em 0 0;line-height:1.5;}
 .meta{font-family:var(--mono);font-size:12px;color:var(--faint);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;margin:18px 0 0;display:flex;gap:24px;flex-wrap:wrap;}.meta b{color:var(--muted);font-weight:600;}
 .lead{font-size:13px;color:var(--faint);margin:.1em 0 12px;}
 .verdict{margin:32px 0 22px;border-radius:16px;padding:26px 28px;background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border:1.5px solid transparent;box-shadow:0 10px 30px -12px rgba(2,6,23,.18);}
@@ -129,6 +150,7 @@ footer{margin-top:60px;background:var(--footer);padding:42px 20px 48px;text-alig
 .band-low{color:#15803d;}.band-moderate{color:#b45309;}.band-high{color:#c2410c;}.band-critical{color:#b91c1c;}
 .expobar{position:relative;height:12px;border-radius:9999px;background:linear-gradient(90deg,#15803d 0%,#a3b817 38%,#e0a800 62%,#d23b2e 100%);}
 .expomark{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--ink);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(255,255,255,.65),0 2px 8px rgba(0,0,0,.35);}
+.expomark.inh{background:#e2e8f0;border-color:#94a3b8;box-shadow:0 0 0 4px rgba(255,255,255,.6),0 1px 4px rgba(0,0,0,.25);}
 .expolabels{display:flex;justify-content:space-between;margin-top:9px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);}
 .riskmeta2{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
 .riskwhy{margin:12px 0 0;color:var(--body);font-size:14px;}
@@ -154,6 +176,8 @@ def make_report(run, out_dir="."):
     parts.append(f"<style>{CSS}</style></head><body><div class=\"brandrule\"></div><div class=\"wrap\">")
     parts.append(f'<header class="head">{_logo("lumero-logo-black.webp","light")}<div class="kicker">Security Decision Dossier</div></header>')
     parts.append(f"<h1>{e(g('question'))}</h1>")
+    if g('subtitle'):
+        parts.append(f'<p class="subtitle">{e(g("subtitle"))}</p>')
     parts.append('<p class="intro">A panel of security advisors reviewed this decision. This dossier gives you the recommendation and a short executive summary first, then the full analysis underneath: the risks, where the advisors agreed and disagreed, and each advisor in their own words.</p>')
     parts.append(f'<div class="meta"><span><b>Depth</b>&nbsp;&nbsp;{e((g("mode") or "").upper())}</span><span><b>Reference</b>&nbsp;&nbsp;{sha}</span>' + (f'<span>{e(g("ts"))}</span>' if g("ts") else "") + "</div>")
 

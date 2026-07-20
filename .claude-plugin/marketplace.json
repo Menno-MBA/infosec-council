@@ -12,12 +12,12 @@
     {
       "name": "infosec-council",
       "source": "./",
-      "description": "Seven security experts deliberate a decision and return one calibrated verdict. EU-SME focused: CISO, Security Architect, Offensive Security, Security Operations, Compliance, DPO, Risk.",
-      "version": "1.6.0",
+      "description": "A security decision council plus three operational teams for EU SMEs. Seven experts deliberate a decision and return one calibrated verdict; the red team plans authorized adversary emulation, the blue team builds detection and hardening, and the incident team runs response. ECSF-aligned.",
+      "version": "1.7.0",
       "author": { "name": "Luméro", "url": "https://lumero.nl" },
       "homepage": "https://github.com/Menno-MBA/infosec-council",
       "license": "MIT",
-      "keywords": ["security", "ciso", "gdpr", "nis2", "iso27001", "risk", "compliance", "council"]
+      "keywords": ["security", "ciso", "gdpr", "nis2", "iso27001", "risk", "compliance", "council", "redteam", "blueteam", "incident-response", "ecsf"]
     }
   ]
 }

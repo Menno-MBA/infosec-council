@@ -20,6 +20,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'council-test-'));
 
 const FIXTURE = {
   question: 'Golden test: should we adopt tool X?',
+  subtitle: 'A concrete detail line that would otherwise bloat the H1 into a run-on.',
   mode: 'deep', confidence: 'high', probability: 68,
   recommendation: 'Deploy after clearing the gates.',
   executive_summary: 'The case is real but conditional. Do the prerequisites first.',
@@ -31,7 +32,10 @@ const FIXTURE = {
   consensus: 'All seven agree it is deployable with conditions.',
   conflicts: ['Verbatim vs summaries'],
   blind_spots: ['Nobody wrote the IR runbook'],
-  risk_score: { impact: 'serious', likelihood: 'possible', rationale: 'Vendor risk cannot be eliminated.' },
+  risk_score: {
+    inherent: { impact: 'severe', likelihood: 'almost certain', rationale: 'Adverse impact already observed; treat it as materialized.' },
+    residual: { impact: 'serious', likelihood: 'possible', rationale: 'Vendor risk cannot be eliminated.' }
+  },
   minority_report: 'Deploy-with-conditions decays once nobody maintains the conditions.',
   ranking: [
     { position: 'Expert A (dpo)', score: 4.6, note: 'Legal argument strongest' },
@@ -75,6 +79,12 @@ assert(js.includes('Not independently verified'), 'unverified callout shown');
 assert(js.includes('How the panel rated each other'), 'peer ranking section shown');
 assert(js.includes('Stance: conditional-go'), 'member stance shown');
 assert(/high &middot; 70%/.test(js), 'member probability shown');
+assert(js.includes('inherent <b>25/25</b>'), 'inherent exposure shown on the 5x5 scale (observed impact scored Almost certain)');
+assert(js.includes('residual <b>9/25</b>'), 'residual exposure shown as a distinct, lower score');
+assert(/residual <b>9\/25<\/b> <span class="expoband band-moderate">Moderate/.test(js), 'residual 9/25 bands as Moderate on the 5x5 scale');
+assert(js.includes('likelihood Almost certain'), '5-level likelihood label (Almost certain) renders');
+assert(js.includes('<span class="expomark inh"'), 'inherent ghost marker rendered alongside residual');
+assert(js.includes('<p class="subtitle">A concrete detail line'), 'subtitle renders under the title');
 
 function has(cmd) { try { return cp.spawnSync(cmd, ['--version'], { encoding: 'utf8' }).status === 0 || cmd === 'bash'; } catch (_) { return false; } }
 

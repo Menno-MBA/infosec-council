@@ -35,30 +35,37 @@ Flip a value here and every persona inherits it.
 ### Risk scoring scale (qualitative)
 
 The council rates each decision on a qualitative impact x likelihood scale, and the report
-renders it as a 3x3 matrix. It rates the decision or change, not only a vulnerability.
+renders it as a standard 5x5 heat map. It rates the decision or change, not only a vulnerability.
 
-| Impact | Meaning |
-|---|---|
-| **Limited** | Minor impact on service; light damage at minimal cost. |
-| **Serious** | Moderate to serious damage, high cost, possible legal consequences. |
-| **Severe** | Severe legal consequences; lasting damage or being put out of operation. |
+| Impact | Value | Meaning |
+|---|---|---|
+| **Negligible** | 1 | Minimal impact on service; negligible cost. |
+| **Minor** | 2 | Limited impact on service; light damage at low cost. |
+| **Moderate** | 3 | Moderate to serious damage, high cost, possible legal consequences. |
+| **Major** | 4 | Major damage, high cost, likely legal or regulatory consequences. |
+| **Severe** | 5 | Severe legal consequences; lasting damage or being put out of operation. |
 
-| Likelihood | Meaning |
-|---|---|
-| **Rare** | Conceivable, but unlikely. |
-| **Possible** | Unlikely, but plausible in edge cases. |
-| **Likely** | Almost certain that the risk materializes. |
+| Likelihood | Value | Meaning |
+|---|---|---|
+| **Rare** | 1 | Conceivable, but unlikely. |
+| **Unlikely** | 2 | Could occur, but is not expected. |
+| **Possible** | 3 | Unlikely, but plausible in edge cases. |
+| **Likely** | 4 | More likely than not to occur. |
+| **Almost certain** | 5 | Occurring now, or virtually certain to materialize. |
 
-Exposure score = impact x likelihood, where impact is Limited 2 / Serious 3 / Severe 5 and
-likelihood is Rare 2 / Possible 3 / Likely 5, giving a score out of 25. The report renders it
-as a horizontal exposure bar with a marker, banded as:
+Exposure score = impact x likelihood, each scored 1 to 5, giving a score out of 25. The report
+renders it as a horizontal exposure bar with a marker, banded as:
 
 | Exposure score | Band |
 |---|---|
-| 1 to 6 | Low |
-| 7 to 12 | Moderate |
-| 13 to 18 | High |
-| 19 to 25 | Critical |
+| 1 to 4 | Low |
+| 5 to 9 | Moderate |
+| 10 to 15 | High |
+| 16 to 25 | Critical |
+
+**Score inherent and residual.** Rate each decision twice: inherent exposure (the current state, before the recommended response) and residual exposure (what remains after it is executed as intended). The report draws both as two markers on the same bar, so the gap is the visible value of the recommendation. When an adverse impact has already been observed or confirmed (files encrypted, an outage under way, data exposed), the risk has materialized: score its likelihood as Almost certain, never Possible. Rating an already-observed impact as merely Possible is the most common scoring error and makes an active incident read as far lower than it is.
+
+The three report generators (report.js, report.sh, report.py) accept the legacy 3-level words too (Limited, Serious, Severe; Rare, Possible, Likely) so older journal entries still render; new runs should use the 5-level vocabulary above.
 
 ### In-scope regulatory regimes (toggle as the business changes)
 

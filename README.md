@@ -1,6 +1,6 @@
 # Luméro Information Security Council
 
-**Stress-test a security, privacy, compliance or risk decision, or a live incident: seven domain experts debate it and return one clear verdict. Calibrated to EU-SME reality.**
+**Stress-test a security, privacy, compliance or risk decision, or a live incident: seven domain experts debate it and return one clear verdict. Plus three operational team skills (red, blue, incident) for the work that follows the decision. Calibrated to EU-SME reality.**
 
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
 
@@ -23,6 +23,11 @@ limited budget, limited headcount, heavy reliance on SaaS and third parties.
 It's a **persona council**, one model running as several sub-agents with
 deliberately conflicting mandates. The disagreement is the product.
 
+As of **v1.7.0** the council is the decision layer of a small **suite**. Three operational team
+skills (red, blue, incident) sit beside it and produce working artifacts instead of a verdict, and
+the council handles the hard judgment calls they escalate. See [The team skills](#the-team-skills-red-blue-incident)
+below. Risk is now rated on a standard **5x5** heat map (see [Frameworks](#frameworks--baselines-one-place-to-maintain)).
+
 > Design note: the council architecture, the depth modes (Quick/Standard/Deep), the anonymized
 > peer review, the forced debate when consensus looks too clean, the chairman synthesis with a
 > minority report, and the decision journal, is adapted from
@@ -41,6 +46,20 @@ The defensible differentiators, in order:
 4. **The attack and detection pre-mortems.** The red-team and operations seats reason backwards from a breach that has already happened, which surfaces failure paths a forward-looking design review misses.
 
 Everything else in the mechanism (independent first-round analysis, anonymized cross-examination, forced debate, the minority report) is shared with the wider "LLM council" family and is there to fight one failure mode: a panel that agrees by conformity instead of by reasoning.
+
+## The team skills: red, blue, incident
+
+The council **decides**. Three operational team skills **execute**, each producing a working artifact instead of a verdict. They ship in the Claude Code / plugin edition alongside the council, and their seats are grounded in the ENISA European Cybersecurity Skills Framework (ECSF) role profiles.
+
+| Skill | Trigger | Seats (ECSF roles) | Deliverable |
+|---|---|---|---|
+| **infosec-redteam** | "red team this", "emulate an attacker", "plan a pentest", "turn this breach into an exercise" | Threat Intelligence Specialist, Penetration Tester, Auditor + Legal (safety lead) | Adversary Emulation Plan (ATT&CK kill chain, atomic tests, blue-team detection scorecard) |
+| **infosec-blueteam** | "blue team this", "build detections", "threat hunt", "harden the estate", "close the gaps" | Incident Responder (SOC), Threat Intelligence Specialist (hunting), Architect + Implementer | Detection & Hardening Plan (log-source map, detection rules, hunt hypotheses, hardening backlog) |
+| **infosec-incidentteam** | "we have an incident", "incident response", "we've been breached", "what do we do first" | Incident Responder, Digital Forensics Investigator, Legal & Compliance (DPO) | Incident Response Report (timeline, containment, evidence register, notification clocks, decision log) |
+
+They compose as a lifecycle rather than four silos: the **red team** produces a realistic threat, the **blue team** builds detection and hardening against it, the **incident team** responds when something gets through, and the **council** sits above all three for the hard judgment calls (pay or not, rebuild or restore, notify or not) that the operational skills escalate rather than settle. Red plus blue closing the loop, scoring which emulated steps the defenses would catch, is the purple-team exercise. All four share one `frameworks.md` (the 5x5 risk scale, the EU-SME regulatory register) so a rule change propagates everywhere.
+
+Safety is built in where it matters: the red team runs only under a signed Rules of Engagement against an isolated range or an authorized segment, never live production ransomware; the incident team preserves evidence before remediating and gates notification and data sharing on the legal clocks.
 
 ## Install
 
@@ -67,10 +86,11 @@ npx github:Menno-MBA/infosec-council --global   # install for every project
 /plugin install infosec-council@lumero
 ```
 
-The same council, packaged as a versioned Claude Code plugin. It runs in the terminal and in
-Cowork on the desktop app, where it dispatches the real seven sub-agents rather than role-playing
-them in one context like the uploadable skill does. Updates arrive through `/plugin update` when a
-new version ships, and the plugin never overwrites your tuned `context.md` or `frameworks.md`.
+The full suite (the council plus the red, blue, and incident team skills), packaged as a versioned
+Claude Code plugin. It runs in the terminal and in Cowork on the desktop app, where it dispatches
+the real sub-agents rather than role-playing them in one context like the uploadable skill does.
+Updates arrive through `/plugin update` when a new version ships, and the plugin never overwrites
+your tuned `context.md` or `frameworks.md`.
 
 > The download zips are built automatically by CI and attached to each release;
 > nothing binary is committed to the repo. Maintainers: see *Publish* below.
@@ -106,6 +126,27 @@ ask the council: a phishing email led to a compromised Microsoft 365 account wit
 mailbox forwarding rules. What is the blast radius, the response, and our GDPR and NIS2
 notification duties? -deep
 ```
+
+### Running the team skills
+
+The three operational skills trigger the same way, by slash command or natural language, and each
+returns a Markdown deliverable rather than a council verdict:
+
+```
+/infosec-redteam plan an authorized adversary-emulation exercise against our flat Active
+Directory estate (~1,600 servers, no SOC): pick a realistic ransomware actor, map its TTPs,
+and build the emulation plan (isolated range, signed RoE).
+
+/infosec-blueteam here is a set of attacker TTPs (or a red-team plan). Build detections and a
+hardening backlog, and score which steps we would actually catch.
+
+/infosec-incidentteam mail is down, files are turning up encrypted, and there was a phishing
+report weeks ago. Run the response: triage, containment, evidence, and the notification clocks.
+```
+
+They compose: a red-team plan feeds the blue team (the purple-team loop), and any hard call that
+surfaces inside a response (pay or not, rebuild or restore, notify or not) is escalated to the
+council. See [The team skills](#the-team-skills-red-blue-incident) for the seats and deliverables.
 
 ## Depth modes
 
@@ -164,7 +205,7 @@ is itself a finding.
 
 ## Three ways to run it
 
-The editions differ in one decisive way: Claude Code has real sub-agents, while Claude.ai/Desktop and the ChatGPT GPT role-play the panel in a single context. Same council, three editions, one repo.
+The editions differ in one decisive way: Claude Code has real sub-agents, while Claude.ai/Desktop and the ChatGPT GPT role-play the panel in a single context. Same council, three editions, one repo. The three operational team skills (red, blue, incident) ship with the Claude Code / plugin edition only; the Claude.ai/Desktop and ChatGPT editions remain the council on its own.
 
 | | Claude Code (CLI) | Claude.ai / Desktop (& Cowork) | ChatGPT (custom GPT) |
 |---|---|---|---|
@@ -248,7 +289,7 @@ house style. Two interchangeable generators ship with the skill and produce iden
 output: `report.js` (Node, zero dependencies, the default) and `report.sh` (bash, needs
 `jq`). The Node version is recommended, especially on Windows, where `jq` is usually
 absent. It lays out the recommendation and confidence, an executive summary, the
-decision-science option comparison, the key risks, where the advisors agreed and
+decision-science option comparison, the key risks, inherent and residual exposure on a 5x5 risk bar, where the advisors agreed and
 disagreed, the minority report, and each advisor in their own words. Fonts and the Luméro
 logo are embedded (base64), so it renders identically offline with no external requests.
 
@@ -308,6 +349,11 @@ edit (e.g. IG1 → IG2, or a PCI DSS version bump, or bringing NIS2 into scope) 
 to all seven seats with no per-persona edits. Maintain catalog facts there; keep the
 persona files for the static *traits* (mandate, method, biases, lane, output contract).
 
+The **5x5 risk matrix** lives here too (impact negligible to severe, likelihood rare to almost
+certain, each 1 to 5, scored out of 25 and banded Low / Moderate / High / Critical), and all four
+skills rate risk on it. The council report shows both inherent and residual exposure as two markers
+on one bar, and an already-observed impact is scored Almost certain, not Possible.
+
 ### Strategic context (`context.md`)
 
 Alongside the regulatory config, a second file, `context.md`, holds the organization's
@@ -337,8 +383,10 @@ Treat the result as a point-in-time read, calibrated to the context you supplied
 
 ## Customize
 
-- **Add a member**: drop `.claude/agents/<role>.md` and add it to the member list in
-  the SKILL.md. Candidates: Threat-Intel, IR/Forensics, Identity & Access specialist.
+- **Add a member or a team seat**: drop `.claude/agents/<role>.md`, add it to the relevant
+  SKILL.md, and (for the plugin) list it in `plugin.json`. The Threat-Intel and IR/Forensics
+  roles once suggested here now ship as team personas (red, blue, incident); Identity & Access
+  is still an open candidate.
 - **Re-tune biases**: the council's value depends on members genuinely disagreeing.
   If two members always agree, sharpen their conflicting mandates.
 - **Swap regulatory anchors** to your jurisdiction/sector (e.g. HIPAA, DORA, FedRAMP).
@@ -349,6 +397,12 @@ Direction is maintainer-led: Luméro curates the core council logic so every edi
 Desktop, GPT) behaves the same. The items below are under consideration, not commitments.
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
+
+**Recently shipped (v1.7.0)**: a standard **5x5 risk matrix** (inherent and residual exposure, with
+observed-impact anchoring), an optional report **subtitle**, and three operational **team skills**
+(`infosec-redteam`, `infosec-blueteam`, `infosec-incidentteam`) with seats grounded in the ENISA
+ECSF role profiles, plus a router in the council so operational requests reach the right skill
+instead of a decision dossier. See `CHANGELOG.md`.
 
 **Recently shipped (v1.6.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
 and the full report `council-mechanism-review-2026-07-11.md`): stance and probability in the
@@ -385,18 +439,33 @@ infosec-council/
 │   └── workflows/
 │       └── release.yml                       # CI: builds + attaches the desktop zip on tag
 ├── .claude/                                  # ← Claude Code (CLI) reads this directly
-│   ├── agents/                               #   one sub-agent per advisor (CLI only)
-│   │   ├── ciso.md
+│   ├── agents/                               #   sub-agents (CLI/plugin): 7 council + 9 team seats
+│   │   ├── ciso.md                           #   council: the seven deliberation seats
 │   │   ├── security-architect.md
 │   │   ├── offensive-security.md
 │   │   ├── security-operations.md
 │   │   ├── compliance-analyst.md
 │   │   ├── dpo.md
-│   │   └── risk-manager.md
+│   │   ├── risk-manager.md
+│   │   ├── redteam-operator.md               #   red team seats (ECSF-grounded)
+│   │   ├── redteam-threat-intel.md
+│   │   ├── redteam-safety-lead.md
+│   │   ├── blueteam-detection-engineer.md    #   blue team seats
+│   │   ├── blueteam-threat-hunter.md
+│   │   ├── blueteam-hardening-architect.md
+│   │   ├── incident-commander.md             #   incident team seats
+│   │   ├── incident-forensics-lead.md
+│   │   └── incident-legal-comms.md
 │   └── skills/
-│       └── infosec-council/
-│           ├── SKILL.md                       #   orchestrator (dispatches sub-agents)
-│           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions + cross-ref table
+│       ├── infosec-redteam/                  #   red team -> Adversary Emulation Plan
+│       │   └── SKILL.md
+│       ├── infosec-blueteam/                 #   blue team -> Detection & Hardening Plan
+│       │   └── SKILL.md
+│       ├── infosec-incidentteam/             #   incident team -> Incident Response Report
+│       │   └── SKILL.md
+│       └── infosec-council/                  #   the decision council (7-seat deliberation)
+│           ├── SKILL.md                       #   orchestrator (dispatches sub-agents) + skill router
+│           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions/5x5 risk (shared by all 4 skills)
 │           ├── context.md                     #   strategic house-context (fill-in template)
 │           ├── journal.js                     #   decision journal (Node, no deps; default; Brier score + lookback)
 │           ├── journal.sh                     #   decision journal (bash + jq; alternative)

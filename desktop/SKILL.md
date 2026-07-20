@@ -127,9 +127,13 @@ the code-execution sandbox with Node: `node report.js < run.json` (or `bash repo
 or `--sha <sha>`). It writes a fully self-contained `council-report-*.html`; offer it as a
 download.
 
-Fill the JSON fully: include an `executive_summary` (3 to 5 plain sentences), a `risks`
-array (never empty), a `risk_score` ({impact: limited/serious/severe, likelihood:
-rare/possible/likely, rationale}) scored on the frameworks.md scale, a `probability`,
+Fill the JSON fully. Keep `question` a crisp one-line decision (the title) and put scenario
+detail in an optional `subtitle` that renders under it, so the title never becomes a run-on.
+Include an `executive_summary` (3 to 5 plain sentences), a `risks`
+array (never empty), a `risk_score` (score it twice: `{inherent:{impact,likelihood,rationale}, residual:{impact,likelihood,rationale}}` on the
+frameworks.md 5x5 scale, impact negligible/minor/moderate/major/severe x likelihood rare/unlikely/possible/likely/almost certain,
+where an already-observed impact is Almost certain not Possible, and the gap between inherent and residual is the value of the
+recommendation), a `probability`,
 `converged`, an `unverified` array, a `ranking` array, and for a deep run the
 decision-science fields `options` (each with effort, risk_reduction, cost, reversibility,
 verdict), `risk_appetite`, and `highest_leverage`, alongside `consensus`, `conflicts`,

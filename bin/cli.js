@@ -21,6 +21,13 @@ const zlib = require("zlib");
 const PKG_ROOT = path.resolve(__dirname, "..");
 const VERSION = (() => { try { return require(path.join(PKG_ROOT, "package.json")).version; } catch (e) { return "?"; } })();
 const SKILL_NAME = "infosec-council";
+// The seven council personas that ship in the Claude.ai/Desktop council edition.
+const COUNCIL_PERSONAS = [
+  "ciso.md", "security-architect.md", "offensive-security.md", "security-operations.md",
+  "compliance-analyst.md", "dpo.md", "risk-manager.md"
+];
+// Operational team skills that ship alongside the council in the Claude Code / plugin edition.
+const TEAM_SKILLS = ["infosec-redteam", "infosec-blueteam", "infosec-incidentteam"];
 
 // --- tiny arg parse ------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -140,8 +147,21 @@ function install() {
     notes.push("shipped an updated frameworks.md; your previous copy is saved as frameworks.md.prev, re-apply any tuned knobs (control baseline, in-scope regimes)");
   }
 
+  // team skills: the operational red/blue/incident playbooks ship alongside the
+  // council. They carry no user-tuned config, so copy them verbatim.
+  let nTeamSkills = 0;
+  for (const s of TEAM_SKILLS) {
+    const src = path.join(PKG_ROOT, ".claude", "skills", s);
+    if (!fs.existsSync(src)) continue;
+    const dest = path.join(base, "skills", s);
+    if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
+    copyDir(src, dest);
+    nTeamSkills++;
+  }
+
   console.log(`${C.green("✓")} Installed ${C.b(String(nAgents) + " agents")} → ${agentsDest}`);
   console.log(`${C.green("✓")} Installed skill ${C.b(SKILL_NAME)} → ${skillDest}`);
+  if (nTeamSkills > 0) console.log(`${C.green("✓")} Installed ${C.b(String(nTeamSkills) + " team skills")} (redteam, blueteam, incidentteam)`);
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
   if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);
@@ -242,8 +262,8 @@ function buildDesktop() {
   fs.copyFileSync(path.join(skillDir, "journal.js"), path.join(build, "journal.js"));
   fs.copyFileSync(path.join(skillDir, "journal.sh"), path.join(build, "journal.sh"));
   copyDir(path.join(skillDir, "assets"), path.join(build, "assets"));
-  for (const f of fs.readdirSync(path.join(PKG_ROOT, ".claude", "agents"))) {
-    if (f.endsWith(".md")) fs.copyFileSync(path.join(PKG_ROOT, ".claude", "agents", f), path.join(build, "personas", f));
+  for (const f of COUNCIL_PERSONAS) {
+    fs.copyFileSync(path.join(PKG_ROOT, ".claude", "agents", f), path.join(build, "personas", f));
   }
 
   // zip with the built-in writer – no external tools, works on every OS
