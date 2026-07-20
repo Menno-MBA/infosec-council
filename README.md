@@ -187,15 +187,26 @@ verdict is standing on.
 
 ## The expert panel
 
-| Member | Mandate | Anchors to |
-|---|---|---|
-| CISO | Posture vs. business enablement, budget, incident readiness | ISO 27001 (ISMS), NIST CSF, CIS Controls (IG1) |
-| Security Architect | Secure-by-design & default; configures/hardens bought SaaS, identity-first (build) | Threat modeling (STRIDE), secure-by-design, CIS Benchmarks, zero trust |
-| Offensive Security Engineer (Red Team) | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK; attacker's-eye view |
-| Security Operations | Detection, response & recovery (run/survive); MDR + owned-tool alerts + tested IR plan | NIST CSF (detect/respond/recover), NIST incident-response guidance, MITRE ATT&CK, tested backups, GDPR breach handoff |
-| Compliance Analyst | Maps mandatory EU law vs chosen attestations; evidence + crosswalks ("comply once, satisfy many") | EU regimes in scope (GDPR, NIS2, EU AI Act; DORA/CRA/PCI DSS where applicable), ISO 27001, SOC 2 |
-| DPO / Privacy | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA GDPR (lawful basis, ROPA, DPIA, transfers), ePrivacy, EU AI Act |
-| Risk Manager | Structures & frames risk two-sidedly (owner owns, mgmt accepts); third-party risk | ISO 31000/27005 (right-sized), CIS RAM, NIST small-business guidance, cyber insurance |
+The suite runs sixteen seats across four skills. The council's seven deliberate the decision; the nine team seats, grounded in the ENISA ECSF role profiles, do the operational work. The **Skill** column shows which one each belongs to.
+
+| Seat | Skill | Mandate | Anchors to |
+|---|---|---|---|
+| CISO | Council | Posture vs. business enablement, budget, incident readiness | ISO 27001 (ISMS), NIST CSF, CIS Controls (IG1) |
+| Security Architect | Council | Secure-by-design & default; configures/hardens bought SaaS, identity-first (build) | Threat modeling (STRIDE), secure-by-design, CIS Benchmarks, zero trust |
+| Offensive Security Engineer (Red Team) | Council | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK; attacker's-eye view |
+| Security Operations | Council | Detection, response & recovery (run/survive); MDR + owned-tool alerts + tested IR plan | NIST CSF (detect/respond/recover), NIST incident-response guidance, MITRE ATT&CK, tested backups, GDPR breach handoff |
+| Compliance Analyst | Council | Maps mandatory EU law vs chosen attestations; evidence + crosswalks ("comply once, satisfy many") | EU regimes in scope (GDPR, NIS2, EU AI Act; DORA/CRA/PCI DSS where applicable), ISO 27001, SOC 2 |
+| DPO / Privacy | Council | Lawful, fair, transparent processing; advises & monitors (controller decides) | EU/EEA GDPR (lawful basis, ROPA, DPIA, transfers), ePrivacy, EU AI Act |
+| Risk Manager | Council | Structures & frames risk two-sidedly (owner owns, mgmt accepts); third-party risk | ISO 31000/27005 (right-sized), CIS RAM, NIST small-business guidance, cyber insurance |
+| Threat Intelligence (`redteam-threat-intel`) | Red team | Selects a realistic adversary to emulate, maps its TTPs, sets the objectives and flags | ECSF Cyber Threat Intelligence Specialist; MITRE ATT&CK; threat-actor profiles |
+| Penetration Tester (`redteam-operator`) | Red team | Executes the kill chain as atomic tests, scores each detection opportunity | ECSF Penetration Tester; MITRE ATT&CK; Atomic Red Team / Caldera |
+| Safety Lead (`redteam-safety-lead`) | Red team | Owns authorization, Rules of Engagement, scope, deconfliction; hard veto | ECSF Cybersecurity Auditor + Legal; signed RoE, isolated range |
+| Detection Engineer (`blueteam-detection-engineer`) | Blue team | Log-source coverage map and detection rules built from attacker TTPs | ECSF Incident Responder (SOC/SIEM); MITRE ATT&CK, D3FEND, sigma |
+| Threat Hunter (`blueteam-threat-hunter`) | Blue team | Assume-breach hunt hypotheses for what detection cannot cover | ECSF CTI Specialist; MITRE ATT&CK; hypothesis-driven hunting |
+| Hardening Architect (`blueteam-hardening-architect`) | Blue team | Control-gap analysis and the prioritized hardening backlog | ECSF Architect + Implementer; CIS Controls, D3FEND |
+| Incident Commander (`incident-commander`) | Incident team | Triage, containment as a dial, eradicate and recover, the decision log | ECSF Cyber Incident Responder; NIST IR, CSIRT coordination |
+| Forensics Lead (`incident-forensics-lead`) | Incident team | Evidence and chain of custody, timeline, the exfiltration read | ECSF Digital Forensics Investigator; forensic imaging, chain of custody |
+| Legal & Comms (`incident-legal-comms`) | Incident team | Notification clocks, breach register, external-comms gate | ECSF Legal/Compliance + DPO; GDPR Art 33/34, NIS2/Cbw |
 
 The three security seats form a deliberate triad – Architect (*build* it securely),
 Offensive Security (*break* it), and Security Operations (*see and survive* it failing).
