@@ -1,6 +1,6 @@
 # Luméro Information Security Council
 
-**Stress-test a security, privacy, compliance or risk decision, or a live incident: seven domain experts debate it and return one clear verdict. Plus three operational team skills (red, blue, incident) for the work that follows the decision. Calibrated to EU-SME reality.**
+**Make a high-stakes security, privacy, compliance or risk decision with a panel of seven domain experts: they debate it, challenge each other anonymously, and return one calibrated verdict, now with the statutory obligations the decision triggers surfaced explicitly. Beside the council sit three operational team skills, red (adversary emulation), blue (detection and hardening) and incident (live response), that do the operational work and escalate the hard judgment calls back up to it. Calibrated to EU-SME reality.**
 
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
 
@@ -14,8 +14,8 @@
 > rules change.
 
 
-Stress-test a high-stakes decision before you commit, or pressure-test a live incident or
-situation. An expert panel of seven security
+Stress-test a high-stakes decision before you commit, including the hard judgment calls inside a
+live incident or situation. An expert panel of seven security
 advisors deliberates it, peer-reviews each other anonymously, forces a debate when agreement
 looks too clean, and returns one synthesized verdict. Built for European **SME** reality:
 limited budget, limited headcount, heavy reliance on SaaS and third parties.
@@ -60,6 +60,28 @@ The council **decides**. Three operational team skills **execute**, each produci
 They compose as a lifecycle rather than four silos: the **red team** produces a realistic threat, the **blue team** builds detection and hardening against it, the **incident team** responds when something gets through, and the **council** sits above all three for the hard judgment calls (pay or not, rebuild or restore, notify or not) that the operational skills escalate rather than settle. Red plus blue closing the loop, scoring which emulated steps the defenses would catch, is the purple-team exercise. All four share one `frameworks.md` (the 5x5 risk scale, the EU-SME regulatory register) so a rule change propagates everywhere.
 
 Safety is built in where it matters: the red team runs only under a signed Rules of Engagement against an isolated range or an authorized segment, never live production ransomware; the incident team preserves evidence before remediating and gates notification and data sharing on the legal clocks.
+
+### Model safety controls and the Cyber Verification Program (CVP)
+
+Claude's most capable models (Opus, Sonnet, and Fable) run real-time cyber safeguards that
+automatically detect and block requests that look like prohibited or high-risk cybersecurity
+use. The decision council rarely trips these; the operational skills, above all the red team's
+adversary-emulation output, are the dual-use part most likely to be interrupted.
+
+- **Prohibited use stays blocked, by design.** Mass data exfiltration, live-production
+  ransomware, and the like have no legitimate defensive use and cannot be unblocked. The team
+  skills are built to stay well clear of that line (signed Rules of Engagement, isolated range
+  or authorized segment only, evidence before remediation, notification gated on the legal clocks).
+- **Legitimate dual-use work can be verified.** Adversary emulation, vulnerability testing, and
+  detection engineering may be blocked or interrupted by default. Anthropic runs a free,
+  application-based **Cyber Verification Program (CVP)** that lifts these dual-use restrictions
+  for verified cybersecurity practitioners (some account types and platforms, such as
+  Zero-Data-Retention accounts and Bedrock/Vertex, are excluded; check the guide for current
+  eligibility). Apply with your Organization ID through Anthropic's Cyber Use Case Form; decisions
+  typically arrive within two business days. See [Anthropic's cyber safeguards guide](https://support.claude.com/en/articles/14604842-real-time-cyber-safeguards-on-claude).
+
+**Luméro participates in the CVP** and runs these engagements under proper authorization, so if you
+would rather not manage verification and Rules of Engagement yourself, [we can run them for you](https://lumero.nl).
 
 ## Install
 
@@ -268,7 +290,7 @@ npx does not auto-update; it keeps the version you first installed. To upgrade, 
 install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
 
 ```bash
-npx github:Menno-MBA/infosec-council#v1.7.0 --force --global
+npx github:Menno-MBA/infosec-council#v1.7.1 --force --global
 ```
 
 Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
@@ -386,6 +408,17 @@ under the risk rating: a required-actions table plus an explicit-negative ledger
 considered and ruled out, which doubles as ISO 27001 Annex A / NIS2 governance evidence. Register a
 new obligation by adding one row to Part C, with no code change.
 
+**Registered by default** (edit or extend in `frameworks.md` Part C):
+
+| Obligation | Trigger | Owner (determine → execute) | Clock |
+|---|---|---|---|
+| GDPR breach to the DPA (Art. 33) | personal-data breach with risk to individuals | DPO → DPO | 72h |
+| GDPR notice to individuals (Art. 34) | high risk to individuals | DPO → DPO + CISO | without undue delay |
+| NIS2 early warning / notification / final report (Art. 23) | NIS2/Cbw in scope and a significant incident | Compliance → CISO + Legal & Comms | 24h / 72h / 1 month |
+| NIS2 IoC sharing (Art. 29) | a CERT/CSIRT affiliation exists | Compliance → Security Operations | voluntary |
+
+Three more ship as candidate rows (DPIA Art. 35, Art. 28 processor terms, control-baseline shift), each addable as one line.
+
 ### Strategic context (`context.md`)
 
 Alongside the regulatory config, a second file, `context.md`, holds the organization's
@@ -430,13 +463,19 @@ Desktop, GPT) behaves the same. The items below are under consideration, not com
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
 
+**Recently shipped (v1.7.1)**: a **conditional-obligation layer**. `frameworks.md` now carries an
+obligation registry (Part C); the council runs a determination pass before deliberating (each
+statutory duty returned as triggered, or explicitly ruled out on the record), a second Chairman
+gate blocks the synthesis from closing while a triggered obligation lacks an owner and a clock, and
+the dossier renders a **Regulatory obligations** section usable as ISO 27001 / NIS2 evidence. See `CHANGELOG.md`.
+
 **Recently shipped (v1.7.0)**: a standard **5x5 risk matrix** (inherent and residual exposure, with
 observed-impact anchoring), an optional report **subtitle**, and three operational **team skills**
 (`infosec-redteam`, `infosec-blueteam`, `infosec-incidentteam`) with seats grounded in the ENISA
 ECSF role profiles, plus a router in the council so operational requests reach the right skill
 instead of a decision dossier. See `CHANGELOG.md`.
 
-**Recently shipped (v1.7.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
+**Recently shipped (v1.6.0)** implements the July 2026 mechanism review (see `CHANGELOG.md`
 and the full report `council-mechanism-review-2026-07-11.md`): stance and probability in the
 output block, Brier-scored calibration, convergence detection with early stopping, a scored
 anonymous ranking, a synthesis audit, Boardroom (agent-teams) mode, a grounding rule, per-org
