@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.8.1 (2026-07-21)
+
+This release hardens the incident team against a subtle failure mode, an assertive commander
+filling gaps under pressure and having those inferences harden into the record as fact, and adds a
+reusable cross-skill exercise fixture. The council skill is unchanged from v1.7.1.
+
+### Observed-vs-assumed guardrail (incident team)
+- The `incident-commander`, `incident-forensics-lead`, and `incident-legal-comms` personas now tag
+  any environmental fact not present in the incident inputs (for example that the estate is
+  virtualized, that immutable backups exist, that an EDR is deployed) as `[ASSUMED - verify: <owner>]`
+  and feed it to an assumptions register. An assumption is a lead to confirm or kill, not a fact.
+- `infosec-incidentteam` gains a first principle (separate observed from assumed, the incident-side
+  analogue of the council's `UNVERIFIED` rule), a **synthesis gate** (no timeline, containment, or
+  decision-log entry may present an unstated environmental fact as established; it is rewritten
+  conditionally with a verify-owner or dropped), and an **Assumptions register** deliverable section.
+
+### Portable incident report generator
+- New `infosec-incidentteam/report.js`: a zero-dependency, Lumero-branded HTML Incident Response
+  Report generator. Paths resolve relative to the skill (no hardcoded absolutes), assets and output
+  dir are env-overridable. It renders inline ASSUMED tags on timeline rows and an
+  Assumptions-to-verify table, reusing the council report stylesheet for visual consistency.
+
+### Shared cross-skill exercise fixture
+- New `infosec-shared/examples/um-ransomware-2019/`: a standard scenario modelled on the publicly
+  documented 2019 university ransomware incident (TA505 / Clop). **Part A** (blue-team starting point)
+  and **Part B** (red-team ground truth, ATT&CK chain, IOCs, weaknesses, flags, RoE) are split so a
+  facilitator can withhold B and release it as injects. Includes a facilitator README and a cleaned
+  example incident report faithful to Part A (a guardrail showcase, not a fabricated dump).
+- Cross-skill pointers added to `infosec-incidentteam`, `infosec-redteam`, and `infosec-blueteam` so
+  one scenario exercises the incident, red, blue, and council skills and their hand-offs.
+
 ## v1.7.1 (2026-07-20)
 
 This release adds a conditional-obligation layer, so a statutory or registered duty is surfaced
