@@ -35,6 +35,8 @@ Run nothing without this. The safety lead gates the whole exercise:
 
 If a documented incident is provided (for example a published ransomware case), split it: the **plan case** is what the blue team starts with; the **ground truth** is the adversary chain the red team reproduces and the white cell releases as injects.
 
+**Standard test fixture.** A ready-made example of exactly that split lives at `../infosec-shared/examples/um-ransomware-2019/` (TA505/Clop). `part-b-red-ground-truth.md` is the adversary chain, IOCs, ATT&CK mapping, and red-team flags to build an Adversary Emulation Plan from; `part-a-blue-starting-point.md` is the plan case the white cell withholds. The same fixture exercises `infosec-blueteam`, `infosec-incidentteam`, and `infosec-council`.
+
 ## Workflow
 
 **Round 0. Scope and authorize (safety lead).** Confirm authorization and RoE, fix scope and stop conditions, and decide range vs authorized segment vs paper-only. Nothing proceeds until this is explicit.

@@ -24,6 +24,7 @@ This skill is operational, not deliberative. It answers "what do we do now, in w
 - **Restore nothing** until backups are verified clean and offline/immutable from a trusted console.
 - **Communicate out of band** (personal devices, phone tree, a pre-agreed channel) when email or AD may be compromised.
 - **Isolation is a dial**, re-decided every 30 to 60 minutes with honest percent-isolated tracking, not a single blunt switch; carve out life-safety and operational-technology systems before any cold cut.
+- **Separate observed from assumed.** The incident inputs are the only facts. Anything a seat introduces beyond them (that the estate is virtualized, that immutable backups exist, that an EDR is deployed, that the network is segmented) is an assumption, not a fact. It must be labelled inline where it is used and carried in the assumptions register, each with a named verify-owner, never laundered into the timeline or decision log as established. This is the incident-side analogue of the council's `UNVERIFIED` rule: an assumption is a lead to confirm or kill, not a fact to act on silently.
 
 ## Inputs the response needs
 
@@ -32,6 +33,8 @@ This skill is operational, not deliberative. It answers "what do we do now, in w
 - What is NOT yet known, stated plainly, so the team does not act on assumed facts.
 
 If a documented scenario is provided, run the response from the starting observations only; release ground-truth facts as injects when the team's actions would realistically surface them.
+
+**Standard test fixture.** A ready-made cross-skill exercise lives at `../infosec-shared/examples/um-ransomware-2019/` (UM-style TA505/Clop ransomware). Give this skill `part-a-blue-starting-point.md`; the facilitator holds `part-b-red-ground-truth.md` and releases it as injects. `example-incident-report.md` is the reference output and shows the assumptions register in use. The same fixture exercises `infosec-redteam`, `infosec-blueteam`, and `infosec-council`.
 
 ## Workflow
 
@@ -60,9 +63,14 @@ Produce a Markdown document with these sections:
 7. **Decision log**: each significant call, who owned it, the rationale, and any council escalation and its verdict.
 8. **Eradication and recovery plan**: the sequence, the rebuild-vs-restore position, and the verification gates before anything returns to production.
 9. **Comms log**: internal, customer, regulator, and (if relevant) law-enforcement messaging, kept consistent.
-10. **Lessons and next steps**: what to harden and what to feed to the blue team.
+10. **Assumptions register**: every environmental fact a seat assumed rather than observed (virtualization present, immutable backups, EDR coverage, segmentation, and the like), each with what would confirm or kill it and a named verify-owner. This is where the inline `[ASSUMED — verify: <owner>]` tags from the timeline and decision log are collected and tracked to resolution.
+11. **Lessons and next steps**: what to harden and what to feed to the blue team.
 
 For impact/likelihood sizing use the 5x5 scale in the infosec-council skill's `frameworks.md`; for notification triggers use the regimes table there, and confirm any in-force date rather than asserting it.
+
+## Synthesis gate: no assumed fact laundered as established
+
+When you assemble the report, run this gate before it ships (the incident analogue of the council's Gate B). No timeline entry, containment action, or decision-log line may present an unstated environmental fact as established. For each such entry, either rewrite it conditionally with the assumption made explicit and a verify-owner attached (for example "Hypervisor management plane isolated `[ASSUMED — verify virtualization exists: infra lead]`"), or drop it. Every inline `[ASSUMED — ...]` tag must have a matching row in the Assumptions register. A strong commander will fill gaps fast under pressure, which is correct; this gate is what keeps those gap-fills visible and owned instead of silently hardening into the record.
 
 ## Grounding
 

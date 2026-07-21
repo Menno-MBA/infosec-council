@@ -25,6 +25,8 @@ This skill is operational, not deliberative. It answers "would we see this, and 
 
 Be honest about the SME reality: often no 24/7 SOC, no central SIEM, and scattered telemetry. Plan for what exists, and name what is missing.
 
+**Standard test fixture.** A ready-made threat to defend against lives at `../infosec-shared/examples/um-ransomware-2019/` (TA505/Clop). In `part-b-red-ground-truth.md`, the "environment weaknesses" and "detection opportunities the red team WILL generate" sections are your hardening backlog and detection targets; score whether your detections would catch each attacker step. The same fixture exercises `infosec-redteam`, `infosec-incidentteam`, and `infosec-council`.
+
 ## Workflow
 
 **Round 1. Frame the threat.** Take the adversary TTPs (from CTI, a concern, or a red-team plan) as the concrete thing to defend against, mapped to ATT&CK. If a red-team Adversary Emulation Plan is provided, its missed detection opportunities are the priority list.

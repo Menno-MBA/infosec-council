@@ -13,7 +13,7 @@
       "name": "infosec-council",
       "source": "./",
       "description": "A security decision council plus three operational teams for EU SMEs. Seven experts deliberate a decision and return one calibrated verdict; the red team plans authorized adversary emulation, the blue team builds detection and hardening, and the incident team runs response. ECSF-aligned.",
-      "version": "1.7.1",
+      "version": "1.8.1",
       "author": { "name": "Luméro", "url": "https://lumero.nl" },
       "homepage": "https://github.com/Menno-MBA/infosec-council",
       "license": "MIT",
