@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.8.0 (2026-07-20)
+## v1.7.1 (2026-07-20)
 
 This release adds a conditional-obligation layer, so a statutory or registered duty is surfaced
 structurally rather than only when a persona happens to raise it. It slots into the existing loop;
