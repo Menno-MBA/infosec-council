@@ -290,7 +290,7 @@ npx does not auto-update; it keeps the version you first installed. To upgrade, 
 install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
 
 ```bash
-npx github:Menno-MBA/infosec-council#v1.7.1 --force --global
+npx github:Menno-MBA/infosec-council#v1.8.3 --force --global
 ```
 
 Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
@@ -463,6 +463,14 @@ Desktop, GPT) behaves the same. The items below are under consideration, not com
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
 
+**Recently shipped (v1.8.x)**: an **observed-vs-assumed guardrail** for the incident team. When a
+commander fills a gap under pressure (assuming the estate is virtualized, that immutable backups
+exist, and so on), that inference is tagged `[ASSUMED - verify: <owner>]`, collected in an
+**assumptions register**, and blocked by a synthesis gate from hardening into the record as fact. Ships
+with a portable incident **HTML report generator** and a **cross-skill exercise fixture** (a TA505/Clop
+ransomware scenario under `infosec-shared/examples/`, split into a blue-team starting point and
+red-team ground truth) that doubles as a regression scenario across all four skills. See `CHANGELOG.md`.
+
 **Recently shipped (v1.7.1)**: a **conditional-obligation layer**. `frameworks.md` now carries an
 obligation registry (Part C); the council runs a determination pass before deliberating (each
 statutory duty returned as triggered, or explicitly ruled out on the record), a second Chairman
@@ -533,7 +541,15 @@ infosec-council/
 │       ├── infosec-blueteam/                 #   blue team -> Detection & Hardening Plan
 │       │   └── SKILL.md
 │       ├── infosec-incidentteam/             #   incident team -> Incident Response Report
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── report.js                      #   branded HTML Incident Response Report (Node, no deps; assumptions register)
+│       ├── infosec-shared/                   #   shared, non-skill resources referenced by the team skills
+│       │   └── examples/
+│       │       └── um-ransomware-2019/        #   cross-skill exercise fixture (TA505/Clop), used as a regression scenario
+│       │           ├── README.md              #     facilitator guide + skill mapping
+│       │           ├── part-a-blue-starting-point.md   #   blue-team T0 (give to the team)
+│       │           ├── part-b-red-ground-truth.md      #   red-team ground truth (release as injects)
+│       │           └── example-incident-report.md      #   reference output (Part A only)
 │       └── infosec-council/                  #   the decision council (7-seat deliberation)
 │           ├── SKILL.md                       #   orchestrator (dispatches sub-agents) + skill router
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions/5x5 risk (shared by all 4 skills)
@@ -562,7 +578,8 @@ infosec-council/
 │   ├── install-cli.sh                         #   copy .claude/* into ~/.claude (global CLI use)
 │   ├── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
 │   ├── sync-chatgpt.js                        #   regenerate chatgpt/knowledge from canonical sources (CI-checked)
-│   └── test-reports.js                        #   golden-file test for the report generators
+│   ├── check-versions.js                      #   guard: all three manifests agree + tag == version (CI-checked)
+│   └── test-reports.js                        #   regression tests for the council + incident report generators
 └── dist/                                      # build output (gitignored)
     └── infosec-council-desktop.zip
 ```
@@ -607,6 +624,17 @@ update, or a fix. Open an issue to discuss first, or send a pull request. Contri
 help improve the council are credited here and in the release notes. By contributing you
 agree your changes are licensed under the project's terms (MIT for code, CC BY-SA 4.0 for
 content).
+
+**Before you push**, run the checks (zero dependencies, `jq` optional for the bash-report
+parity assertion):
+
+```bash
+npm test   # version parity + tag match, then the council + incident report generator tests
+```
+
+CI runs the same checks on every version tag and will not build a release if the three
+manifests (`package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`)
+disagree or the tag does not match the version.
 
 ### Contributors
 

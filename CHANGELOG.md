@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.8.3 (2026-07-21)
+
+Guardrail against the version-drift class of bug, plus a README refresh.
+
+- **Version-parity guard.** New `scripts/check-versions.js` asserts `package.json`,
+  `.claude-plugin/plugin.json`, and `.claude-plugin/marketplace.json` all agree, and on a tag build
+  that the tag equals `v<version>` (which would also have caught the tangled v1.8.0 / v1.7.1 history).
+  Wired into the release workflow before any build, and exposed as `npm test` (guard + report tests).
+- **README refresh.** The repository tree now lists `infosec-shared/` (the exercise fixture), the
+  incident report generator, and `check-versions.js`; a v1.8.x "recently shipped" note describes the
+  assumptions guardrail and fixture; the Contributing section documents `npm test`; stale version
+  references updated.
+
 ## v1.8.2 (2026-07-21)
 
 Packaging and consistency fixes for the v1.8.1 additions; no behavioural change to the skills.

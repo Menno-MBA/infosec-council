@@ -27,9 +27,11 @@ jobs:
             tr -d '\000' < "$f" > "$f.tmp"
             if ! cmp -s "$f" "$f.tmp"; then mv "$f.tmp" "$f"; echo "stripped NUL bytes from $f"; else rm -f "$f.tmp"; fi
           done
+      - name: Version parity + tag match (all three manifests agree; tag == version)
+        run: node scripts/check-versions.js
       - name: Check the ChatGPT knowledge folder is in sync with canonical sources
         run: node scripts/sync-chatgpt.js --check
-      - name: Report generator tests (golden file + report.js/report.sh parity)
+      - name: Report generator tests (golden file + report.js/report.sh parity + incident report)
         run: node scripts/test-reports.js
       - name: Build the desktop skill zip
         run: node bin/cli.js build-desktop

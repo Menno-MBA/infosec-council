@@ -1,6 +1,6 @@
 {
   "name": "infosec-council",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "A Claude security suite for EU SMEs: a seven-expert decision council plus three operational teams (red, blue, incident). The council deliberates a decision and returns a calibrated verdict; the red team plans authorized adversary emulation, the blue team builds detection and hardening, and the incident team runs response. ECSF-aligned. Ships as a Claude Code plugin, an npx installer, and a Claude.ai/Desktop council edition.",
   "keywords": [
     "claude",
@@ -33,6 +33,8 @@
     "node": ">=16"
   },
   "scripts": {
-    "build:desktop": "node bin/cli.js build-desktop"
+    "build:desktop": "node bin/cli.js build-desktop",
+    "check:versions": "node scripts/check-versions.js",
+    "test": "node scripts/check-versions.js && node scripts/test-reports.js"
   }
 }
