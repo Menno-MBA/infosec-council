@@ -166,6 +166,8 @@ const CSS = [
   '.appetite{margin:18px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--ga);border-radius:10px;padding:14px 16px;}',
   '.appetite h3{margin:0 0 4px;font-size:14px;color:var(--ink);font-weight:700;}.appetite p{margin:0;font-size:14px;color:var(--body);}',
   '.leverage{margin:14px 0 0;font-size:15px;color:var(--ink);}.leverage strong{color:var(--ga);}',
+  '.st{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:9999px;white-space:nowrap;}.st.req{color:#b45309;background:rgba(180,83,9,.10);border:1px solid #b45309;}',
+  '.ledger{margin:16px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--slate);border-radius:10px;padding:14px 16px;}.ledger h3{margin:0 0 8px;font-size:13px;color:var(--ink);font-weight:700;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;}.ledger ul{margin:0;padding-left:1.1em;}.ledger li{margin:.35em 0;font-size:13.5px;color:var(--body);}.ledger li b{color:var(--ink);}',
   '.expo{margin:14px 0 0;}',
   '.expohead{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:12px;}.expohead b{color:var(--ink);}',
   '.expoband{font-weight:700;text-transform:uppercase;letter-spacing:.06em;}',
@@ -257,6 +259,38 @@ function riskBlock() {
   return html;
 }
 
+// ---- obligations / regulatory ledger block ----------------------------------
+function obligationsBlock() {
+  const ob = (run && run.obligations) ? run.obligations : {};
+  const tr = Array.isArray(ob.triggered) ? ob.triggered : [];
+  const ro = Array.isArray(ob.ruled_out) ? ob.ruled_out : [];
+  if (tr.length === 0 && ro.length === 0) return '';
+  let html = '<section class="block"><h2>Regulatory obligations</h2>'
+    + '<p class="lead">Every registered obligation is evaluated before the panel deliberates. Each appears here as a required action with a named owner and a clock, or as explicitly considered and ruled out; a missing obligation is a decision on the record, not a silent omission.</p>';
+  if (tr.length > 0) {
+    html += '<table class="opts"><thead><tr><th>Obligation</th><th>Required action</th><th>Owner (determine &rarr; execute)</th><th>Clock</th><th>Recipient</th><th>Ref</th><th>Status</th></tr></thead><tbody>'
+      + tr.map(function (t) {
+          const label = (t.label != null) ? t.label : (t.id != null ? t.id : '');
+          const det = (t.determination != null) ? t.determination : (t.determination_owner != null ? t.determination_owner : '');
+          const exe = (t.execution != null) ? t.execution : (t.execution_owner != null ? t.execution_owner : '');
+          return '<tr><td><strong>' + e(label) + '</strong></td><td>' + e(g(t, 'action')) + '</td><td>' + e(det) + ' &rarr; ' + e(exe) + '</td><td>' + e(g(t, 'clock')) + '</td><td>' + e(g(t, 'recipient')) + '</td><td>' + e(g(t, 'ref')) + '</td><td><span class="st req">Required</span></td></tr>';
+        }).join('')
+      + '</tbody></table>';
+  } else {
+    html += '<p class="riskwhy">No registered obligation triggered for this decision, which is the correct, auditable default. The obligations considered are listed below.</p>';
+  }
+  if (ro.length > 0) {
+    html += '<div class="ledger"><h3>Considered and ruled out this deliberation</h3><ul>'
+      + ro.map(function (r) {
+          const label = (r.label != null) ? r.label : (r.id != null ? r.id : '');
+          return '<li><b>' + e(label) + '</b>: ' + e(g(r, 'reason')) + '</li>';
+        }).join('')
+      + '</ul></div>';
+  }
+  html += '</section>';
+  return html;
+}
+
 // ---- options / decision-science block ---------------------------------------
 function optionsBlock() {
   if (!(Array.isArray(run.options) && run.options.length > 0)) return '';
@@ -338,6 +372,7 @@ let out = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
   + (len(g(run, 'next_step')) > 0 ? '<p class="assume"><strong>Do this next:</strong> ' + e(run.next_step) + '</p>' : '')
   + '</div>'
   + riskBlock()
+  + obligationsBlock()
   + (len(g(run, 'executive_summary')) > 0 ? '<section class="exec"><h2>Executive summary</h2><p>' + e(run.executive_summary) + '</p></section>' : '')
   + optionsBlock()
   + '<div class="divider"><h2>The detailed analysis</h2><p>For readers who want the full picture: the risks, the agreements and trade-offs, and each advisor in their own words.</p></div>'

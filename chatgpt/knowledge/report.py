@@ -155,7 +155,43 @@ footer{margin-top:60px;background:var(--footer);padding:42px 20px 48px;text-alig
 .riskmeta2{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
 .riskwhy{margin:12px 0 0;color:var(--body);font-size:14px;}
 .risklegend{margin:12px 0 0;font-size:12.5px;color:var(--muted);}.risklegend summary{cursor:pointer;color:var(--ga);font-weight:600;}.risklegend p{margin:6px 0;}
+.st{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:9999px;white-space:nowrap;}.st.req{color:#b45309;background:rgba(180,83,9,.10);border:1px solid #b45309;}
+.ledger{margin:16px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--slate);border-radius:10px;padding:14px 16px;}.ledger h3{margin:0 0 8px;font-size:13px;color:var(--ink);font-weight:700;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;}.ledger ul{margin:0;padding-left:1.1em;}.ledger li{margin:.35em 0;font-size:13.5px;color:var(--body);}.ledger li b{color:var(--ink);}
 """
+
+def obligations_block(ob):
+    if not isinstance(ob, dict):
+        return ""
+    tr = ob.get("triggered") or []
+    ro = ob.get("ruled_out") or []
+    if not (isinstance(tr, list) and tr) and not (isinstance(ro, list) and ro):
+        return ""
+    html = ('<section class="block"><h2>Regulatory obligations</h2>'
+            '<p class="lead">Every registered obligation is evaluated before the panel deliberates. Each appears here as a required action with a named owner and a clock, or as explicitly considered and ruled out; a missing obligation is a decision on the record, not a silent omission.</p>')
+    if isinstance(tr, list) and tr:
+        rows = ""
+        for t in tr:
+            tg = t.get
+            label = tg("label") or tg("id") or ""
+            det = tg("determination") or tg("determination_owner") or ""
+            exe = tg("execution") or tg("execution_owner") or ""
+            rows += (f'<tr><td><strong>{e(label)}</strong></td><td>{e(tg("action"))}</td>'
+                     f'<td>{e(det)} &rarr; {e(exe)}</td><td>{e(tg("clock"))}</td>'
+                     f'<td>{e(tg("recipient"))}</td><td>{e(tg("ref"))}</td>'
+                     f'<td><span class="st req">Required</span></td></tr>')
+        html += ('<table class="opts"><thead><tr><th>Obligation</th><th>Required action</th><th>Owner (determine &rarr; execute)</th><th>Clock</th><th>Recipient</th><th>Ref</th><th>Status</th></tr></thead><tbody>'
+                 + rows + "</tbody></table>")
+    else:
+        html += '<p class="riskwhy">No registered obligation triggered for this decision, which is the correct, auditable default. The obligations considered are listed below.</p>'
+    if isinstance(ro, list) and ro:
+        lis = ""
+        for r in ro:
+            rg = r.get
+            label = rg("label") or rg("id") or ""
+            lis += f'<li><b>{e(label)}</b>: {e(rg("reason"))}</li>'
+        html += f'<div class="ledger"><h3>Considered and ruled out this deliberation</h3><ul>{lis}</ul></div>'
+    html += "</section>"
+    return html
 
 def _list_block(items, title, lead):
     if not isinstance(items, list) or not items:
@@ -197,6 +233,7 @@ def make_report(run, out_dir="."):
     if g("next_step"): parts.append(f'<p class="assume"><strong>Do this next:</strong> {e(g("next_step"))}</p>')
     parts.append("</div>")
     parts.append(risk_block(g("risk_score")))
+    parts.append(obligations_block(g("obligations")))
 
     if g("executive_summary"):
         parts.append(f'<section class="exec"><h2>Executive summary</h2><p>{e(g("executive_summary"))}</p></section>')

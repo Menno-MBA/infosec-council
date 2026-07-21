@@ -353,6 +353,9 @@ All regulations, standards, guidelines, and technologies live in
   SOC 2 – flip a regime to "in scope" and the relevant seats treat it as live.
 - **Part B – reference register**: every subject with its canonical version/level and a
   **cross-reference column** showing which personas cite it.
+- **Part C – obligation registry**: conditional obligations (statutory reporting and the like),
+  each with a trigger, a determination owner, execution owner(s), a clock, a recipient, and a
+  statutory ref. The council evaluates every row before it deliberates (see below).
 
 The personas reference subjects **by name** and inherit the detail from here, and the
 orchestrator injects `frameworks.md` into every member at deliberation time, so a single
@@ -364,6 +367,24 @@ The **5x5 risk matrix** lives here too (impact negligible to severe, likelihood 
 certain, each 1 to 5, scored out of 25 and banded Low / Moderate / High / Critical), and all four
 skills rate risk on it. The council report shows both inherent and residual exposure as two markers
 on one bar, and an already-observed impact is scored Almost certain, not Possible.
+
+### Obligation registry & the determination layer
+
+Some duties are not opinions to be argued; they either apply or they do not. `frameworks.md`
+**Part C** is a config-driven **obligation registry** (statutory reporting and similar), and before
+Round 1 the council runs a **determination pass**: the determination owner for each row (Compliance
+or the DPO) returns it as **TRIGGERED** (a required action with an owner, a clock, and a recipient) or
+**NOT TRIGGERED** (with a one-line reason). Determination is split from **execution**, so a
+cross-cutting duty like outbound incident reporting is never collapsed into one seat and silently
+dropped.
+
+Two things make it structural rather than hopeful. The forced NOT-TRIGGERED line turns absence into a
+decision on the record. And a second Chairman gate, **Gate B**, blocks the synthesis from closing
+while any TRIGGERED obligation lacks a matching action with an owner and a clock; consensus does not
+override a missing statutory action. The dossier renders both as a **Regulatory obligations** section
+under the risk rating: a required-actions table plus an explicit-negative ledger of what was
+considered and ruled out, which doubles as ISO 27001 Annex A / NIS2 governance evidence. Register a
+new obligation by adding one row to Part C, with no code change.
 
 ### Strategic context (`context.md`)
 

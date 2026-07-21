@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.8.0 (2026-07-20)
+
+This release adds a conditional-obligation layer, so a statutory or registered duty is surfaced
+structurally rather than only when a persona happens to raise it. It slots into the existing loop;
+outbound incident reporting is the first registered instance, not a special case.
+
+### Obligation registry + determination pass
+- `frameworks.md` gains **Part C, an obligation registry**: a config-driven table of conditional
+  obligations (id, trigger, determination owner, execution owner(s), clock, recipient, ref), seeded
+  with the outbound-reporting rows (GDPR Art. 33 and 34, NIS2/Cbw 24h / 72h / 1-month, NIS2 Art. 29
+  IoC sharing) plus three candidate rows (DPIA, Art. 28 processor gate, control-baseline shift).
+- Before Round 1 the council runs a **determination pass**: each obligation's determination owner
+  (Compliance or the DPO) returns it as TRIGGERED (with an owner and a clock) or NOT TRIGGERED (with a
+  one-line reason). The forced NOT-TRIGGERED line turns a missing obligation into a decision on the
+  record. Determination (a compliance judgement) is split from execution (operational, often a
+  different seat or an out-of-council role such as Legal & Comms), so a cross-cutting duty like
+  outbound reporting is never collapsed into one seat and then dropped.
+
+### Chairman Gate B + explicit-negative ledger
+- A second closing gate: for every TRIGGERED obligation the synthesis MUST contain a matching action
+  with a named owner and a clock, or it reopens. Consensus does not override a missing statutory or
+  registered action. The Deep-mode synthesis audit now also checks for Gate B misses.
+- The dossier gains a **Regulatory obligations** section under the risk rating: a required-actions
+  table plus a "considered and ruled out" ledger. That ledger is a defensible "what we assessed and
+  why we did or did not act" trail, usable as ISO 27001 Annex A / NIS2 governance evidence. It renders
+  identically in report.js and report.sh (byte-parity tested) and in report.py, via a new optional
+  `obligations` field that is omitted safely when no obligations are in play.
+
+### Editions
+- The mechanism is mirrored across all three editions (Claude Code, Desktop, ChatGPT); the ChatGPT
+  knowledge folder is regenerated from the canonical sources and stays in sync.
+
 ## v1.7.0 (2026-07-20)
 
 This release upgrades the risk model, polishes the report, and extends the council into a

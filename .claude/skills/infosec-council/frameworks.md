@@ -150,13 +150,47 @@ current obligation or relief.
 
 ---
 
-## Part C. How to maintain
+## Part C. Obligation registry (conditional, config-driven)
+
+Some duties are not opinions to be argued; they are **conditional obligations** that either apply or do not, and if they apply they have an owner, a clock, and a recipient. This registry lists them so the council **determines** each one explicitly before it deliberates, instead of hoping a persona happens to raise it. Every row is evaluated in the determination pass (see SKILL.md) and returns exactly one of two outcomes: **TRIGGERED** (a required action) or **NOT TRIGGERED** (recorded, with a one-line reason, in the explicit-negative ledger). A general EU-SME run returns mostly NOT TRIGGERED, which is the correct, auditable default.
+
+The **determination owner** is the seat that evaluates the trigger, and is always a council seat. The **execution owner(s)** carry the action if it fires; these may be operational roles that sit outside the seven seats (for example Legal & Comms, mirrored by the incident team's legal-comms seat), which the Chairman routes the action to. Determination is a compliance judgement; execution is operational, and the split is deliberate so a cross-cutting duty like outbound reporting is never collapsed into one seat and then dropped.
+
+Triggers reference the in-scope table (Part A) and the reference register (Part B); resolve them from there, never from memory. A row whose regime is not in scope returns NOT TRIGGERED by scope.
+
+| id | Obligation | Trigger | Determination owner | Execution owner(s) | Clock | Recipient | Ref |
+|---|---|---|---|---|---|---|---|
+| `gdpr_breach_dpa` | Notify the supervisory authority of a personal-data breach | Personal-data breach likely to risk individuals' rights (GDPR in scope) | DPO | DPO | 72h from awareness | Autoriteit Persoonsgegevens (AP) | GDPR Art.33 |
+| `gdpr_breach_subjects` | Notify affected individuals | Breach likely to result in **high** risk to individuals | DPO | DPO + CISO | Without undue delay | Affected data subjects | GDPR Art.34 |
+| `nis2_early_warning` | Early warning of a significant incident | NIS2/Cbw in scope (essential/important entity) and a significant incident | Compliance | CISO (notifier) + Legal & Comms | 24h from awareness | CSIRT / NCSC (national) | NIS2 Art.23 / Cbw |
+| `nis2_notification` | Incident notification | as above | Compliance | CISO (notifier) + Legal & Comms | 72h from awareness | CSIRT / NCSC | NIS2 Art.23 / Cbw |
+| `nis2_final_report` | Final report | as above | Compliance | CISO (notifier) + Legal & Comms | 1 month after notification | CSIRT / NCSC | NIS2 Art.23 / Cbw |
+| `ioc_sharing` | Share indicators / threat intel | A CERT/CSIRT affiliation exists (voluntary) | Compliance | Security Operations | ASAP (voluntary, not a statutory clock) | Sector CERT / CSIRT | NIS2 Art.29 |
+
+**NIS2/Cbw dates are load-bearing.** The NL Cbw is in force **from 15 Aug 2026** [VERIFY] (see the in-scope table); before that date, and for an entity not in NIS2 scope, all four NIS2 rows return NOT TRIGGERED and the GDPR clock, not a perceived NIS2 deadline, governs the response. Check your own country's transposition, which can differ on scope, thresholds, and deadlines.
+
+### Candidate registrations (register when ready; each is one row, no mechanism change)
+
+| id | Obligation | Trigger | Determination owner | Execution owner(s) | Clock | Ref |
+|---|---|---|---|---|---|---|
+| `dpia_special_category` | Data-protection impact assessment | Special-category or large-scale monitoring data in scope | DPO | DPO + Security Architect | Before processing begins | GDPR Art.35 (Art.36 prior consultation on high residual risk) |
+| `art28_processor_gate` | Processor terms before data leaves the estate | Personal data is handed to a processor (e.g. an external DFIR firm) | DPO / Compliance | Legal | Before the hand-off | GDPR Art.28 |
+| `control_baseline_shift` | Re-level controls | A sector or regime change raises the required control baseline | Compliance | Security Architect + Security Operations | Per remediation plan | frameworks.md Part A (control baseline) |
+
+To register a new obligation, add one row above and name a determination owner and execution owner(s); the determination pass evaluates it and the Chairman's obligation-omission gate enforces it automatically.
+
+---
+
+## Part D. How to maintain
 
 - **Raise the security bar:** change **Control baseline** in Part A from `IG1` to `IG2`
   (or `IG3`). Every persona cites "the control baseline," so all seats re-level at once.
 - **Bring a regime into scope:** flip its row in the in-scope table (e.g. NIS2/Cbw once
   the Dutch transposition is in force, or DORA if you become a financial entity). The
   Compliance seat and any affected seat will then treat it as live.
+- **Register a new conditional obligation:** add one row to Part C (id, trigger,
+  determination owner, execution owner(s), clock, recipient, ref). The determination pass
+  evaluates it and the Chairman's obligation-omission gate enforces it; no code change is needed.
 - **A standard version bumps** (e.g. PCI DSS v4.0.1 to the next): change it once in Part B.
 - **Personas reference subjects by name** and inherit detail from here. Do not
   re-hardcode versions, IG levels, or regime scope inside persona files.

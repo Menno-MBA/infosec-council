@@ -36,6 +36,14 @@ const FIXTURE = {
     inherent: { impact: 'severe', likelihood: 'almost certain', rationale: 'Adverse impact already observed; treat it as materialized.' },
     residual: { impact: 'serious', likelihood: 'possible', rationale: 'Vendor risk cannot be eliminated.' }
   },
+  obligations: {
+    triggered: [
+      { label: 'GDPR breach notification to the DPA', action: 'Notify the supervisory authority; open the breach register at awareness.', determination: 'DPO', execution: 'DPO', clock: '72h from awareness', recipient: 'Autoriteit Persoonsgegevens (AP)', ref: 'GDPR Art.33' }
+    ],
+    ruled_out: [
+      { label: 'NIS2 Art.23 early warning (24h)', reason: 'entity not in NIS2/Cbw scope at the decision date' }
+    ]
+  },
   minority_report: 'Deploy-with-conditions decays once nobody maintains the conditions.',
   ranking: [
     { position: 'Expert A (dpo)', score: 4.6, note: 'Legal argument strongest' },
@@ -85,6 +93,11 @@ assert(/residual <b>9\/25<\/b> <span class="expoband band-moderate">Moderate/.te
 assert(js.includes('likelihood Almost certain'), '5-level likelihood label (Almost certain) renders');
 assert(js.includes('<span class="expomark inh"'), 'inherent ghost marker rendered alongside residual');
 assert(js.includes('<p class="subtitle">A concrete detail line'), 'subtitle renders under the title');
+assert(js.includes('<h2>Regulatory obligations</h2>'), 'obligations section renders');
+assert(/<td><span class="st req">Required<\/span><\/td>/.test(js), 'a triggered obligation renders as a Required action');
+assert(js.includes('72h from awareness'), 'triggered obligation shows its determination owner and clock');
+assert(js.includes('Considered and ruled out this deliberation'), 'explicit-negative ledger renders');
+assert(js.includes('entity not in NIS2/Cbw scope at the decision date'), 'a ruled-out obligation shows its one-line reason');
 
 function has(cmd) { try { return cp.spawnSync(cmd, ['--version'], { encoding: 'utf8' }).status === 0 || cmd === 'bash'; } catch (_) { return false; } }
 

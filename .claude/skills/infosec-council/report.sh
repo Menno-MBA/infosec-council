@@ -109,6 +109,8 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + ".appetite{margin:18px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--ga);border-radius:10px;padding:14px 16px;}"
 + ".appetite h3{margin:0 0 4px;font-size:14px;color:var(--ink);font-weight:700;}.appetite p{margin:0;font-size:14px;color:var(--body);}"
 + ".leverage{margin:14px 0 0;font-size:15px;color:var(--ink);}.leverage strong{color:var(--ga);}"
++ ".st{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:9999px;white-space:nowrap;}.st.req{color:#b45309;background:rgba(180,83,9,.10);border:1px solid #b45309;}"
++ ".ledger{margin:16px 0 0;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--slate);border-radius:10px;padding:14px 16px;}.ledger h3{margin:0 0 8px;font-size:13px;color:var(--ink);font-weight:700;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase;}.ledger ul{margin:0;padding-left:1.1em;}.ledger li{margin:.35em 0;font-size:13.5px;color:var(--body);}.ledger li b{color:var(--ink);}"
 + ".expo{margin:14px 0 0;}"
 + ".expohead{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:12px;}.expohead b{color:var(--ink);}"
 + ".expoband{font-weight:700;text-transform:uppercase;letter-spacing:.06em;}"
@@ -204,6 +206,25 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
          + "<details class=\"risklegend\"><summary>What the scale means</summary><p><strong>Impact:</strong> Negligible (minimal service impact, negligible cost); Minor (limited service impact, low cost); Moderate (moderate to serious damage, high cost, possible legal consequences); Major (major damage, high cost, likely legal or regulatory consequences); Severe (severe legal consequences, lasting damage or being put out of operation).</p><p><strong>Likelihood:</strong> Rare (conceivable but unlikely); Unlikely (could occur but is not expected); Possible (unlikely but plausible in edge cases); Likely (more likely than not to occur); Almost certain (occurring now or virtually certain to materialize). An impact that has already been observed is scored Almost certain, not Possible.</p><p><strong>Inherent</strong> is exposure before the recommended response; <strong>residual</strong> is what remains after it. <strong>Exposure</strong> = impact x likelihood (each scored 1 to 5), scored out of 25.</p></details>"
          + "</section>"
        end)
+
++ ((.obligations // {}) as $ob
+   | ($ob.triggered // []) as $tr
+   | ($ob.ruled_out // []) as $ro
+   | if (($tr|length)==0 and ($ro|length)==0) then ""
+     else "<section class=\"block\"><h2>Regulatory obligations</h2>"
+        + "<p class=\"lead\">Every registered obligation is evaluated before the panel deliberates. Each appears here as a required action with a named owner and a clock, or as explicitly considered and ruled out; a missing obligation is a decision on the record, not a silent omission.</p>"
+        + (if ($tr|length)>0
+           then "<table class=\"opts\"><thead><tr><th>Obligation</th><th>Required action</th><th>Owner (determine &rarr; execute)</th><th>Clock</th><th>Recipient</th><th>Ref</th><th>Status</th></tr></thead><tbody>"
+              + ([ $tr[] | "<tr><td><strong>" + ((.label // .id // "")|e) + "</strong></td><td>" + ((.action // "")|e) + "</td><td>" + ((.determination // .determination_owner // "")|e) + " &rarr; " + ((.execution // .execution_owner // "")|e) + "</td><td>" + ((.clock // "")|e) + "</td><td>" + ((.recipient // "")|e) + "</td><td>" + ((.ref // "")|e) + "</td><td><span class=\"st req\">Required</span></td></tr>" ] | join(""))
+              + "</tbody></table>"
+           else "<p class=\"riskwhy\">No registered obligation triggered for this decision, which is the correct, auditable default. The obligations considered are listed below.</p>" end)
+        + (if ($ro|length)>0
+           then "<div class=\"ledger\"><h3>Considered and ruled out this deliberation</h3><ul>"
+              + ([ $ro[] | "<li><b>" + ((.label // .id // "")|e) + "</b>: " + ((.reason // "")|e) + "</li>" ] | join(""))
+              + "</ul></div>"
+           else "" end)
+        + "</section>"
+     end)
 
 + (if (.executive_summary // "")|length>0
    then "<section class=\"exec\"><h2>Executive summary</h2><p>" + (.executive_summary|e) + "</p></section>"

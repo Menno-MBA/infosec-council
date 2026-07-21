@@ -53,7 +53,8 @@ baseline** (currently IG1), the **in-scope regulatory regimes**, framework **ver
 and the cross-reference register. Personas reference these by name and do not hardcode
 them. **Read `frameworks.md` first** and apply its Part A config and in-scope regimes
 throughout. When a persona cites "the control baseline," "the backup standard," or an
-in-scope regime, resolve it from `frameworks.md`, not from memory.
+in-scope regime, resolve it from `frameworks.md`, not from memory. Also read **Part C
+(the obligation registry)** and run the determination pass (below) before the advisors deliberate.
 
 ## Strategic context (house positions)
 `context.md` (bundled) holds the organization's **strategic** configuration: architecture
@@ -75,6 +76,9 @@ After synthesis you may append durable org facts as dated bullets inside the
 1. If the user asked for a journal action (`outcome`, `meta`, `journal`) or a bare `report <sha>`, handle that and do not run the council.
 2. If the question is trivial or factual, say so and skip the council.
 3. **Context-sufficiency gate.** If sector, rough headcount, data types, and in-scope regimes are all missing AND `context.md` is blank, ask ONE compact clarifying question first. If the user is not around to answer, state the assumed profile in one line at the top of the synthesis and proceed.
+
+## Determination pass (obligations, before any advisor)
+Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run the determination pass: for each registered obligation, the determination owner (Compliance or the DPO) returns it as TRIGGERED (action, execution owner, clock, recipient, ref) or NOT TRIGGERED (a one-line reason). The forced NOT-TRIGGERED line makes absence a decision on the record, not a silent omission; for a general SME most rows return NOT TRIGGERED, which is the correct default. Inject the determination set into every advisor, and carry the TRIGGERED actions and NOT-TRIGGERED reasons into the synthesis.
 
 ## Protocol
 1. **Independent analysis** – for each selected advisor, read its persona file and write
@@ -100,11 +104,17 @@ After synthesis you may append durable org facts as dated bullets inside the
    12-month look-back, key assumption, and any UNVERIFIED load-bearing fact) · Executive
    summary (3 to 5 plain sentences) · Key risks (plain language) · Where advisors agree
    (and whether that agreement is trustworthy) · Trade-offs they disagree on · Blind spots ·
-   Minority report (with the pre-mortem story if debate ran) · One next step.
+   Minority report (with the pre-mortem story if debate ran) · Regulatory obligations (the
+   TRIGGERED required actions with owner and clock, plus the explicit-negative ledger of what
+   was ruled out and why) · One next step.
+   - **Gate B (obligation omission).** Before finalizing, check that every TRIGGERED
+     obligation has a matching action with a named owner and clock in the synthesis; if any is
+     missing, reopen and add it or justify the exclusion on the record. Consensus does not
+     override a missing statutory or registered action.
    - **Self-audit (Deep).** Before finalizing, re-read the seven advisor outputs and check
-     your own synthesis for dropped dissent, any claim no advisor made, and confidence
-     higher than the advisors' own spread supports. Correct it, then state in one line
-     that you audited it.
+     your own synthesis for dropped dissent, any claim no advisor made, confidence higher than
+     the advisors' own spread supports, and any TRIGGERED obligation left without an action
+     (a Gate B miss). Correct it, then state in one line that you audited it.
 
 ## Required output block
 End every advisor's turn with:
@@ -134,7 +144,10 @@ array (never empty), a `risk_score` (score it twice: `{inherent:{impact,likeliho
 frameworks.md 5x5 scale, impact negligible/minor/moderate/major/severe x likelihood rare/unlikely/possible/likely/almost certain,
 where an already-observed impact is Almost certain not Possible, and the gap between inherent and residual is the value of the
 recommendation), a `probability`,
-`converged`, an `unverified` array, a `ranking` array, and for a deep run the
+`converged`, an `unverified` array, a `ranking` array, an `obligations` object from the
+determination pass (`{triggered:[{label,action,determination,execution,clock,recipient,ref}], ruled_out:[{label,reason}]}`,
+which renders a Regulatory obligations section, a required-actions table plus the ruled-out ledger,
+under the risk rating), and for a deep run the
 decision-science fields `options` (each with effort, risk_reduction, cost, reversibility,
 verdict), `risk_appetite`, and `highest_leverage`, alongside `consensus`, `conflicts`,
 `blind_spots`, `minority_report`, and per-member `stance`, `confidence`, `probability`,
