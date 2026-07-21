@@ -16,5 +16,9 @@ Thumbs.db
 .idea/
 .vscode/
 
-# generated council HTML reports
+# generated HTML reports (council + incident)
 council-report-*.html
+incident-report-*.html
+
+# scratch / transfer folders (never commit)
+_to_delete/

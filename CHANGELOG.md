@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.8.2 (2026-07-21)
+
+Packaging and consistency fixes for the v1.8.1 additions; no behavioural change to the skills.
+
+- **Version parity.** `package.json` is bumped to 1.8.2 alongside `plugin.json` and `marketplace.json`.
+  The CLI derives its version from `package.json` and stamps it into the built plugin manifest, so the
+  1.8.1 release artifacts reported 1.7.1; all three manifests now move together.
+- **Fixture ships on every install path.** The `npx` installer copied the council plus the three team
+  skills but not `infosec-shared`, so the cross-skill exercise pointers dangled for npx installs. The
+  installer now also copies `infosec-shared` (marketplace and plugin-zip installs already included it).
+- **Regression coverage for the incident report generator.** `scripts/test-reports.js` now also renders
+  `infosec-incidentteam/report.js` and asserts the assumptions guardrail is visible (inline ASSUMED tags
+  on timeline rows and the Assumptions-to-verify register).
+- **Repo hygiene.** Removed the stray `_to_delete/` scratch folder and added it (plus generated
+  `incident-report-*.html`) to `.gitignore`.
+
 ## v1.8.1 (2026-07-21)
 
 This release hardens the incident team against a subtle failure mode, an assertive commander

@@ -1,7 +1,7 @@
 {
   "name": "infosec-council",
   "displayName": "Information Security Council",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "A security decision council plus three operational teams (red, blue, incident) for EU SMEs. The council of seven experts deliberates a security, privacy, compliance, architecture, or risk decision and returns one calibrated verdict with a minority report. The red team plans authorized adversary emulation, the blue team builds detection and hardening, and the incident team runs response. Roles align to the ENISA ECSF.",
   "author": {
     "name": "Luméro",

@@ -159,9 +159,22 @@ function install() {
     nTeamSkills++;
   }
 
+  // shared, non-skill resources (exercise fixtures/examples the team skills
+  // reference via ../infosec-shared/...). Not a loadable skill, but it must ship
+  // so those cross-skill pointers resolve for every install method.
+  let sharedInstalled = false;
+  const sharedSrc = path.join(PKG_ROOT, ".claude", "skills", "infosec-shared");
+  if (fs.existsSync(sharedSrc)) {
+    const sharedDest = path.join(base, "skills", "infosec-shared");
+    if (fs.existsSync(sharedDest)) fs.rmSync(sharedDest, { recursive: true, force: true });
+    copyDir(sharedSrc, sharedDest);
+    sharedInstalled = true;
+  }
+
   console.log(`${C.green("✓")} Installed ${C.b(String(nAgents) + " agents")} → ${agentsDest}`);
   console.log(`${C.green("✓")} Installed skill ${C.b(SKILL_NAME)} → ${skillDest}`);
   if (nTeamSkills > 0) console.log(`${C.green("✓")} Installed ${C.b(String(nTeamSkills) + " team skills")} (redteam, blueteam, incidentteam)`);
+  if (sharedInstalled) console.log(`${C.green("✓")} Installed ${C.b("shared exercise fixtures")} (infosec-shared)`);
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
   if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);

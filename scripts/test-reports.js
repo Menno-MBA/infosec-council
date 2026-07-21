@@ -3,7 +3,9 @@
  * Golden-file test for the report generators. Guards the verdict-colour
  * regression (a "Not recommended" verdict must not render green) and checks the
  * Node generator emits the calibration fields. If bash+jq are available it also
- * asserts report.sh is byte-identical to report.js. Zero dependencies.
+ * asserts report.sh is byte-identical to report.js. Also guards the incident
+ * report generator's assumptions-guardrail rendering (inline ASSUMED tags + the
+ * Assumptions-to-verify register). Zero dependencies.
  *
  *   node scripts/test-reports.js
  */
@@ -109,6 +111,32 @@ if (cp.spawnSync('bash', ['-c', 'command -v jq'], { encoding: 'utf8' }).stdout.t
   } catch (e) { assert(false, 'report.sh ran: ' + e.message); }
 } else {
   console.log('report.sh: skipped (jq not available)');
+}
+
+// Incident-team report generator: inline-data generator (no stdin), writes to
+// INCIDENT_REPORT_DIR. Guards the assumptions-guardrail rendering: inline
+// ASSUMED tags on timeline rows and the Assumptions-to-verify register.
+console.log('incident report.js:');
+{
+  const incGen = path.join(ROOT, '.claude', 'skills', 'infosec-incidentteam', 'report.js');
+  const env = Object.assign({}, process.env, { INCIDENT_REPORT_DIR: TMP });
+  const r = cp.spawnSync('node', [incGen], { env, encoding: 'utf8' });
+  if (r.status !== 0) {
+    assert(false, 'incident report.js ran: ' + (r.stderr || r.stdout));
+  } else {
+    const line = (r.stdout || '').trim().split(/\r?\n/).pop();
+    const m = line.match(/(\S+\.html)/);
+    if (!m) {
+      assert(false, 'no output path from incident report.js');
+    } else {
+      const ic = fs.readFileSync(m[1], 'utf8');
+      assert(ic.includes('<span class="assumed"'), 'incident timeline renders an inline ASSUMED tag');
+      assert(ic.includes('verify virtualization platform exists: infra lead'), 'the hypervisor line is flagged ASSUMED with a verify-owner');
+      assert(ic.includes('<h2>Assumptions to verify</h2>'), 'the Assumptions-to-verify register section renders');
+      assert(/<th>Verify-owner<\/th>/.test(ic), 'the assumptions register has a verify-owner column');
+      assert(ic.includes('SEV-1 / CRITICAL'), 'the severity banner renders');
+    }
+  }
 }
 
 fs.rmSync(TMP, { recursive: true, force: true });
