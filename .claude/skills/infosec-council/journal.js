@@ -10,7 +10,7 @@
  * Usage:
  *   node journal.js log                 # read one run as JSON on stdin, append it
  *   node journal.js outcome <sha> <correct|partial|wrong> [note]
- *   node journal.js meta                # calibration report (hit-rate + Brier)
+ *   node journal.js meta                # calibration report (hit-rate + Brier + ECE)
  *   node journal.js journal [n]         # show last n runs (default 10)
  *   node journal.js lookback <text...>  # comparable past runs (for pre-flight)
  *   node journal.js path                # print the journal file path
@@ -130,6 +130,33 @@ function cmdMeta() {
     return { n: scored.length, brier: +(s / scored.length).toFixed(3) };
   }
 
+  // Expected Calibration Error (ECE) + reliability curve over runs with a
+  // numeric probability and a recorded outcome. Bins predictions into 5 buckets
+  // of width 0.2 and measures the size-weighted average gap between the
+  // predicted probability and the observed outcome frequency. Brier scores
+  // accuracy and calibration together; ECE isolates calibration, i.e. whether
+  // the panel's 70%-confidence calls actually come right about 70% of the time.
+  function eceOf(list) {
+    const scored = list.filter(r => typeof r.probability === 'number' && r.outcome && ACTUAL[r.outcome.result] != null);
+    if (!scored.length) return null;
+    const bins = [];
+    for (let i = 0; i < 5; i++) bins.push({ lo: i * 0.2, hi: (i + 1) * 0.2, ps: [], as: [] });
+    for (const r of scored) {
+      const p = Math.max(0, Math.min(1, r.probability / 100));
+      const b = bins[Math.min(4, Math.floor(p / 0.2))];
+      b.ps.push(p); b.as.push(ACTUAL[r.outcome.result]);
+    }
+    let ece = 0;
+    const curve = bins.filter(b => b.ps.length).map(b => {
+      const n = b.ps.length;
+      const avgP = b.ps.reduce((a, x) => a + x, 0) / n;
+      const avgA = b.as.reduce((a, x) => a + x, 0) / n;
+      ece += (n / scored.length) * Math.abs(avgP - avgA);
+      return { band: Math.round(b.lo * 100) + '-' + Math.round(b.hi * 100) + '%', n: n, predicted: +(avgP * 100).toFixed(1), observed: +(avgA * 100).toFixed(1) };
+    });
+    return { n: scored.length, ece: +ece.toFixed(3), reliability_curve: curve };
+  }
+
   const byConf = {};
   for (const r of recs) {
     const c = r.confidence || 'unknown';
@@ -165,6 +192,7 @@ function cmdMeta() {
     total_runs: recs.length,
     with_outcome: withOutcome.length,
     brier_overall: brierOf(recs),
+    ece_overall: eceOf(recs),
     calibration_by_confidence: calibration,
     high_confidence_misses: highMisses,
     member_appearances
@@ -223,7 +251,7 @@ switch (cmd) {
       '',
       '  node journal.js log                 read one run as JSON on stdin, append it',
       '  node journal.js outcome <sha> <correct|partial|wrong> [note]',
-      '  node journal.js meta                calibration (hit-rate + Brier score)',
+      '  node journal.js meta                calibration (hit-rate + Brier + ECE)',
       '  node journal.js journal [n]         show last n runs (default 10)',
       '  node journal.js lookback <text>     comparable past runs (pre-flight)',
       '  node journal.js path                print the journal file path',

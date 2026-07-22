@@ -3,9 +3,12 @@
  * Golden-file test for the report generators. Guards the verdict-colour
  * regression (a "Not recommended" verdict must not render green) and checks the
  * Node generator emits the calibration fields. If bash+jq are available it also
- * asserts report.sh is byte-identical to report.js. Also guards the incident
- * report generator's assumptions-guardrail rendering (inline ASSUMED tags + the
- * Assumptions-to-verify register). Zero dependencies.
+ * asserts report.sh is byte-identical to report.js. Also smoke-tests the three
+ * team generators (red / blue / incident) via their bundled `--example` samples:
+ * each must render cleanly (no undefined/object leaks) with its signature
+ * sections, and the incident generator must still render its assumptions
+ * guardrail (inline ASSUMED tags + the Assumptions-to-verify register) and the
+ * new notification tracker. Zero dependencies.
  *
  *   node scripts/test-reports.js
  */
@@ -113,30 +116,59 @@ if (cp.spawnSync('bash', ['-c', 'command -v jq'], { encoding: 'utf8' }).stdout.t
   console.log('report.sh: skipped (jq not available)');
 }
 
-// Incident-team report generator: inline-data generator (no stdin), writes to
-// INCIDENT_REPORT_DIR. Guards the assumptions-guardrail rendering: inline
-// ASSUMED tags on timeline rows and the Assumptions-to-verify register.
-console.log('incident report.js:');
+// Team generators (red / blue / incident): each ships a bundled `--example`
+// sample (the shared TA505/Clop exercise). Render it and assert it comes out
+// clean (no undefined/object/NaN/null leaks) with its signature sections.
+function renderExample(gen, envVar) {
+  const env = Object.assign({}, process.env, {});
+  env[envVar] = TMP;
+  const r = cp.spawnSync('node', [gen, '--example'], { env, encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(gen + ' failed: ' + (r.stderr || r.stdout));
+  const line = (r.stdout || '').trim().split(/\r?\n/).pop();
+  const m = line.match(/(\S+\.html)/);
+  if (!m) throw new Error('no output path from ' + gen);
+  return fs.readFileSync(m[1], 'utf8');
+}
+function assertClean(html, who) {
+  assert(!/object Object|undefined|NaN|>null</.test(html), who + ': renders with no undefined/object/NaN/null leaks');
+  assert(html.length > 20000, who + ': dossier has real content (logo + sections embedded)');
+}
+
+console.log('redteam report.js (--example):');
 {
-  const incGen = path.join(ROOT, '.claude', 'skills', 'infosec-incidentteam', 'report.js');
-  const env = Object.assign({}, process.env, { INCIDENT_REPORT_DIR: TMP });
-  const r = cp.spawnSync('node', [incGen], { env, encoding: 'utf8' });
-  if (r.status !== 0) {
-    assert(false, 'incident report.js ran: ' + (r.stderr || r.stdout));
-  } else {
-    const line = (r.stdout || '').trim().split(/\r?\n/).pop();
-    const m = line.match(/(\S+\.html)/);
-    if (!m) {
-      assert(false, 'no output path from incident report.js');
-    } else {
-      const ic = fs.readFileSync(m[1], 'utf8');
-      assert(ic.includes('<span class="assumed"'), 'incident timeline renders an inline ASSUMED tag');
-      assert(ic.includes('verify virtualization platform exists: infra lead'), 'the hypervisor line is flagged ASSUMED with a verify-owner');
-      assert(ic.includes('<h2>Assumptions to verify</h2>'), 'the Assumptions-to-verify register section renders');
-      assert(/<th>Verify-owner<\/th>/.test(ic), 'the assumptions register has a verify-owner column');
-      assert(ic.includes('SEV-1 / CRITICAL'), 'the severity banner renders');
-    }
-  }
+  const html = renderExample(path.join(ROOT, '.claude', 'skills', 'infosec-redteam', 'report.js'), 'REDTEAM_REPORT_DIR');
+  assertClean(html, 'redteam');
+  assert(html.includes('Adversary Emulation Plan'), 'redteam: kicker/dossier name renders');
+  assert(html.includes('ATT&amp;CK kill chain'), 'redteam: ATT&CK kill-chain section renders');
+  assert(html.includes('blue-team scorecard'), 'redteam: detection scorecard section renders');
+  assert(html.includes('Safety attestation'), 'redteam: safety attestation renders');
+  assert(html.includes('TLP:AMBER+STRICT'), 'redteam: TLP marking renders');
+}
+
+console.log('blueteam report.js (--example):');
+{
+  const html = renderExample(path.join(ROOT, '.claude', 'skills', 'infosec-blueteam', 'report.js'), 'BLUETEAM_REPORT_DIR');
+  assertClean(html, 'blueteam');
+  assert(html.includes('Detection &amp; Hardening Plan'), 'blueteam: kicker/dossier name renders');
+  assert(html.includes('Log-source coverage map'), 'blueteam: log-source coverage map renders');
+  assert(html.includes('Coverage heatmap'), 'blueteam: ATT&CK coverage heatmap renders');
+  assert(/cov-(gap|logged|hunted|detected|hardened)/.test(html), 'blueteam: heatmap cells carry a coverage-state class');
+  assert(html.includes('Purple-team coverage scorecard'), 'blueteam: purple-team scorecard renders');
+}
+
+console.log('incident report.js (--example):');
+{
+  const html = renderExample(path.join(ROOT, '.claude', 'skills', 'infosec-incidentteam', 'report.js'), 'INCIDENT_REPORT_DIR');
+  assertClean(html, 'incident');
+  assert(html.includes('SEV-1'), 'incident: severity banner renders');
+  assert(html.includes('Notification tracker'), 'incident: notification tracker renders');
+  assert(/class="clock (ok|warn|over)"/.test(html), 'incident: a notification deadline countdown badge renders');
+  assert(html.includes('Breach register'), 'incident: breach register renders (Art. 33(5))');
+  assert(html.includes('Evidence register'), 'incident: itemized evidence register renders');
+  assert(html.includes('<span class="st mute">ASSUMED'), 'incident timeline renders an inline ASSUMED marker');
+  assert(html.includes('verify virtualization platform exists: infra lead'), 'the hypervisor line is flagged ASSUMED with a verify-owner');
+  assert(html.includes('Assumptions to verify'), 'the Assumptions-to-verify register section renders');
+  assert(/<th>Verify-owner<\/th>/.test(html), 'the assumptions register has a verify-owner column');
 }
 
 fs.rmSync(TMP, { recursive: true, force: true });

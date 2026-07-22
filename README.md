@@ -40,7 +40,7 @@ below. Risk is now rated on a standard **5x5** heat map (see [Frameworks](#frame
 
 The defensible differentiators, in order:
 
-1. **The calibration journal with outcomes.** Every run is logged with each seat's stance, a confidence level, and a numeric probability. You record later how the decision actually turned out, and `council meta` scores the panel with a Brier score, not just a hit-rate. Over time you learn whether its "high confidence" is worth anything, which is the one thing a one-shot answer can never tell you.
+1. **The calibration journal with outcomes.** Every run is logged with each seat's stance, a confidence level, and a numeric probability. You record later how the decision actually turned out, and `council meta` scores the panel with a Brier score and an Expected Calibration Error plus a reliability curve, not just a hit-rate. Over time you learn whether its "high confidence" is worth anything (and exactly where it is over- or under-confident), which is the one thing a one-shot answer can never tell you.
 2. **The EU-SME regulatory register.** A single maintained file (`frameworks.md`) carries the in-scope regimes, the control baseline, and the canonical standard versions, each with a "last verified" date. The advice is calibrated to Dutch and EU small-business reality, not a generic global default.
 3. **The build/break/run triad.** The Security Architect (build it securely), Offensive Security (break it), and Security Operations (see and survive it failing) are deliberate counterweights. Where they disagree on feasible-versus-detectable is itself a finding.
 4. **The attack and detection pre-mortems.** The red-team and operations seats reason backwards from a breach that has already happened, which surfaces failure paths a forward-looking design review misses.
@@ -135,11 +135,13 @@ skill is enabled). "convene the council", "council this", and "ask the panel for
 ask the infosec-council: <your decision> -deep
 ```
 
-Append `-quick`, `-standard`, or `-deep` to set the depth (default: Standard). The richer
+Append `-quick`, `-standard`, or `-deep` to set the depth (default: Standard), or the
+experimental `-boardroom` for live cross-talk (see [Depth modes](#depth-modes)). The richer
 the context (size, sector, data types, frameworks you carry, constraints), the sharper
 the verdict. The council runs independent analysis, anonymized cross-examination (with
-forced debate when agreement is too clean), and a chairman synthesis that ends with a
-recommendation, a confidence level, a minority report, and one concrete next step.
+forced debate when agreement is too clean, and rotated, length-normalized peer scoring to
+blunt order and verbosity bias), and a chairman synthesis that ends with a recommendation,
+a confidence level, a minority report, and one concrete next step.
 
 **It assesses live incidents too, not just forward decisions.** For example:
 
@@ -151,8 +153,9 @@ notification duties? -deep
 
 ### Running the team skills
 
-The three operational skills trigger the same way, by slash command or natural language, and each
-returns a Markdown deliverable rather than a council verdict:
+The three operational skills trigger the same way, by slash command or natural language. Each
+returns a Markdown deliverable rather than a council verdict, and each can also render its own
+branded, self-contained HTML dossier (see [Reporting](#reporting-branded-html-dossiers)):
 
 ```
 /infosec-redteam plan an authorized adversary-emulation exercise against our flat Active
@@ -172,7 +175,7 @@ council. See [The team skills](#the-team-skills-red-blue-incident) for the seats
 
 ## Depth modes
 
-Append a depth flag (`-quick`, `-standard`, or `-deep`) to your question, or let the council pick (defaults to Standard).
+Append a depth flag (`-quick`, `-standard`, `-deep`, or the experimental `-boardroom`) to your question, or let the council pick (defaults to Standard).
 
 | Mode | When | Members | Peer review + ranking | Debate |
 |---|---|---|---|---|
@@ -290,7 +293,7 @@ npx does not auto-update; it keeps the version you first installed. To upgrade, 
 install with `--force` and the **latest release tag** (the tag also avoids a stale download cache):
 
 ```bash
-npx github:Menno-MBA/infosec-council#v1.8.3 --force --global
+npx github:Menno-MBA/infosec-council#v2.0.0 --force --global
 ```
 
 Use the newest tag from the [Releases](https://github.com/Menno-MBA/infosec-council/releases)
@@ -315,25 +318,37 @@ on. Then in any chat: `ask the infosec-council: <your decision> -deep`. (On Free
 Skills upload lives under Customize → Skills; on Team/Enterprise an owner must enable
 Skills org-wide first.)
 
-## HTML reports
+## Reporting: branded HTML dossiers
 
-The council turns any run into a branded, self-contained HTML dossier in the Luméro
-house style. Two interchangeable generators ship with the skill and produce identical
-output: `report.js` (Node, zero dependencies, the default) and `report.sh` (bash, needs
-`jq`). The Node version is recommended, especially on Windows, where `jq` is usually
-absent. It lays out the recommendation and confidence, an executive summary, the
-decision-science option comparison, the key risks, inherent and residual exposure on a 5x5 risk bar, where the advisors agreed and
-disagreed, the minority report, and each advisor in their own words. Fonts and the Luméro
-logo are embedded (base64), so it renders identically offline with no external requests.
+Every skill in the suite turns its work into a branded, self-contained HTML dossier in the
+Luméro house style. All four generators share one brand shell, the same palette, typography,
+tables, 5x5 risk-exposure bar, status pills, and TLP marking, so a reader who has seen one
+Luméro report reads all of them the same way. Each is a zero-dependency Node `report.js` that
+reads a JSON object on stdin (or `--in <file>`), base64-embeds the Luméro logo and fonts, and
+writes one portable `.html` file that renders identically offline with no external requests.
+
+| Skill | Generator | Dossier | Signature sections |
+|---|---|---|---|
+| **infosec-council** | `report.js` (+ `report.sh`) | Security Decision Dossier | recommendation + confidence, executive summary, 5x5 risk bar, regulatory-obligations ledger, decision-science options, agree/disagree, minority report, each advisor |
+| **infosec-redteam** | `report.js` | Adversary Emulation Plan | exec + scorecard tiles, scope/RoE, emulated adversary, ATT&CK kill-chain table, blue-team detection scorecard, findings, safety attestation |
+| **infosec-blueteam** | `report.js` | Detection & Hardening Plan | coverage tiles, TTP scope, log-source coverage map, ATT&CK coverage heatmap, detection-rule table, hunt cards, ranked hardening backlog, purple-team scorecard |
+| **infosec-incidentteam** | `report.js` | Incident Response Report | severity banner, notification tracker with live deadline countdowns, breach register, timeline, containment dial, evidence register, decision log, eradication gates, comms log |
+
+The council additionally ships `report.sh` (bash + `jq`) as an alternative to its Node generator,
+and can render from the journal by sha. The three team generators are Node-only, take their JSON
+on stdin, and each bundles a runnable sample (the shared TA505/Clop exercise) behind `--example`.
 
 ```bash
-# from a fresh run (the council does this for you), or from the journal by sha:
+# council, from a fresh run (it does this for you) or from the journal by sha:
 node .claude/skills/infosec-council/report.js --sha <sha>
-# or, if you have jq but not Node:
-bash .claude/skills/infosec-council/report.sh --sha <sha>
+
+# a team skill, from a JSON deliverable (or the bundled sample):
+node .claude/skills/infosec-redteam/report.js      < plan.json
+node .claude/skills/infosec-blueteam/report.js     --example
+node .claude/skills/infosec-incidentteam/report.js < incident.json
 ```
 
-In Claude Code, just ask for "a report for <sha>".
+In Claude Code, just ask for "a report" after any run (or "a report for <sha>" for the council).
 
 ## Decision journal
 
@@ -463,7 +478,20 @@ Desktop, GPT) behaves the same. The items below are under consideration, not com
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
 
-**Recently shipped (v1.8.x)**: an **observed-vs-assumed guardrail** for the incident team. When a
+**Recently shipped (v2.0.0)**: the suite reaches parity and gets hardened. All three operational
+team skills now emit their own **branded HTML dossiers** (Adversary Emulation Plan, Detection &
+Hardening Plan, Incident Response Report) sharing one brand shell with the council, so every skill
+produces a portable, offline-rendering report, not just the council. The council mechanism gains
+**state-of-the-art bias controls** (rotated, length-normalized anonymized peer scoring to blunt the
+order and verbosity biases an LLM judge falls for) and a richer **calibration read** (Expected
+Calibration Error and a reliability curve beside the Brier score). And the codebase is
+**security-hardened**: input JSON is escaped by default (three injection fixes), a **SHA-256
+integrity manifest** with an `infosec-council verify` command gives tamper-evidence, and a new
+[SECURITY.md](SECURITY.md) documents the threat model. This 2.0 milestone also consolidates the
+v1.7.x conditional-obligation layer and 5x5 risk matrix and the v1.8.x assumptions guardrail below.
+See `CHANGELOG.md`.
+
+**Shipped in v1.8.x**: an **observed-vs-assumed guardrail** for the incident team. When a
 commander fills a gap under pressure (assuming the estate is virtualized, that immutable backups
 exist, and so on), that inference is tagged `[ASSUMED - verify: <owner>]`, collected in an
 **assumptions register**, and blocked by a synthesis gate from hardening into the record as fact. Ships
@@ -537,19 +565,24 @@ infosec-council/
 │   │   └── incident-legal-comms.md
 │   └── skills/
 │       ├── infosec-redteam/                  #   red team -> Adversary Emulation Plan
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── report.js                      #   branded HTML Adversary Emulation Plan (Node, no deps; ATT&CK kill chain + scorecard)
 │       ├── infosec-blueteam/                 #   blue team -> Detection & Hardening Plan
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── report.js                      #   branded HTML Detection & Hardening Plan (Node, no deps; coverage heatmap + purple scorecard)
 │       ├── infosec-incidentteam/             #   incident team -> Incident Response Report
 │       │   ├── SKILL.md
-│       │   └── report.js                      #   branded HTML Incident Response Report (Node, no deps; assumptions register)
+│       │   └── report.js                      #   branded HTML Incident Response Report (Node, no deps; notification tracker + assumptions register)
 │       ├── infosec-shared/                   #   shared, non-skill resources referenced by the team skills
 │       │   └── examples/
 │       │       └── um-ransomware-2019/        #   cross-skill exercise fixture (TA505/Clop), used as a regression scenario
 │       │           ├── README.md              #     facilitator guide + skill mapping
 │       │           ├── part-a-blue-starting-point.md   #   blue-team T0 (give to the team)
 │       │           ├── part-b-red-ground-truth.md      #   red-team ground truth (release as injects)
-│       │           └── example-incident-report.md      #   reference output (Part A only)
+│       │           ├── example-incident-report.md      #   reference output (Part A only)
+│       │           ├── adversary-emulation.json        #   red-team report sample (node report.js --example)
+│       │           ├── detection-hardening.json        #   blue-team report sample (node report.js --example)
+│       │           └── incident-report.json            #   incident report sample (node report.js --example)
 │       └── infosec-council/                  #   the decision council (7-seat deliberation)
 │           ├── SKILL.md                       #   orchestrator (dispatches sub-agents) + skill router
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions/5x5 risk (shared by all 4 skills)
@@ -617,6 +650,30 @@ chairman synthesis that preserves a minority report, and the JSONL decision jour
 originate there. This edition specializes that framework for information security, with a
 fixed panel of security domain experts, and adds the attack and detection pre-mortems.
 
+## Security & integrity
+
+These are zero-dependency scripts you fetch from GitHub and run locally, so two things matter:
+they should not mishandle input, and you should be able to tell if the copy you ran was
+altered.
+
+- **Input is treated as untrusted.** The report generators turn a JSON object into an HTML
+  dossier a human then opens and shares, so every value from that JSON is HTML-escaped, CSS
+  colours are validated before they reach a `style` attribute, and numeric widths are coerced
+  and clamped. There is no `eval`, no `child_process`, and no runtime dependencies.
+- **Tamper-evidence.** Every executable file ships with a **SHA-256** entry in
+  `scripts/integrity.sha256`. Verify a copy you fetched:
+
+  ```bash
+  npx infosec-council verify      # or, in a clone: npm run integrity
+  ```
+
+  `verify` fails loudly if any script no longer matches its recorded hash. (SHA-256, not MD5,
+  which is collision-broken.) The manifest ships in-repo, so it catches accidental corruption
+  and casual tampering on its own; for a hard supply-chain guarantee, pin a tag and rely on
+  npm build provenance or an out-of-band hash.
+
+See **[SECURITY.md](SECURITY.md)** for the full threat model and how to report a vulnerability.
+
 ## Contributing
 
 Improvements are welcome: a new advisor seat, a sharper persona mandate, a `frameworks.md`
@@ -629,12 +686,19 @@ content).
 parity assertion):
 
 ```bash
-npm test   # version parity + tag match, then the council + incident report generator tests
+npm test   # version parity, the SHA-256 integrity manifest, then the report generator tests
+```
+
+If you change any shipped script, regenerate the integrity manifest before pushing:
+
+```bash
+npm run integrity:write   # updates scripts/integrity.sha256
 ```
 
 CI runs the same checks on every version tag and will not build a release if the three
 manifests (`package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`)
-disagree or the tag does not match the version.
+disagree, the tag does not match the version, or a shipped script no longer matches the
+integrity manifest.
 
 ### Contributors
 

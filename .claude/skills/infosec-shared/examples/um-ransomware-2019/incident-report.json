@@ -1,0 +1,342 @@
+{
+  "title": "Suspected University-Wide Ransomware",
+  "subtitle": "Live incident response, decentralized research university, single flat Active Directory domain (~1,600 servers, ~7,300 workstations). No central SIEM or 24/7 SOC; holiday run-up, thin coverage. Exercise run.",
+  "ref": "INC-RANSOM / SEV-1",
+  "date": "2026-07-21 (reference date assumed)",
+  "status": "LIVE / ACTIVE INTRUSION (working assumption)",
+  "phase": "contain",
+  "tlp": "AMBER",
+  "severity": {
+    "level": "SEV-1 / CRITICAL",
+    "text": "Impact is already materialized (files are encrypted now), so this is not a \"possible\" risk. Two correlated signals in the same window on a flat, unsegmented ~8,900-host estate, plus loss of the normal coordination channel (email) and thin holiday staffing, all amplify it. Re-rate at every material change.",
+    "badges": ["Active intrusion assumed", "Email untrusted", "AD untrusted", "Exfil not excluded", "GDPR clock live"],
+    "history": [
+      { "time": "T0", "level": "SEV-2 (mail outage only)", "reason": "single signal, cause unknown" },
+      { "time": "T0+0", "level": "SEV-1 / CRITICAL", "reason": "encryption confirmed across shares, correlated with mail outage on a flat domain" }
+    ]
+  },
+  "exec": [
+    "Three simultaneous signals are being treated as one active intrusion until proven otherwise: the mail platform is down and silent, a phishing report (link + Excel) sits on record from earlier, and files are being found encrypted across shares.",
+    "The most likely story, unconfirmed, is a phished foothold, easy lateral movement across a single flat Active Directory domain, escalation to privileged access, then mail knocked out and ransomware pushed broadly. Scope, whether the attacker still has access, whether backups are clean, and whether data was stolen are all still unknown."
+  ],
+  "priorities": [
+    "Stand up out-of-band command and comms; email and AD cannot be trusted.",
+    "Contain by network isolation, not power-off: cut internet egress, the backup plane, the virtualization management plane, and privileged authentication first and quietly.",
+    "Preserve domain-controller and volatile evidence before anyone re-images.",
+    "Pin the awareness timestamp and open the GDPR breach register now.",
+    "Call the cyber-insurer before engaging any outside firm, then DFIR and the sector CSIRT (SURFcert)."
+  ],
+  "askOfManagement": "Authorize the out-of-band war room, the four quiet cuts, and the insurer call now; hold the pay/no-pay and rebuild-vs-restore decisions for a deliberated council/board verdict.",
+  "risk": {
+    "inherent": { "impact": "severe", "likelihood": "almost certain", "rationale": "Encryption is confirmed and spreading potential is high on a flat domain with no segmentation and no central monitoring; the adverse impact is already observed, so likelihood is Almost certain, not Possible. Data-theft and backup-loss tails are open." },
+    "residual": { "impact": "major", "likelihood": "likely", "rationale": "Disciplined isolation, evidence preservation, and gated recovery reduce further spread and protect the ability to rebuild cleanly. Residual stays high because probable prior exfiltration, possible backup compromise, and attacker persistence surviving recovery cannot yet be excluded." }
+  },
+  "notifications": [
+    {
+      "id": "N-01",
+      "label": "GDPR Art. 33 breach notification",
+      "ref": "GDPR Art. 33(1),(4); EDPB 9/2022 v2.0",
+      "trigger": "Personal-data breach where risk cannot be excluded; file a phased notification even if scope is incomplete.",
+      "status": "triggered",
+      "status_reason": "Risk to data subjects cannot be excluded on the facts known; precautionary phased filing.",
+      "clock": { "start_event": "awareness", "duration_hours": 72 },
+      "deadline_ts": "2026-07-24T14:45:00Z",
+      "recipient": "Autoriteit Persoonsgegevens (AP)",
+      "determination_owner": "DPO",
+      "execution_owner": "Controller (Executive Board) decides, DPO files"
+    },
+    {
+      "id": "N-02",
+      "label": "GDPR Art. 33(5) internal register",
+      "ref": "GDPR Art. 33(5)",
+      "trigger": "All breaches must be documented internally, regardless of notifiability.",
+      "status": "filed",
+      "clock": { "start_event": "awareness" },
+      "recipient": "Internal record",
+      "determination_owner": "DPO",
+      "execution_owner": "DPO",
+      "filed_ts": "2026-07-21T15:30:00Z",
+      "filing_ref": "BR-2026-014"
+    },
+    {
+      "id": "N-03",
+      "label": "GDPR Art. 34 notification to individuals",
+      "ref": "GDPR Art. 34(1)",
+      "trigger": "Required only on a high-risk determination, which needs scope not yet established.",
+      "status": "assessing",
+      "status_reason": "Cannot determine high-risk until scope and data categories are established; breadth and channel routed to the controller.",
+      "clock": { "start_event": "high-risk determination", "duration_hours": 96 },
+      "recipient": "Affected data subjects",
+      "determination_owner": "DPO",
+      "execution_owner": "Controller (Executive Board)"
+    },
+    {
+      "id": "N-04",
+      "label": "Executive Board briefing",
+      "ref": "Governance duty",
+      "trigger": "Live suspected ransomware incident with personal-data exposure.",
+      "status": "triggered",
+      "clock": { "start_event": "declaration" },
+      "recipient": "College van Bestuur",
+      "determination_owner": "Commander",
+      "execution_owner": "Commander"
+    },
+    {
+      "id": "N-05",
+      "label": "Sector CSIRT engagement",
+      "ref": "Sector good practice",
+      "trigger": "Education/research sector CSIRT accepts voluntary reports now; standard first call.",
+      "status": "triggered",
+      "clock": { "start_event": "declaration" },
+      "recipient": "SURFcert (cert@surfcert.nl / 030 23 05 112)",
+      "determination_owner": "CISO",
+      "execution_owner": "CISO / IT security"
+    },
+    {
+      "id": "N-06",
+      "label": "Cyber-insurer notification",
+      "ref": "Policy condition precedent (UNVERIFIED per policy)",
+      "trigger": "Engaging DFIR or a negotiator before insurer notice can void cover.",
+      "status": "triggered",
+      "status_reason": "Call first, before any outside firm; read the actual policy wording today.",
+      "clock": { "start_event": "declaration" },
+      "recipient": "Cyber-insurer / broker",
+      "determination_owner": "Legal/Risk",
+      "execution_owner": "Legal/Risk"
+    },
+    {
+      "id": "N-07",
+      "label": "NIS2 / Cyberbeveiligingswet (Cbw) notification (24h/72h/1-month)",
+      "status": "ruled_out",
+      "status_reason": "Cbw enters into force 15 Aug 2026; NOT in force on 2026-07-21. Re-check after that date and confirm entity scope."
+    },
+    {
+      "id": "N-08",
+      "label": "DORA incident reporting",
+      "status": "ruled_out",
+      "status_reason": "DORA applies to financial entities and their ICT providers; a research university is out of scope. Not triggered."
+    },
+    {
+      "id": "N-09",
+      "label": "CRA (Cyber Resilience Act) reporting",
+      "status": "ruled_out",
+      "status_reason": "CRA reporting duties fall on manufacturers of products with digital elements, not on a university operating an estate. Not triggered."
+    },
+    {
+      "id": "N-10",
+      "label": "Current-law Wbni (AED designation duty)",
+      "status": "ruled_out",
+      "status_reason": "No blanket university designation found; check this institution's own designation file. Not confirmed triggered today."
+    },
+    {
+      "id": "N-11",
+      "label": "Law-enforcement report (politie aangifte)",
+      "status": "ruled_out",
+      "status_reason": "No statutory deadline; recommended and timed with DFIR/insurer after evidence is secured, not an immediate legal gate."
+    }
+  ],
+  "breachRegister": {
+    "entry_no": "BR-2026-014",
+    "controller_name": "Universiteit (College van Bestuur, controller)",
+    "dpo_contact": "Data Protection Officer, fg@university.example / +31 (0)00 000 0000",
+    "awareness": {
+      "timestamp": "2026-07-21T14:45:00Z",
+      "basis": "Designated incident owner confirmed, on signals 1+3 together, a suspected ransomware event touching personal-data systems; not the first helpdesk ticket, not gated on knowing which data.",
+      "pinned_by": "Incident Commander (with DPO present)"
+    },
+    "data_categories": [
+      "Staff and student identity and contact data",
+      "Employment and payroll records",
+      "Possibly special-category data (health, research-subject data) - unconfirmed"
+    ],
+    "approx_data_subjects": "Unknown at filing; potentially tens of thousands (staff + students) - to be scoped",
+    "approx_records": "Unknown at filing; file shares across ~1,600 servers in scope",
+    "likely_consequences": "Loss of availability (encryption) confirmed; loss of confidentiality (exfiltration) cannot be excluded. Potential identity fraud, distress, and disruption to studies/employment if data was stolen.",
+    "measures_taken": [
+      "Network isolation of egress, backup plane, hypervisor management, and Tier-0 authentication",
+      "Estate-wide hold order to preserve volatile evidence",
+      "Out-of-band command and comms stood up",
+      "DFIR and sector CSIRT engagement initiated"
+    ],
+    "risk_assessment": {
+      "art33_risk": "Risk to rights and freedoms cannot be excluded - notify (phased).",
+      "art34_risk": "High-risk determination pending scope - assessing.",
+      "rationale": "Availability impact is certain; a confidentiality impact is plausible on a flat domain reached to Domain-Admin level. Absent an egress baseline, exfiltration may never be excludable, so the posture is precautionary."
+    }
+  },
+  "timeline": [
+    ["Pre-T0 (weeks)", "Phishing email reported to service desk (link + Excel). Action taken unknown.", "obs"],
+    ["T0", "Mail server unreachable and silent; email down (send + receive).", "obs"],
+    ["T0", "Encrypted files / altered extensions / possible ransom note reported across shares.", "obs"],
+    ["T0+0", "Declared SEV-1; roles named; decision log opened.", "act"],
+    ["T0+5", "Email and AD-federated tools declared untrusted; out-of-band channel + physical war room stood up.", "act"],
+    ["T0+15", "Hold order issued: no touch, no reboot, no re-image on affected hosts.", "act"],
+    ["T0+18", "Perimeter egress locked to allowlist (cut C2 cheaply, keep power on).", "act"],
+    ["T0+22", "Backup plane isolated; backup jobs paused; immutable copies checked.", "act", "verify immutable/offline backups exist: backup lead"],
+    ["T0+30", "Hypervisor management plane isolated; Tier-0 accounts frozen.", "act", "verify virtualization platform exists: infra lead"],
+    ["T0+30", "Working hypothesis set: ONE intrusion, phishing report as unconfirmed candidate entry.", "dec"],
+    ["T0+45", "Awareness timestamp pinned; GDPR breach register opened.", "act"],
+    ["T0+60", "Pay/no-pay and rebuild-vs-restore referred to the council/board.", "esc"],
+    ["T0+60-90", "First board brief; insurer policy pulled; DFIR + SURFcert engaged.", "act"]
+  ],
+  "triage": {
+    "roles": [
+      ["Commander", "Holds tempo and final call authority."],
+      ["Scribe / decision-log keeper", "One job: timestamp every decision with a one-line reason."],
+      ["Evidence custodian", "Senior sysadmin; authority to veto evidence-destroying moves, even the commander's."],
+      ["Comms / Legal + DPO", "Looped in from minute one given likely personal-data exposure."],
+      ["Tech leads", "AD/Windows, network, backup/storage, plus a faculty-IT liaison per affected faculty."]
+    ],
+    "hypothesis": "One intrusion. Same window, same estate, and a flat single domain is exactly the topology where one stolen credential explains both a dead mail server and encrypted shares elsewhere. The phishing report is an open thread to test, not a proven cause. Forensics owns disproving the single-incident theory; until then this is one case file, not three tickets."
+  },
+  "dial": {
+    "cutFirst": [
+      ["1. Internet egress (server VLANs to tight allowlist)", "Kills command-and-control cheaply, low evidence cost, no one inside notices immediately."],
+      ["2. Backup plane", "Isolate repositories, pause jobs so encrypted data cannot overwrite good backups, rotate backup-console credentials, confirm immutable/offline copies untouched."],
+      ["3. Virtualization / hypervisor management network", "A hypervisor compromise is a mass-encryption multiplier."],
+      ["4. Privileged authentication", "Freeze Domain Admin / Tier-0 use; do not push AD-wide changes from an AD we do not yet trust."]
+    ],
+    "widen": "Quarantine VLANs for subnets showing new encryption; block SMB/RDP lateral paths at the firewall; suspend non-essential VPN. Re-decide the dial every 30 to 60 minutes.",
+    "carveOuts": [
+      { "system": "Life-safety and OT", "treatment": "Network-isolate at most, with continuous physical-safety monitoring", "ownerSignoff": "Facilities safety officer" },
+      { "system": "Building-management, lab-safety and environmental controls", "treatment": "Assess each with the facility owner; never cold-cut", "ownerSignoff": "Facility owner" },
+      { "system": "Clinical/medical-research and live-experiment systems", "treatment": "Isolate only with continuous monitoring; preserve live experiments", "ownerSignoff": "Research safety lead" }
+    ],
+    "pct": [
+      ["Perimeter egress control", 100],
+      ["Backup plane isolated", 100],
+      ["Hypervisor management isolated", 100],
+      ["Tier-0 auth frozen", 100],
+      ["Host-level isolation (~8,900 assets)", 4]
+    ],
+    "pctNote": "Targets by T0+90. Host-level isolation across ~8,900 assets is the long pole; expect low single-digit percent given the manual, faculty-by-faculty pace. Reported as-is, not rounded up.",
+    "lastReviewed": "T0+60",
+    "nextReview": "T0+90"
+  },
+  "evidence": {
+    "rule": "Network-isolate immediately, but do not power off and do not re-image a host until at least a memory capture and a process/network snapshot exist, or the commander explicitly accepts and logs the evidence loss. Isolation stops spread as well as power-off does, without destroying memory-resident evidence.",
+    "tiers": [
+      ["Tier 0 (first, before further touch)", "Live memory + process/network state on the mail server, first few encrypted servers, any DC showing interactive attacker logon, and the phishing-reported workstation if identifiable."],
+      ["Tier 1", "Ransom note text/location from several hosts; a sample encrypted file plus a known-good original; DC state (NTDS.dit, SYSTEM hive, Security/System logs) BEFORE any password reset or ticket invalidation; mail server image or at least transport/message-tracking logs before any reboot."],
+      ["Tier 2 (perishable)", "EDR/AV console exports, firewall/proxy/DNS egress logs, VPN/remote-access logs, backup-server job history (check for attacker deletion), any netflow."]
+    ],
+    "custody": "With email down: paper or offline USB-carried log; per item record collector, UTC+local time, SHA-256 at collection and re-verified at each handoff, and storage location. Evidence goes to write-once media or an isolated evidence store with no domain trust, not a share on the possibly-compromised domain.",
+    "scope": "Patient zero, dwell time, and blast radius are NOT yet established. With no SIEM, the timeline is a manual correlation of scattered, faculty-owned sources (DC auth logs first, then the phished endpoint, EDR/AV history, file-share modification times, VPN and backup logs). In a flat domain, \"how far did it spread\" largely equals \"where did the stolen credentials work\". External DFIR handoff for the deep timeline is expected.",
+    "exfil": "Cannot be excluded. \"No evidence of theft\" and \"evidence of no theft\" are different claims; we have neither. This environment likely lacks an egress baseline, so exclusion may never be achievable, not merely \"not yet\". Legal and comms must plan on that basis.",
+    "topRisk": "The biggest evidence risk right now is not the attacker, it is us: stressed faculty IT re-imaging machines to \"just fix it\" before capture. The hold order must reach every faculty, not just central IT.",
+    "register": [
+      { "id": "EV-001", "item": "Live memory image + process/network snapshot", "sourceHost": "MAIL01 (mail server)", "tier": "Tier 0", "collectedBy": "Forensics lead", "time": "2026-07-21T15:05Z", "hashAcq": "sha256:9f2b1c...a41e", "hashVerify": "sha256:9f2b1c...a41e", "storage": "Write-once media, isolated evidence store #1", "custodyNote": "Captured before any reboot; chain-of-custody sheet CoC-001" },
+      { "id": "EV-002", "item": "DC state (NTDS.dit, SYSTEM hive, Security/System logs)", "sourceHost": "DC02 (domain controller)", "tier": "Tier 1", "collectedBy": "AD lead + forensics", "time": "2026-07-21T15:40Z", "hashAcq": "sha256:3e7d90...bb12", "hashVerify": "sha256:3e7d90...bb12", "storage": "Isolated evidence store #1 (no domain trust)", "custodyNote": "Captured BEFORE any password reset or ticket invalidation; CoC-002" },
+      { "id": "EV-003", "item": "Sample encrypted file + known-good original", "sourceHost": "FS07 (file share)", "tier": "Tier 1", "collectedBy": "Faculty-IT liaison", "time": "2026-07-21T16:10Z", "hashAcq": "sha256:c0ffee...7788", "hashVerify": "pending handoff", "storage": "Offline USB, sealed bag EV-003", "custodyNote": "Pair kept for decryptor/identification work; verify hash at DFIR handoff" }
+    ]
+  },
+  "decisions": [
+    { "time": "T0+0", "decision": "Declared SEV-1", "rationale": "materialized encryption + correlated mail outage on a flat domain", "owner": "Commander" },
+    { "time": "T0+2", "decision": "Named roles", "rationale": "command clarity before any technical action", "owner": "Commander" },
+    { "time": "T0+5", "decision": "Email/AD declared untrusted; out-of-band channel + war room", "rationale": "cannot coordinate over a channel the attacker may hold", "owner": "Commander" },
+    { "time": "T0+15", "decision": "Hold order (no touch/reboot/re-image)", "rationale": "preserve volatile evidence", "owner": "Evidence custodian" },
+    { "time": "T0+18", "decision": "Perimeter egress to allowlist", "rationale": "cut C2 cheaply, power stays on", "owner": "Network lead" },
+    { "time": "T0+22", "decision": "Backup plane isolated, jobs paused", "rationale": "protect good backups", "owner": "Backup lead" },
+    { "time": "T0+30", "decision": "Hypervisor mgmt isolated, Tier-0 frozen", "rationale": "kill the mass-encryption multiplier", "owner": "AD lead" },
+    { "time": "T0+30", "decision": "Hypothesis = one intrusion", "rationale": "parsimony on a flat domain; forensics to disprove", "owner": "Commander" },
+    { "time": "T0+45", "decision": "Awareness pinned, breach register opened", "rationale": "start the GDPR clock deliberately", "owner": "DPO" },
+    { "time": "T0+60", "decision": "Insurer policy pulled before DFIR engagement", "rationale": "avoid voiding cover", "owner": "Legal/Risk" },
+    { "time": "T0+60", "decision": "Pay/no-pay and rebuild-vs-restore referred out", "rationale": "bet-the-organization calls the response team does not settle alone", "owner": "Commander", "escalated": true, "verdict": "Awaiting council/board deliberation" }
+  ],
+  "eradication": {
+    "approach": "hybrid (rebuild Tier-0 greenfield, restore data from verified-clean media)",
+    "sequence": [
+      "Complete scoping: patient zero, dwell, blast radius, exfil read.",
+      "Identify and remove persistence across reached hosts.",
+      "Rotate all credentials with DC state captured first.",
+      "Rebuild or restore ONLY from verified-clean, offline/immutable media.",
+      "Re-establish AD trust from a known-good baseline."
+    ],
+    "gates": [
+      { "gate": "Entry vector closed", "status": "open", "note": "Depends on confirming patient zero; phishing candidate unproven." },
+      { "gate": "Persistence removed", "status": "open", "note": "Requires forensic scope of reached hosts." },
+      { "gate": "Credentials rotated", "status": "open", "note": "Blocked until DC state captured (EV-002 done); can proceed next." },
+      { "gate": "Backups proven clean AND proven offline/immutable at time of compromise", "status": "open", "note": "Backup lead verifying from a trusted console." },
+      { "gate": "AD trust re-established from known-good baseline", "status": "open", "note": "Sequenced after credential rotation and rebuild decision." },
+      { "gate": "Life-safety / OT systems confirmed unaffected", "status": "met", "note": "Carved out and monitored; no cold cut applied." },
+      { "gate": "DORA/CRA applicability", "status": "n/a", "note": "Out of scope for this entity." }
+    ],
+    "cleanroomNote": "Rebuild the Tier-0 baseline in an isolated clean-room network with no trust to the compromised domain; validate images against known-good hashes before any reconnection.",
+    "reconnectOrder": [
+      "Rebuilt Tier-0 (DCs, PKI) in clean-room, validated.",
+      "Core services (identity, DNS) on the new baseline.",
+      "Faculty subnets, one at a time, after host validation.",
+      "General workstations last, post re-image."
+    ]
+  },
+  "escalations": [
+    "Pay vs no-pay, with mandatory sanctions-screening of actor/wallet before any contact (a payment to a sanctioned entity is itself a violation).",
+    "Rebuild-greenfield vs restore the domain (a flat compromised domain often argues for a hardened rebuild).",
+    "Notification breadth under GDPR Art. 34: whether and how widely to tell individuals, and by what channel with email down."
+  ],
+  "commsLog": [
+    { "time": "T0+10", "channel": "Phone tree (out-of-band)", "audience": "Incident team", "statement": "War room location and secure channel invite; email is not to be used.", "cleared_by": "Commander" },
+    { "time": "T0+60", "channel": "Verbal brief", "audience": "Executive Board", "statement": "Live suspected ransomware with possible personal-data exposure; response underway; decisions pending.", "cleared_by": "Commander + Legal" },
+    { "time": "T0+75", "channel": "Holding statement (draft)", "audience": "Staff and students", "statement": "We are responding to an IT disruption affecting email and some systems; more information to follow through official channels.", "cleared_by": "Legal/Comms" }
+  ],
+  "doNotClaim": {
+    "rule": "One designated spokesperson; all regulator/press/law-enforcement contact through Legal. Nothing forensics has not confirmed is stated in public.",
+    "forbidden_until_forensic_signoff": [
+      "\"Data was not accessed\" or \"no data was stolen\"",
+      "\"No health / financial / research data was affected\"",
+      "\"Fully contained\" or \"fully eradicated\"",
+      "Any attacker name or attribution",
+      "Any affected-count or scope figure",
+      "\"Safe to use again\"",
+      "Any statement on whether a ransom will be paid"
+    ],
+    "approved_holding_line": "We are responding to an IT disruption affecting email and some systems; we will share verified information through official channels.",
+    "spokesperson": "Head of Communications (single point), backed by Legal"
+  },
+  "assumptions": [
+    { "claim": "The estate is virtualized (a hypervisor / vCenter-class management plane exists).", "basis": "Inferred from ~1,600 servers; not stated in the incident inputs.", "confirm": "Infra lead confirms the virtualization platform and its management network; if the servers are mostly physical the \"isolate hypervisor plane\" step is a no-op and is dropped.", "owner": "Infra lead", "status": "Open" },
+    { "claim": "Immutable or offline backup copies exist and were untouched at time of compromise.", "basis": "Assumed so that \"protect the backup plane\" and \"restore from clean media\" are viable; not stated.", "confirm": "Backup lead verifies immutability/offline status and last-known-good timestamps from a trusted console.", "owner": "Backup lead", "status": "Open" },
+    { "claim": "The intrusion is one event (mail outage + encryption + prior phishing report linked).", "basis": "Working hypothesis on a flat domain, not yet evidenced.", "confirm": "Forensics correlates DC auth logs, the phishing sample IOCs, and encryption timestamps.", "owner": "Forensics lead", "status": "Open" },
+    { "claim": "Personal and/or special-category data is in scope (drives the GDPR posture).", "basis": "Assumed from the nature of a university; specific data categories unconfirmed.", "confirm": "DPO/forensics identify which data-bearing systems were reached.", "owner": "DPO", "status": "Open" },
+    { "claim": "EDR / endpoint telemetry exists to reconstruct patient zero.", "basis": "Hoped-for, not confirmed; coverage likely inconsistent across autonomous faculties.", "confirm": "Forensics inventories what EDR/AV logging actually exists per faculty.", "owner": "Forensics lead", "status": "Open" }
+  ],
+  "lessons": {
+    "wentWell": [
+      "Signals were correlated as one intrusion fast, not triaged as three unrelated tickets.",
+      "Network isolation over power-off preserved volatile evidence while stopping spread.",
+      "Awareness timestamp was pinned deliberately, so the GDPR clock is defensible."
+    ],
+    "contributingFactors": [
+      "Flat single AD domain is the core weakness; no segmentation to slow lateral movement.",
+      "No central SIEM or 24/7 monitoring meant the intrusion ran unseen.",
+      "No pre-agreed out-of-band comms and no pre-staged forensic tooling/evidence store slowed hour one.",
+      "Backup immutability and segmentation of the backup and hypervisor planes are decisive.",
+      "Holiday coverage and escalation need a standing on-call plan."
+    ],
+    "actionItems": [
+      { "item": "Introduce AD tiering and segment the server, backup, and hypervisor planes.", "owner": "Infra / AD lead", "dueDate": "Q4 2026", "status": "Open" },
+      { "item": "Stand up central log collection + MDR with adequate retention.", "owner": "CISO", "dueDate": "Q4 2026", "status": "Open" },
+      { "item": "Pre-stage an out-of-band comms plan and a phone-invited secure channel.", "owner": "IT security", "dueDate": "In progress", "status": "In progress" },
+      { "item": "Verify and document immutable/offline backups and last-known-good cadence.", "owner": "Backup lead", "dueDate": "Immediate", "status": "Open" },
+      { "item": "Publish a standing on-call and holiday-coverage escalation plan.", "owner": "Head of IT", "dueDate": "Done", "status": "Done" }
+    ],
+    "nextStep": "Stand up out-of-band command now (physical war room + a freshly created, phone-invited secure channel) and issue the estate-wide hold order, then execute the four quiet cuts (egress, backup plane, hypervisor management, Tier-0 freeze) in the first 30 minutes. Everything else depends on a trustworthy way to coordinate and a preserved scene."
+  },
+  "seats": [
+    { "name": "Incident Commander", "role": "Declares severity and roles, runs triage to contain to recover, keeps the decision log", "conf": "medium", "prob": 65, "stance": "Network-isolate C2 / backup / hypervisor / privileged auth now, power stays on, hold all restores until eradication and clean-backup verification are proven.", "sum": "Treats the signals as one active intrusion; contains fast and quietly without powering hosts off; carves out life-safety/OT; escalates pay/no-pay and rebuild-vs-restore rather than settling them." },
+    { "name": "Forensics Lead", "role": "Preserves evidence and chain of custody, reconstructs the timeline, reads whether exfiltration can be excluded", "conf": "low", "prob": 35, "stance": "Preserve DC/identity and volatile evidence first; treat as one incident until disproven; default to exfiltration-not-excluded. Scope and patient zero not yet established.", "sum": "Low confidence is honest: with no IOC correlation done and a large flat AD with many possible entry points, both the single-incident linkage and phishing-as-patient-zero are still unproven. Biggest near-term risk is well-meaning staff destroying evidence." },
+    { "name": "Legal & Comms (DPO facet)", "role": "Pins awareness, tracks notification clocks, keeps the breach register, gates external comms and victim-data sharing", "conf": "medium", "prob": 70, "stance": "File a phased GDPR Art. 33 notification within 72h of awareness regardless of scope; SURFcert now; Cbw not yet live; gate comms and victim-data sharing; route ransom and Art. 34 breadth to the controller.", "sum": "Verified the live legal picture: GDPR is the only hard statutory clock today; the Dutch NIS2 transposition is not in force until 15 Aug 2026. Insurer must likely be called before any external firm." }
+  ],
+  "seatNote": "The three seats do not conflict; they layer. The one tension worth naming is speed: the commander wants to cut fast, forensics wants to capture first. The sequencing rule (isolate at the network layer immediately, capture memory before power-off or re-image, log any accepted evidence loss) resolves it without either side losing.",
+  "verified": [
+    "GDPR Art. 33 = 72h from awareness; phased notification permitted; register all breaches (Art. 33(5)). Source: gdpr-info.eu, EDPB Guidelines 9/2022 v2.0.",
+    "AP guidance: file within 72h for ransomware/phishing even if incomplete; holiday/understaffing is not an accepted excuse. Source: autoriteitpersoonsgegevens.nl.",
+    "Cyberbeveiligingswet (Dutch NIS2) enters into force 15 Aug 2026, no transition period; not in force on 2026-07-21. Source: ncsc.nl, Eerste Kamer 36.764.",
+    "SURFcert is the education/research sector CSIRT and accepts voluntary reports now. Source: sec.surf.nl."
+  ],
+  "unverified": [
+    "The cyber-insurance policy's exact notice and pre-authorization terms (read the policy today).",
+    "This university's current Wbni / AED designation status (check the designation file).",
+    "The exact wall-clock awareness timestamp (forensics to backfill from tickets/logs)."
+  ]
+}

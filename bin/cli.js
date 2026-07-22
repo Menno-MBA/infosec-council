@@ -52,6 +52,7 @@ ${C.b("infosec-council")} – a Claude council of seven security experts.
 
 ${C.b("Commands")}
   install            Install the council for Claude Code (default)
+  verify             Check the shipped scripts against their SHA-256 manifest
   build-desktop      Build the uploadable Claude.ai/Desktop skill zip
   build-plugin       Build a standalone Claude Code plugin (dir + zip)
   help               Show this message
@@ -328,9 +329,31 @@ function buildPlugin() {
   console.log(`  Marketplace:    ${C.dim("/plugin marketplace add Menno-MBA/infosec-council")}\n`);
 }
 
+// Tamper-evidence: verify the shipped executable scripts against their
+// SHA-256 manifest. These scripts run locally straight from GitHub, so a
+// user can confirm the copy they fetched was not altered or corrupted. The
+// manifest ships in-repo, so this detects accidental corruption and casual
+// tampering; for a hard supply-chain guarantee compare the manifest hash out
+// of band or rely on npm provenance (see SECURITY.md).
+function verifyIntegrity() {
+  let integrity;
+  try { integrity = require(path.join(PKG_ROOT, "scripts", "integrity.js")); }
+  catch (e) { console.error(`${C.yellow("!")} integrity tool missing (scripts/integrity.js); this copy cannot self-verify.`); process.exit(1); }
+  const r = integrity.check(PKG_ROOT);
+  if (r.error) { console.error(`${C.yellow("!")} ${r.error}`); process.exit(1); }
+  if (r.ok) { console.log(`${C.green("✓")} Integrity OK: all ${C.b(String(r.checked))} executable files match the recorded SHA-256 manifest.`); return; }
+  console.error(`${C.yellow("!")} Integrity check FAILED, the package scripts do not match their manifest:`);
+  r.mismatches.forEach((f) => console.error(`  ${C.yellow("altered")}    ${f}`));
+  r.missing.forEach((f) => console.error(`  ${C.yellow("missing")}    ${f}`));
+  r.untracked.forEach((f) => console.error(`  ${C.yellow("untracked")}  ${f}`));
+  console.error(`\n  Do not trust this copy until you can explain these changes: re-fetch from a trusted source, or, if you edited it yourself, regenerate with ${C.dim("node scripts/integrity.js --write")}.`);
+  process.exit(1);
+}
+
 if (SHOWVER || cmd === "version") console.log(`infosec-council v${VERSION}`);
 else if (HELP || cmd === "help") help();
 else if (cmd === "install") install();
+else if (cmd === "verify") verifyIntegrity();
 else if (cmd === "build-desktop" || cmd === "build") buildDesktop();
 else if (cmd === "build-plugin") buildPlugin();
 else {

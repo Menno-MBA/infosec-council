@@ -29,6 +29,8 @@ jobs:
           done
       - name: Version parity + tag match (all three manifests agree; tag == version)
         run: node scripts/check-versions.js
+      - name: Integrity manifest matches the shipped scripts (tamper-evidence)
+        run: node scripts/integrity.js --check
       - name: Check the ChatGPT knowledge folder is in sync with canonical sources
         run: node scripts/sync-chatgpt.js --check
       - name: Report generator tests (golden file + report.js/report.sh parity + incident report)

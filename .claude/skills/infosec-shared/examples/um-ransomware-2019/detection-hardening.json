@@ -1,0 +1,306 @@
+{
+  "title": "TA505 / Clop Detection & Hardening Plan",
+  "subtitle": "An assume-breach detection and hardening plan for a flat, single-domain Windows estate (~1,600 servers, ~7,300 workstations) with no central SIEM. Defends against the documented 2019 TA505/Clop chain and scores coverage against the paired adversary-emulation plan.",
+  "ref": "DHP-UM-TA505",
+  "scope": "Flat single-domain Windows estate; MDR + native consoles, no central SIEM",
+  "attack_version": "v18",
+  "version": "1.0",
+  "next_review": "2026-10-22",
+  "tlp": "AMBER+STRICT",
+  "executive_summary": {
+    "threat_one_liner": "TA505 (Grace / Gold Tahoe) runs a patient, dual-use big-game intrusion: phished macro-Excel foothold, ~15-minute C2 beacon, EternalBlue lateral movement, AD recon to Domain Admin, Cobalt Strike on the domain controllers, fleet-wide AV disable, then Clop encryption of servers and reachable backups.",
+    "coverage_one_liner": "Of the 8 pre-ransomware techniques in scope, 3 are natively detected by the endpoint MDR, 3 are covered only by assume-breach hunts against thin telemetry, and 2 remain gaps because the log source is not collected or not retained.",
+    "tiles": [
+      { "num": 8, "lab": "TTPs in scope", "kind": "neutral" },
+      { "num": 3, "lab": "Detected", "kind": "good" },
+      { "num": 3, "lab": "Hunted", "kind": "info" },
+      { "num": 2, "lab": "Gap", "kind": "bad" }
+    ],
+    "top_gaps": [
+      { "gap": "No central log collection: DNS, proxy, and DC auth telemetry live on islands with short retention, so beacon periodicity and AD recon cannot be detected or hunted reliably.", "impact": "The entire ~5-week Domain-Admin dwell window passes unseen.", "owner": "IT infrastructure lead", "confidence": "high" },
+      { "gap": "Domain controllers and many Tier-0 servers have no EDR agent, so Cobalt Strike beaconing on the control plane generates no watched signal.", "impact": "The attacker's control layer on Tier-0 is invisible.", "owner": "Windows platform team", "confidence": "high" },
+      { "gap": "Firewall / DNS retention is 14 days, shorter than the beacon-hunt window, so a periodicity hunt cannot look back far enough.", "impact": "Slow, low-and-slow C2 defeats the only available hunt.", "owner": "Network team", "confidence": "medium" }
+    ]
+  },
+  "ttp_scope": [
+    { "technique_id": "T1566.002", "technique_name": "Spearphishing Link", "tactic": "Initial Access", "source": "Red AEP step 1 / 2019 incident", "priority": "pre-ransomware" },
+    { "technique_id": "T1059.005", "technique_name": "Visual Basic (macro)", "tactic": "Execution", "source": "Red AEP step 2", "priority": "pre-ransomware" },
+    { "technique_id": "T1071", "technique_name": "Application Layer Protocol (C2)", "tactic": "Command and Control", "source": "Red AEP steps 3 & 7", "priority": "pre-ransomware" },
+    { "technique_id": "T1210", "technique_name": "Exploitation of Remote Services", "tactic": "Lateral Movement", "source": "Red AEP step 4 (MS17-010)", "priority": "pre-ransomware" },
+    { "technique_id": "T1087", "technique_name": "Account Discovery", "tactic": "Discovery", "source": "Red AEP step 5 (PingCastle/AdFind)", "priority": "pre-ransomware" },
+    { "technique_id": "T1003.001", "technique_name": "LSASS Memory", "tactic": "Credential Access", "source": "Red AEP step 6 (Mimikatz)", "priority": "pre-ransomware" },
+    { "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "tactic": "Defense Evasion", "source": "Red AEP step 8 (mass AV disable)", "priority": "pre-ransomware" },
+    { "technique_id": "T1486", "technique_name": "Data Encrypted for Impact", "tactic": "Impact", "source": "Red AEP step 9 (Clop)", "priority": "impact" }
+  ],
+  "log_sources": [
+    { "name": "Endpoint MDR (workstations)", "collected": true, "centralization": "vendor-mdr", "retention_days": 30, "reviewed_by": "MDR provider (24/7)", "status": "collected-and-alerting", "cis_safeguards": ["10.1", "10.7", "13.2"], "notes": "Behavioural alerts triaged by the MDR SOC; good workstation coverage." },
+    { "name": "Endpoint EDR (servers / DCs)", "collected": false, "centralization": "island", "retention_days": 0, "reviewed_by": "none", "status": "not-collected", "cis_safeguards": ["10.1", "13.7"], "notes": "No agent on domain controllers and much of the Tier-0 server plane; the control layer is blind." },
+    { "name": "Mail gateway (link / attachment)", "collected": true, "centralization": "native-console", "retention_days": 90, "reviewed_by": "service desk (business hours)", "status": "collected-unwatched", "cis_safeguards": ["9.6", "9.7"], "notes": "Detonation verdicts logged; a user phishing report exists but triage is ad hoc." },
+    { "name": "Web proxy / DNS", "collected": true, "centralization": "island", "retention_days": 14, "reviewed_by": "none", "status": "collected-unwatched", "cis_safeguards": ["9.2", "13.3"], "notes": "Per-faculty resolvers; no aggregation; 14-day retention too short for a beacon-periodicity hunt." },
+    { "name": "Firewall (perimeter)", "collected": true, "centralization": "island", "retention_days": 14, "reviewed_by": "network team (reactive)", "status": "collected-unwatched", "cis_safeguards": ["13.4"], "notes": "Flow logs retained 14 days; not correlated with endpoint or DNS." },
+    { "name": "Domain controller security log", "collected": true, "centralization": "island", "retention_days": 7, "reviewed_by": "none", "status": "collected-unwatched", "cis_safeguards": ["8.2", "8.5", "6.8"], "notes": "Default local retention only; LDAP query logging not enabled, so AD recon is invisible." },
+    { "name": "Sysmon (Tier-0 pilot)", "collected": true, "centralization": "island", "retention_days": 14, "reviewed_by": "platform team (on request)", "status": "collected-unwatched", "cis_safeguards": ["8.2", "8.5"], "notes": "EID 10 (LSASS access) captured on a pilot subset of servers; not forwarded anywhere." },
+    { "name": "File-server audit / backup console", "collected": true, "centralization": "native-console", "retention_days": 30, "reviewed_by": "backup admin (business hours)", "status": "collected-unwatched", "cis_safeguards": ["8.2", "11.1"], "notes": "Object-access auditing partial; ransomware canary not configured; backups reachable from the production domain." }
+  ],
+  "coverage_heatmap": {
+    "legend": [
+      { "label": "Gap (no watched signal)", "color": "#e2e8f0" },
+      { "label": "Logged, unwatched", "color": "#fde68a" },
+      { "label": "Hunted", "color": "#bfdbfe" },
+      { "label": "Detected", "color": "#bbf7d0" },
+      { "label": "Hardened", "color": "#86efac" }
+    ],
+    "techniques": [
+      { "techniqueID": "T1566.002", "tactic": "Initial Access", "state": "detected", "comment": "Mail gateway link detonation + MDR on click" },
+      { "techniqueID": "T1059.005", "tactic": "Execution", "state": "detected", "comment": "MDR: Office spawns script host" },
+      { "techniqueID": "T1071", "tactic": "Command and Control", "state": "gap", "comment": "DNS/firewall island logs, 14-day retention, no beacon analytic" },
+      { "techniqueID": "T1210", "tactic": "Lateral Movement", "state": "hardened", "comment": "MS17-010 patched + SMBv1 disabled; residual on legacy hosts" },
+      { "techniqueID": "T1087", "tactic": "Discovery", "state": "hunted", "comment": "Assume-breach LDAP-recon hunt; no native detection" },
+      { "techniqueID": "T1003.001", "tactic": "Credential Access", "state": "hunted", "comment": "Sysmon EID 10 hunt on Tier-0 pilot; partial coverage" },
+      { "techniqueID": "T1562.001", "tactic": "Defense Evasion", "state": "detected", "comment": "MDR tamper-protection + mass-disable correlation" },
+      { "techniqueID": "T1486", "tactic": "Impact", "state": "logged-unwatched", "comment": "File-server audit exists; canary not built; fires at impact only" }
+    ]
+  },
+  "detections": [
+    {
+      "name": "Office application spawns script/shell host",
+      "status": "stable",
+      "attack_technique": ["T1059.005", "T1566.002"],
+      "d3fend": ["D3-PSA", "D3-PSMD"],
+      "cis_safeguard": "10.7",
+      "log_source": "Endpoint MDR (workstations)",
+      "logic_prose": "Alert when winword.exe or excel.exe spawns a child in {wscript.exe, cscript.exe, powershell.exe, cmd.exe, mshta.exe, regsvr32.exe}, especially with an outbound network connection in the same process tree.",
+      "level": "high",
+      "false_positives": ["Legitimate finance macros that shell out to a reporting tool"],
+      "tuning_note": "Allow-list the two known finance macro signers by certificate thumbprint; keep the network-connection condition to cut noise.",
+      "fires_natively": true,
+      "triage": { "severity": "high", "route_to": "MDR SOC then IT security", "first_action": "Isolate the host via MDR and pull the full process tree" }
+    },
+    {
+      "name": "Mass endpoint-protection disable across many hosts",
+      "status": "stable",
+      "attack_technique": ["T1562.001"],
+      "d3fend": ["D3-PA", "D3-SEA"],
+      "cis_safeguard": "10.1",
+      "log_source": "Endpoint MDR (workstations)",
+      "logic_prose": "Correlate AV/EDR service-stop or tamper events (e.g. Windows Event 7040/1116, MDR tamper alerts) across hosts; fire when N>5 distinct hosts disable protection within a 30-minute window.",
+      "level": "critical",
+      "false_positives": ["Coordinated agent upgrade or maintenance window"],
+      "tuning_note": "Suppress during approved change windows only; a fleet-wide disable outside a change is the loudest pre-ransomware signal there is.",
+      "fires_natively": true,
+      "triage": { "severity": "critical", "route_to": "MDR SOC + incident commander (page)", "first_action": "Assume imminent detonation: begin containment and verify backup isolation" }
+    },
+    {
+      "name": "Phishing link detonation verdict on delivered mail",
+      "status": "test",
+      "attack_technique": ["T1566.002"],
+      "d3fend": ["D3-MA"],
+      "cis_safeguard": "9.7",
+      "log_source": "Mail gateway (link / attachment)",
+      "logic_prose": "Alert when the gateway returns a malicious/suspicious verdict for a URL or attachment that was already delivered to a mailbox, or when a user submits a phishing report matching a delivered message.",
+      "level": "medium",
+      "false_positives": ["Benign newsletters flagged by URL reputation"],
+      "tuning_note": "Auto-open a ticket and route to the service desk queue; the missed 2019 user report is the reason this must page a human.",
+      "fires_natively": "rule-not-built",
+      "triage": { "severity": "medium", "route_to": "service desk then IT security", "first_action": "Claw back the message and check proxy/DNS for click-through" }
+    },
+    {
+      "name": "C2 beacon periodicity (regular-interval callout)",
+      "status": "experimental",
+      "attack_technique": ["T1071"],
+      "d3fend": ["D3-NTA"],
+      "cis_safeguard": "13.3",
+      "log_source": "Web proxy / DNS",
+      "logic_prose": "Flag a source host that contacts the same destination at a near-constant interval (~15 min, low jitter) over many hours to a newly-registered or low-reputation domain.",
+      "level": "high",
+      "false_positives": ["Software update pollers and telemetry SDKs"],
+      "tuning_note": "Cannot run today: proxy/DNS are island logs with 14-day retention and no aggregation. This is a gap, not a live rule.",
+      "fires_natively": "no-siem",
+      "triage": { "severity": "high", "route_to": "IT security (when telemetry exists)", "first_action": "Block the destination and hunt the source host" }
+    },
+    {
+      "name": "LSASS credential-access (memory read)",
+      "status": "test",
+      "attack_technique": ["T1003.001"],
+      "d3fend": ["D3-PSA"],
+      "cis_safeguard": "8.5",
+      "log_source": "Sysmon (Tier-0 pilot)",
+      "logic_prose": "Alert on Sysmon EID 10 where TargetImage is lsass.exe and GrantedAccess includes 0x1010/0x1410 from a non-allow-listed process.",
+      "level": "high",
+      "false_positives": ["EDR/AV and legitimate LSASS-reading admin tools"],
+      "tuning_note": "Only the Tier-0 Sysmon pilot is instrumented and nothing forwards the events, so this runs as a hunt today, not a native alert.",
+      "fires_natively": "rule-not-built",
+      "triage": { "severity": "high", "route_to": "IT security", "first_action": "Force-reset exposed credentials; treat the host as compromised" }
+    }
+  ],
+  "hunts": [
+    {
+      "id": "H-01",
+      "hunt_type": "hypothesis",
+      "attack_techniques": ["T1087", "T1482", "T1018"],
+      "hypothesis": "An attacker has run AD reconnaissance (PingCastle / AdFind / PowerSploit) against the domain to map privileged accounts and the path to Domain Admin.",
+      "rationale": "There is no native LDAP-recon detection and DC query logging is off; recon is the quiet step before escalation, so it must be hunted.",
+      "data_sources": ["DC security log (4661/4662)", "Sysmon (if present)", "network SMB/LDAP flows"],
+      "scope": "All domain controllers, trailing 30 days",
+      "analytic_logic": "Look for a single host issuing a burst of directory-enumeration queries, or tools writing AdFind/PingCastle output files; baseline against known admin workstations.",
+      "outcome": "not-found",
+      "outcome_detail": "No recon bursts in the 30-day pilot window, but DC logs only retain 7 days locally so the look-back is shallow.",
+      "what_negative_proves": "A negative only clears the last 7 days of DC-local logs; it does NOT clear the full dwell window and must not be read as 'no recon happened'.",
+      "owner": "Threat hunter (blueteam-threat-hunter)",
+      "next_action": "Enable DC LDAP query logging and forward 4662 events so this hunt can look back further than local retention."
+    },
+    {
+      "id": "H-02",
+      "hunt_type": "baseline",
+      "attack_techniques": ["T1071"],
+      "hypothesis": "A host beacons to external C2 at a regular ~15-minute interval, hidden in normal web traffic.",
+      "rationale": "The signature C2 signal (SDBBot ~15-min beacon) has no live detection because proxy/DNS are not aggregated; a baseline of per-host external-destination periodicity would surface it.",
+      "data_sources": ["Web proxy logs", "DNS resolver logs", "firewall flow logs"],
+      "scope": "Internet-egress from the workstation and server VLANs, trailing 14 days",
+      "analytic_logic": "Group connections by (src, dst) and compute inter-arrival regularity; rank low-jitter, long-lived pairs to rare/new domains at the top.",
+      "outcome": "inconclusive",
+      "outcome_detail": "14-day retention is shorter than a low-and-slow beacon window and the island logs cannot be joined, so the baseline is unreliable.",
+      "what_negative_proves": "Nothing durable: with 14-day island retention a clean result is 'we could not look', not 'no beacon'.",
+      "owner": "Threat hunter (blueteam-threat-hunter)",
+      "next_action": "Stand up central log collection with 90-day egress retention, then re-run monthly."
+    },
+    {
+      "id": "H-03",
+      "hunt_type": "model-assisted",
+      "attack_techniques": ["T1003.001", "T1562.001"],
+      "hypothesis": "Credential-dumping or defense-evasion activity occurred on Tier-0 before any alert existed.",
+      "rationale": "EDR is absent on DCs and only a Sysmon pilot covers some servers, so a retrospective sweep of the pilot data may find LSASS access or service-stop clusters missed live.",
+      "data_sources": ["Sysmon EID 10 (LSASS access)", "Sysmon EID 1 (process create)", "Windows Event 7040/1116"],
+      "scope": "Tier-0 Sysmon pilot subset, trailing 14 days",
+      "analytic_logic": "Score processes reading lsass.exe by rarity of the parent image and command line; cluster AV service-stop events by host and time.",
+      "outcome": "found",
+      "outcome_detail": "One benign match: an approved EDR-migration script read LSASS during a maintenance window; confirmed with the platform team and allow-listed.",
+      "what_negative_proves": "A negative covers only the pilot hosts; the un-instrumented DCs and most servers remain unhunted, so absence of evidence is not coverage.",
+      "owner": "Threat hunter (blueteam-threat-hunter)",
+      "next_action": "Expand Sysmon to all Tier-0 and forward events; deploy EDR to domain controllers."
+    }
+  ],
+  "backlog": [
+    {
+      "rank": 1,
+      "control": "Central log collection + MDR extension (EDR on servers/DCs, forward DNS/DC/proxy)",
+      "attack_techniques": ["T1071", "T1087", "T1003.001"],
+      "d3fend": ["D3-NTA", "D3-PSA"],
+      "cis": { "control": "8.2 / 8.9 / 13.6", "ig": "IG2" },
+      "attacker_step_closed": "Turns the ~5-week silent dwell (beacon, recon, C2 on DCs) from invisible into detectable/huntable.",
+      "effort": "high",
+      "impact": "high",
+      "quadrant": "big-bet",
+      "residual_gap": "Detection quality still depends on rule tuning and analyst review cadence.",
+      "sme_note": "Extend the existing vendor MDR rather than build a SIEM; IG2 stretch but the single highest-leverage move."
+    },
+    {
+      "rank": 2,
+      "control": "MFA on all privileged and remote access; remove standing Domain Admin",
+      "attack_techniques": ["T1003.001", "T1210"],
+      "d3fend": ["D3-MFA", "D3-CH"],
+      "cis": { "control": "6.5 / 5.4", "ig": "IG1" },
+      "attacker_step_closed": "Makes dumped credentials far less usable and blunts the leap from foothold to Domain Admin.",
+      "effort": "medium",
+      "impact": "high",
+      "quadrant": "quick-win",
+      "residual_gap": "Pass-the-hash within a session still possible until tiering lands.",
+      "sme_note": "IG1 floor; mostly configuration on existing identity tooling."
+    },
+    {
+      "rank": 3,
+      "control": "Patch SLA incl. known-exploited (KEV); emergency-patch MS17-010, disable SMBv1",
+      "attack_techniques": ["T1210"],
+      "d3fend": ["D3-SU"],
+      "cis": { "control": "7.3 / 7.4 / 12.2", "ig": "IG1" },
+      "attacker_step_closed": "Removes the EternalBlue lateral-movement path (red AEP step 4).",
+      "effort": "medium",
+      "impact": "high",
+      "quadrant": "quick-win",
+      "residual_gap": "Legacy appliances that cannot be patched need compensating isolation.",
+      "sme_note": "IG1; SMBv1 disable is free and immediate on modern Windows."
+    },
+    {
+      "rank": 4,
+      "control": "AD tiering and network segmentation (isolate Tier-0, server, and backup planes)",
+      "attack_techniques": ["T1210", "T1003.001", "T1486"],
+      "d3fend": ["D3-NI", "D3-BA"],
+      "cis": { "control": "4.1 / 12.2 / 13.4", "ig": "IG2" },
+      "attacker_step_closed": "Breaks unimpeded lateral movement to 267 servers and stops one foothold reaching everything.",
+      "effort": "high",
+      "impact": "high",
+      "quadrant": "big-bet",
+      "residual_gap": "Full tiering is a multi-quarter programme; sequence Tier-0 isolation first.",
+      "sme_note": "IG2 stretch; start with a Tier-0 admin boundary and backup-plane isolation."
+    },
+    {
+      "rank": 5,
+      "control": "Offline / immutable backups verified by restore test",
+      "attack_techniques": ["T1486", "T1490"],
+      "d3fend": ["D3-BA"],
+      "cis": { "control": "11.2 / 11.3 / 11.5", "ig": "IG1" },
+      "attacker_step_closed": "Preserves a recovery path even if encryption succeeds (2019: online backups were reachable and lost).",
+      "effort": "medium",
+      "impact": "high",
+      "quadrant": "quick-win",
+      "residual_gap": "Immutability window must exceed attacker dwell; test restores quarterly.",
+      "sme_note": "IG1; the single control that most changes the outcome of a successful detonation."
+    },
+    {
+      "rank": 6,
+      "control": "Block internet macros; tamper-protect endpoint AV/EDR",
+      "attack_techniques": ["T1059.005", "T1562.001", "T1566.002"],
+      "d3fend": ["D3-EAL", "D3-PA"],
+      "cis": { "control": "9.6 / 10.5", "ig": "IG1" },
+      "attacker_step_closed": "Closes the macro front door and stops the one-click fleet-wide AV disable.",
+      "effort": "low",
+      "impact": "high",
+      "quadrant": "quick-win",
+      "residual_gap": "Signed internal macros still need an allow-list and review.",
+      "sme_note": "IG1; both are policy toggles on existing Microsoft 365 and MDR tooling."
+    }
+  ],
+  "sequencing": {
+    "now": [
+      "Block macros from the internet and turn on EDR tamper protection (rank 6) - policy toggles, same day.",
+      "Emergency-patch MS17-010 and disable SMBv1 (rank 3).",
+      "Enforce MFA on privileged and remote access (rank 2).",
+      "Isolate and verify offline/immutable backups with a restore test (rank 5)."
+    ],
+    "later": [
+      "Extend MDR with central log collection and EDR on servers/DCs (rank 1) - the big-bet detection uplift.",
+      "Deliver AD tiering and network segmentation, Tier-0 first (rank 4)."
+    ],
+    "confidence": "high"
+  },
+  "purpleTeam": true,
+  "scorecard": {
+    "steps": [
+      { "step": "1. Spearphishing link (T1566.002)", "attack_techniques": ["T1566.002"], "status": "detected", "controlOrDetectionRef": "Mail-gateway detonation + MDR on click", "before": "telemetry-only (unwatched)", "after": "detected", "ownerOrNextStep": "Service desk phishing-report SLA" },
+      { "step": "2. Macro execution (T1059.005)", "attack_techniques": ["T1059.005"], "status": "detected", "controlOrDetectionRef": "MDR: Office spawns script host", "before": "detected (workstations)", "after": "detected", "ownerOrNextStep": "IT security" },
+      { "step": "3. C2 beacon (T1071)", "attack_techniques": ["T1071"], "status": "gap", "controlOrDetectionRef": "Beacon analytic - no aggregated egress logs", "before": "none", "after": "gap", "ownerOrNextStep": "Network team: 90-day central egress retention (backlog rank 1)" },
+      { "step": "4. EternalBlue lateral movement (T1210)", "attack_techniques": ["T1210"], "status": "hardened", "controlOrDetectionRef": "MS17-010 patched + SMBv1 disabled", "before": "telemetry-only", "after": "hardened", "ownerOrNextStep": "Windows platform team" },
+      { "step": "5. AD recon to DA (T1087)", "attack_techniques": ["T1087"], "status": "hunted", "controlOrDetectionRef": "Hunt H-01 (LDAP recon)", "before": "none", "after": "hunted", "ownerOrNextStep": "Threat hunter: enable DC 4662 forwarding" },
+      { "step": "6. Credential dump / LSASS (T1003.001)", "attack_techniques": ["T1003.001"], "status": "hunted", "controlOrDetectionRef": "Hunt H-03 + Sysmon EID 10 pilot", "before": "tactic (partial)", "after": "hunted", "ownerOrNextStep": "Platform team: expand Sysmon + EDR to DCs" },
+      { "step": "7. Cobalt Strike on DCs (T1071)", "attack_techniques": ["T1071"], "status": "gap", "controlOrDetectionRef": "No EDR on domain controllers", "before": "telemetry-only", "after": "gap", "ownerOrNextStep": null },
+      { "step": "8. Mass AV disable (T1562.001)", "attack_techniques": ["T1562.001"], "status": "detected", "controlOrDetectionRef": "MDR tamper + mass-disable correlation", "before": "technique (if watched)", "after": "detected", "ownerOrNextStep": "MDR SOC" },
+      { "step": "9. Clop encryption (T1486)", "attack_techniques": ["T1486"], "status": "hardened", "controlOrDetectionRef": "Offline/immutable backups + file-server canary (planned)", "before": "general (at impact)", "after": "hardened", "ownerOrNextStep": "Backup admin: build ransomware canary" }
+    ],
+    "summary": { "detectedPct": 33, "huntedPct": 22, "hardenedPct": 22, "gapPct": 23 }
+  },
+  "seats": [
+    { "name": "Detection engineer", "role": "Log-source coverage and detection rules", "confidence": "medium", "stance": "Detect what the MDR can see natively; be honest that egress and DC telemetry are gaps, not rules", "summary": "The workstation MDR gives strong coverage of the macro-execution and mass-AV-disable steps. The loud pre-ransomware signals (beaconing, AD recon, C2 on DCs) are unwatched or uncollected, so they are written as hunts and backlog items, not as detections we can claim." },
+    { "name": "Threat hunter", "role": "Assume-breach hunt hypotheses", "confidence": "medium", "stance": "Where telemetry does not cover the window, treat it as suspect, not clear", "summary": "Three hunts cover the recon, beacon, and credential-access steps that have no native detection. All three are retention-limited today: a clean hunt over 7-14 days of island logs is 'we could not look back far enough', not 'nothing happened'. Central collection is the precondition for trustworthy hunting." },
+    { "name": "Hardening architect", "role": "Control-gap analysis and backlog", "confidence": "high", "stance": "IG1 floor first; sequence quick wins before the big bets", "summary": "Four IG1 quick wins (macros, patch/SMBv1, MFA, offline backups) can land now and defeat the highest-leverage steps in the chain. The two big bets (central logging/MDR extension and AD tiering) are IG2 stretch and carry the detection and blast-radius uplift; they are sequenced later but are the durable fixes." }
+  ],
+  "verified": [
+    "The ATT&CK technique IDs and the attacker chain are taken from the paired red-team AEP and the publicly documented 2019 incident.",
+    "The endpoint MDR provides 24/7 triage for workstation behavioural alerts (macro-spawn, mass AV disable).",
+    "Domain controllers currently have no EDR agent and DC LDAP query logging is disabled."
+  ],
+  "unverified": [
+    "Exact proxy/DNS/firewall retention (assumed 14 days) - confirm per faculty before relying on the beacon hunt.",
+    "Which Tier-0 servers are covered by the Sysmon pilot - the LSASS hunt only covers the instrumented subset.",
+    "Whether the mail gateway retroactively re-scores already-delivered links - confirm with the vendor before trusting detection #3."
+  ]
+}

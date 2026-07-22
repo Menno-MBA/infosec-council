@@ -397,6 +397,9 @@ const p2 = function (n) { return String(n).padStart(2, '0'); };
 const stamp = '' + d.getUTCFullYear() + p2(d.getUTCMonth() + 1) + p2(d.getUTCDate())
   + '-' + p2(d.getUTCHours()) + p2(d.getUTCMinutes()) + p2(d.getUTCSeconds());
 fs.mkdirSync(REPORT_DIR, { recursive: true });
-const outPath = path.join(REPORT_DIR, 'council-report-' + stamp + '-' + sha + '.html');
+// sanitize sha before it lands in a filename (it comes from JSON; keep it to a
+// safe charset so a crafted value cannot traverse out of REPORT_DIR).
+const safeSha = (String(sha).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64)) || 'draft';
+const outPath = path.join(REPORT_DIR, 'council-report-' + stamp + '-' + safeSha + '.html');
 fs.writeFileSync(outPath, out, 'utf8');
 console.log('report written: ' + outPath);

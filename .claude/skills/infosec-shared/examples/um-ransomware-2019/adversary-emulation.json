@@ -1,0 +1,158 @@
+{
+  "title": "TA505 / Clop Ransomware Adversary Emulation",
+  "subtitle": "Threat-informed emulation of a financially-motivated big-game intrusion against a flat, single-domain Windows estate (~1,600 servers, ~7,300 workstations). Range / tabletop exercise, derived from the publicly documented 2019 university incident.",
+  "ref": "AEP-UM-TA505",
+  "version": "1.0",
+  "date": "2026-07-22",
+  "tlp": "AMBER+STRICT",
+  "exec": {
+    "narrative_paras": [
+      "This plan emulates TA505 (a.k.a. Grace / Gold Tahoe), a patient, hands-on-keyboard e-crime group whose objective is an enterprise-wide Clop ransomware detonation for ransom. It reproduces the documented 2019 chain: a phished macro-Excel foothold, quiet C2 beaconing, exploitation of unpatched Windows servers, AD recon to Domain Admin, Cobalt Strike on the domain controllers, AV disablement, then mass encryption.",
+      "The point of the exercise is the detection scorecard, not the encryption. On a flat domain with no central SIEM, the emulation predicts that most pre-ransomware steps generate telemetry that is collected-but-unwatched or not collected at all, meaning the ~5-week window during which the attacker held full domain admin would most likely pass unseen."
+    ],
+    "tiles": [
+      { "num": 9, "lab": "Kill-chain steps", "kind": "neutral" },
+      { "num": 2, "lab": "Meaningfully detected", "kind": "good" },
+      { "num": 3, "lab": "Telemetry only", "kind": "warn" },
+      { "num": 4, "lab": "Missed", "kind": "bad" }
+    ],
+    "systemic_issues": [
+      "No central log aggregation or 24/7 monitoring: telemetry exists on islands nobody reads.",
+      "Flat, unsegmented single AD domain: one foothold reaches Domain Admin with commodity tooling.",
+      "Unpatched internet-reachable Windows servers (MS17-010 ~2 years unpatched) and online-reachable backups."
+    ],
+    "ask_of_management": "Fund central log collection + MDR and network segmentation before the next patch cycle; both defeat the highest-leverage steps in this chain."
+  },
+  "scope": {
+    "authorization_ref": "Signed RoE UM-RANGE-2026-07 (facilitator-held)",
+    "in_scope": [
+      { "asset": "Isolated range mirroring the flat AD domain", "notes": "no production systems" },
+      { "asset": "Emulated mail/Exchange, file shares, domain controllers" },
+      { "asset": "Simulated backup plane" }
+    ],
+    "out_of_scope": [
+      { "asset": "Any production tenant or live user data", "reason": "range-only engagement" },
+      { "asset": "Real Clop encryption routine", "reason": "simulation marker file only" }
+    ],
+    "window": { "start": "2026-08-03", "end": "2026-08-07" },
+    "environment": "isolated_range",
+    "deconfliction": "White cell on Signal; 15-min SLA; safety lead holds abort",
+    "stop_conditions": [
+      "Any real customer or personal data touched",
+      "Any unplanned service outage beyond the range",
+      "Loss of white-cell contact"
+    ],
+    "exclusions": [
+      "No real ransomware encryption; a benign marker file stands in for sage.exe / swaqp.exe",
+      "No data exfiltration of real PII; exfil is simulated to a controlled sink"
+    ]
+  },
+  "adversary": {
+    "name": "TA505 (Grace / SectorJ04 / Gold Tahoe)",
+    "motivation": "Financial (ransom)",
+    "sector_geo_fit": "Opportunistic big-game against large, flat estates; education/public-sector precedent",
+    "confidence": "high",
+    "source_intrusion": "Publicly documented 2019 university-wide Clop deployment (267 Windows servers encrypted; ~69-day dwell; full DA reached ~5 weeks before detonation).",
+    "objectives": [
+      "Reach and hold Domain Admin quietly",
+      "Stage a control layer on the domain controllers",
+      "Disable endpoint AV, then detonate enterprise-wide"
+    ],
+    "flags": [
+      "Foothold via macro-Excel",
+      "Credential dump to Domain Admin",
+      "Cobalt Strike beacon on a DC",
+      "AV disabled fleet-wide",
+      "Encryption marker on the backup plane"
+    ],
+    "runners_up": [
+      { "name": "Generic ransomware affiliate (e.g. LockBit-style)", "reason": "Less faithful to the documented incident's dual-use, low-and-slow tradecraft" },
+      { "name": "Nation-state APT", "reason": "Wrong motivation and over-scoped for an SME-style estate" }
+    ],
+    "sources": [
+      { "title": "Publicly documented 2019 incident report and IoCs" },
+      { "title": "MITRE ATT&CK group profile: TA505" }
+    ]
+  },
+  "killchain": [
+    { "step_no": 1, "tactic": "Initial Access", "technique_id": "T1566.002", "technique_name": "Spearphishing Link", "procedure_detail": "Two lure emails ('Documents', 'CL meeting schedule.xls'); user opens link, downloads macro-Excel", "target_asset": "Two workstation users", "atomic_test_ref": "T1566.002", "expected_observable": "Proxy/DNS to windows-en-us-update.com; mail gateway link" },
+    { "step_no": 2, "tactic": "Execution", "technique_id": "T1059.005", "technique_name": "Visual Basic (macro)", "procedure_detail": "Enable-macros installs SDBBot loader/RAT", "target_asset": "Workstation", "atomic_test_ref": "T1059.005", "expected_observable": "Office spawning script host; child process tree" },
+    { "step_no": 3, "tactic": "Command and Control", "technique_id": "T1071", "technique_name": "Application Layer Protocol", "procedure_detail": "SDBBot beacons ~every 15 min; Meterpreter added for interactive access", "target_asset": "Workstation", "atomic_test_ref": "T1071", "expected_observable": "Periodic ~15-min beacon to 185.225.17.99" },
+    { "step_no": 4, "tactic": "Lateral Movement", "technique_id": "T1210", "technique_name": "Exploitation of Remote Services", "procedure_detail": "EternalBlue / MS17-010 against unpatched Windows servers", "target_asset": "Internal servers", "atomic_test_ref": "T1210", "expected_observable": "SMBv1 exploit signatures; anomalous service creation", "range_only": true },
+    { "step_no": 5, "tactic": "Discovery", "technique_id": "T1087", "technique_name": "Account Discovery", "procedure_detail": "PowerSploit, PingCastle, AdFind map AD and privileged accounts", "target_asset": "Active Directory", "atomic_test_ref": "T1087.002", "expected_observable": "LDAP recon bursts; PingCastle signatures" },
+    { "step_no": 6, "tactic": "Credential Access", "technique_id": "T1003.001", "technique_name": "LSASS Memory", "procedure_detail": "Mimikatz dumps credentials; reaches full Domain Admin", "target_asset": "Servers / DCs", "atomic_test_ref": "T1003.001", "expected_observable": "LSASS access; Sysmon EID 10" },
+    { "step_no": 7, "tactic": "Command and Control", "technique_id": "T1071", "technique_name": "Cobalt Strike on DCs", "procedure_detail": "Cobalt Strike planted on domain controllers as the control layer", "target_asset": "Domain controllers", "atomic_test_ref": "T1071", "expected_observable": "Named-pipe / beacon patterns on Tier-0" },
+    { "step_no": 8, "tactic": "Defense Evasion", "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "procedure_detail": "Using stolen admin, disable McAfee / Defender fleet-wide before firing", "target_asset": "Servers", "atomic_test_ref": "T1562.001", "expected_observable": "Mass AV-disable / service-stop events across hosts" },
+    { "step_no": 9, "tactic": "Impact", "technique_id": "T1486", "technique_name": "Data Encrypted for Impact", "procedure_detail": "Deploy Clop (marker file) to domain-joined servers incl. reachable backups; T1490 inhibit recovery", "target_asset": "267 servers + backups", "atomic_test_ref": "T1486", "expected_observable": "Mass file-rename; encryption marker on backup plane", "range_only": true }
+  ],
+  "scorecard": [
+    { "step_no": 1, "expected_log_source": "Mail gateway + web proxy / DNS", "control_expected": "Phishing/link detonation", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "Logs exist on-box; nobody reviews; no alerting" },
+    { "step_no": 2, "expected_log_source": "EDR process tree (Office child)", "control_expected": "EDR behavioural rule", "detection_category": "technique", "time_to_detect": "minutes", "analyst_note": "If EDR present with tamper protection, Office-spawns-script fires" },
+    { "step_no": 3, "expected_log_source": "Firewall / DNS beacon periodicity", "control_expected": "Beacon analytic", "detection_category": "none", "time_to_detect": "—", "analyst_note": "14-day firewall retention too short for periodicity hunt" },
+    { "step_no": 4, "expected_log_source": "IDS / Windows service creation", "control_expected": "MS17-010 signature", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "No central IDS; server event logs unaggregated" },
+    { "step_no": 5, "expected_log_source": "DC / LDAP query logs", "control_expected": "AD recon analytic", "detection_category": "none", "time_to_detect": "—", "analyst_note": "LDAP query logging not enabled" },
+    { "step_no": 6, "expected_log_source": "Sysmon EID 10 (LSASS access)", "control_expected": "Credential-dump rule", "detection_category": "tactic", "time_to_detect": "hours", "analyst_note": "Only if Sysmon deployed to Tier-0; partial coverage" },
+    { "step_no": 7, "expected_log_source": "DC EDR / named-pipe analytics", "control_expected": "C2 on Tier-0 rule", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "DCs often lack EDR in SME estates" },
+    { "step_no": 8, "expected_log_source": "EDR tamper / 7040,1116 events", "control_expected": "Mass AV-disable correlation", "detection_category": "technique", "time_to_detect": "minutes", "analyst_note": "Fleet-wide disable is loud IF anything watches it" },
+    { "step_no": 9, "expected_log_source": "File-server audit / backup alerts", "control_expected": "Mass-rename / ransomware canary", "detection_category": "general", "time_to_detect": "at impact", "analyst_note": "Detected only when files are already encrypting" }
+  ],
+  "scorecard_summary": { "pct_technique_or_tactic": 33, "mean_time_to_detect": "not detected pre-impact in the baseline estate" },
+  "findings": [
+    {
+      "id": "F-01",
+      "title": "Flat single AD domain lets one foothold reach Domain Admin",
+      "severity": "Critical",
+      "exploitability": { "score": 3, "rationale": "Commodity tooling (Mimikatz, PowerSploit) on an unsegmented domain" },
+      "blast_radius": { "score": 3, "rationale": "Domain Admin = whole estate incl. backups" },
+      "chained_path": [4, 5, 6, 7],
+      "description": "No tiering or segmentation between workstations, servers, and domain controllers, so lateral movement and privilege escalation face no internal boundary.",
+      "remediation": "Introduce AD tiering (Tier-0 isolation), segment the server and backup planes, and remove standing Domain Admin.",
+      "detection_fix": "Deploy Sysmon + EDR to Tier-0; alert on LSASS access and DC logon anomalies."
+    },
+    {
+      "id": "F-02",
+      "title": "MS17-010 unpatched on internet-reachable Windows servers",
+      "severity": "Critical",
+      "exploitability": { "score": 3, "rationale": "Public exploit; ~2 years unpatched" },
+      "blast_radius": { "score": 3, "rationale": "Direct server compromise and lateral spread" },
+      "chained_path": [4],
+      "description": "A patch available since 2017 was not applied, giving a reliable remote-code-execution path into the server estate.",
+      "remediation": "Emergency patch MS17-010; set a patch SLA for internet-reachable and Tier-0 systems.",
+      "detection_fix": "IDS signature for EternalBlue; alert on anomalous SMBv1 and new service creation."
+    },
+    {
+      "id": "F-03",
+      "title": "No central log collection or monitoring of pre-ransomware telemetry",
+      "severity": "High",
+      "exploitability": { "score": 2, "rationale": "Not directly exploitable, but removes every detection opportunity" },
+      "blast_radius": { "score": 3, "rationale": "The entire dwell window passes unseen" },
+      "chained_path": [1, 3, 5, 7],
+      "description": "Telemetry that would catch beaconing, AD recon, and C2 on DCs exists only as unaggregated island logs with short retention and no reviewer.",
+      "remediation": "Stand up MDR or central log collection for EDR, DC auth, DNS, and proxy with adequate retention.",
+      "detection_fix": "Beacon-periodicity analytic on aggregated DNS/firewall logs; AD-recon analytic on DC logs."
+    }
+  ],
+  "safety": {
+    "roe_held": true,
+    "production_harm": false,
+    "deconfliction_events": [
+      { "time": "Day 2, 11:20", "description": "Range IDS flagged exploit traffic; confirmed in-scope with white cell", "resolution": "continued" }
+    ],
+    "aborts": [],
+    "evidence_handling": "All artefacts retained on the isolated range evidence store; destroyed after the retest window per RoE.",
+    "safety_lead_signoff": { "name": "Safety lead (redteam-safety-lead)", "date": "2026-08-07" }
+  },
+  "seats": [
+    { "name": "Threat intelligence", "role": "Actor selection and TTP mapping", "confidence": "high", "stance": "Emulate TA505 faithfully to the documented chain", "summary": "TA505 is the right, realistic actor: financially motivated, patient, dual-use tooling. The chain mirrors the 2019 incident so the blue team scores against a real precedent." },
+    { "name": "Red-team operator", "role": "Execution and ATT&CK kill chain", "confidence": "high", "stance": "The chain is reproducible on the range with atomic tests", "summary": "Each step has a re-runnable atomic test. The high-leverage, quietest steps (beaconing, AD recon, C2 on DCs) are exactly the ones the current estate would miss." },
+    { "name": "Safety lead", "role": "RoE, scope, stop conditions", "confidence": "high", "stance": "Go, range-only, with marker files for impact", "summary": "No real encryption or exfil. Impact steps are simulated. Abort authority held; deconfliction channel confirmed before start." }
+  ],
+  "verified": [
+    "The 2019 incident IoCs and ATT&CK mappings are from public documentation and safe for authorized emulation.",
+    "Range mirrors the flat single-domain topology under test."
+  ],
+  "unverified": [
+    "Exact EDR/Sysmon coverage of the real estate (assumed thin) — confirm before reading the scorecard as the production result.",
+    "Whether firewall/DNS retention in production exceeds the 14 days assumed here."
+  ]
+}

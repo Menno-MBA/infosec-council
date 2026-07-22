@@ -55,6 +55,27 @@ Produce a Markdown document with these sections:
 
 For any risk rating, use the 5x5 impact x likelihood scale in the infosec-council skill's `frameworks.md`; for regulatory drivers use the regimes table there.
 
+## HTML report
+
+Beside the Markdown, offer (or, if the user asks for a report, produce) a Luméro-branded HTML dossier via the zero-dependency Node generator `report.js` that ships with this skill. It shares the council's brand shell (same palette, tables, TLP marking) and renders the Detection & Hardening Plan sections, including an ATT&CK coverage heatmap and the purple-team scorecard. **Never hand-roll your own generator.** Build a JSON object and pipe it in:
+
+```
+node "<skill_dir>/report.js" < plan.json      # or: --in plan.json ; or: --example for the bundled UM TA505/Clop sample
+```
+
+Top-level fields: `title`, `subtitle`, `ref`, `scope`, `attack_version` (e.g. `v18`), `version`, `next_review`, `tlp` (default `AMBER+STRICT`);
+`executive_summary` `{threat_one_liner, coverage_one_liner, tiles:[{num,lab,kind}], top_gaps:[{gap,impact,owner,confidence}]}`;
+`ttp_scope[]` `{technique_id, technique_name, tactic, source, priority}` (`priority:"pre-ransomware"` earns a badge);
+`log_sources[]` `{name, collected, centralization:central-siem|vendor-mdr|native-console|island|none, retention_days, reviewed_by, status:collected-and-alerting|collected-unwatched|not-collected, cis_safeguards[], notes}`;
+`coverage_heatmap` `{legend:[{label,color}], techniques:[{techniqueID, tactic, state:gap|logged-unwatched|hunted|detected|hardened, comment}]}`;
+`detections[]` `{name, status, attack_technique[], d3fend[], cis_safeguard, log_source, logic_prose, level, false_positives[], tuning_note, fires_natively:true|"rule-not-built"|"no-siem", triage:{severity,route_to,first_action}}`;
+`hunts[]` `{id, hunt_type:hypothesis|baseline|model-assisted, attack_techniques[], hypothesis, rationale, data_sources[], scope, analytic_logic, outcome:found|not-found|inconclusive, outcome_detail, what_negative_proves, owner, next_action}`;
+`backlog[]` `{rank, control, attack_techniques[], d3fend[], cis:{control,ig:IG1|IG2|IG3}, attacker_step_closed, effort, impact, quadrant, residual_gap, sme_note}` + `sequencing:{now[], later[], confidence}`;
+`purpleTeam` `{sourcePlan, scoredAt}` (present → renders the scorecard) + `scorecard:{steps:[{step, attack_techniques[], status:detected|hunted|hardened|gap, controlOrDetectionRef, before, after, ownerOrNextStep}], summary:{detectedPct,huntedPct,hardenedPct,gapPct}}`;
+`seats[]` `{name, role, confidence, stance, summary}`; `verified[]`; `unverified[]`.
+
+On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" --in input.json`. The script writes `detection-hardening-report-<timestamp>.html` and prints the path. Join key across sections is the ATT&CK `technique_id`, so a technique detected/hunted/hardened lines up across the coverage map, detections, hunts, backlog, and scorecard.
+
 ## Purple-team loop
 
 When the input is an **infosec-redteam** Adversary Emulation Plan, the point is to close the loop: score which of the red team's steps your detections and hunts would now catch, and turn every remaining miss into a backlog item. That red-plus-blue scoring is the purple-team exercise.

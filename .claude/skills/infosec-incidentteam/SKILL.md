@@ -68,6 +68,33 @@ Produce a Markdown document with these sections:
 
 For impact/likelihood sizing use the 5x5 scale in the infosec-council skill's `frameworks.md`; for notification triggers use the regimes table there, and confirm any in-force date rather than asserting it.
 
+## HTML report
+
+Beside the Markdown, offer (or, if the user asks for a report, produce) a Luméro-branded HTML dossier via the zero-dependency Node generator `report.js` that ships with this skill. It shares the council's brand shell (same palette, tables, risk bar, TLP marking) and renders the Incident Response Report sections, including a notification tracker with live deadline countdowns. **Never hand-roll your own generator.** Build a JSON object and pipe it in:
+
+```
+node "<skill_dir>/report.js" < incident.json   # or: --in incident.json ; or: --example for the bundled UM ransomware sample
+```
+
+Top-level fields: `title`, `subtitle`, `ref`, `date`, `status`, `phase` (prepare|identify|contain|eradicate|recover|lessons), `tlp` (default `AMBER`);
+`severity` `{level, text, badges[], history:[{time,level,reason}]}`;
+`exec[]` (paragraphs), `priorities[]`, `askOfManagement`;
+`risk` `{inherent:{impact,likelihood,rationale}, residual:{…}}`;
+`notifications[]` `{id, label, ref, trigger, status:assessing|triggered|filed|ruled_out, status_reason, clock:{start_event,duration_hours}, deadline_ts, recipient, determination_owner, execution_owner, filed_ts, filing_ref}` (triggered/assessing rows get a computed countdown from `deadline_ts`, or `breachRegister.awareness.timestamp + clock.duration_hours`);
+`breachRegister` `{entry_no, controller_name, dpo_contact, awareness:{timestamp,basis,pinned_by}, data_categories[], approx_data_subjects, approx_records, likely_consequences, measures_taken[], risk_assessment:{art33_risk,art34_risk,rationale}}`;
+`timeline[]` `{time, event, type:obs|act|dec|esc, actor, source, assumed}`;
+`triage` `{roles:[{role,mandate}], hypothesis}`;
+`dial` `{cutFirst:[{title,desc}], widen, carveOuts:[{system,treatment,ownerSignoff}], pct:[{label,percent}], pctNote, lastReviewed, nextReview}`;
+`evidence` `{rule, tiers:[{title,desc}], custody, scope, exfil, topRisk, register:[{id,item,sourceHost,tier,collectedBy,time,hashAcq,hashVerify,storage,custodyNote}]}`;
+`decisions[]` `{time, decision, rationale, owner, escalated, verdict}`;
+`eradication` `{approach, sequence[], gates:[{gate,status:open|met|n/a,note}], cleanroomNote, reconnectOrder[]}`;
+`escalations[]`; `commsLog[]` `{time,channel,audience,statement,cleared_by}`; `doNotClaim` `{rule, forbidden_until_forensic_signoff[], approved_holding_line, spokesperson}`;
+`assumptions[]` `{claim, basis, confirm, owner, status, resolution}`;
+`lessons` `{wentWell[], contributingFactors[], actionItems:[{item,owner,dueDate,status}], nextStep}`;
+`seats[]` `{name, role, confidence, stance, summary}`, `seatNote`, `verified[]`, `unverified[]`.
+
+Array-of-arrays shapes from earlier fixtures still parse (timeline, dial, tiers, decisions accept both). On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" --in input.json`. The script writes `incident-report-<timestamp>.html` and prints the path.
+
 ## Synthesis gate: no assumed fact laundered as established
 
 When you assemble the report, run this gate before it ships (the incident analogue of the council's Gate B). No timeline entry, containment action, or decision-log line may present an unstated environmental fact as established. For each such entry, either rewrite it conditionally with the assumption made explicit and a verify-owner attached (for example "Hypervisor management plane isolated `[ASSUMED — verify virtualization exists: infra lead]`"), or drop it. Every inline `[ASSUMED — ...]` tag must have a matching row in the Assumptions register. A strong commander will fill gaps fast under pressure, which is correct; this gate is what keeps those gap-fills visible and owned instead of silently hardening into the record.

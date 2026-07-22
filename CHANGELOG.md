@@ -1,5 +1,41 @@
 # Changelog
 
+## v2.0.0 (2026-07-22)
+
+A major step: the operational team skills reach reporting parity with the council, the council's
+deliberation mechanism is upgraded to the current state of the art, and the codebase is
+security-hardened. This release also consolidates the v1.7.x and v1.8.x work into one 2.0 milestone.
+
+- **Branded HTML dossiers for every team skill.** New zero-dependency Node generators render the
+  **Adversary Emulation Plan** (`infosec-redteam/report.js`), the **Detection & Hardening Plan**
+  (`infosec-blueteam/report.js`), and, converted from a hardcoded one-off into a general
+  JSON-driven generator, the **Incident Response Report** (`infosec-incidentteam/report.js`). All
+  three share the council's brand shell (palette, tables, 5x5 risk bar, TLP marking) and take their
+  JSON on stdin (or `--example` for the bundled TA505/Clop sample). Signature sections include the
+  ATT&CK kill-chain + blue-team detection scorecard (red), the log-source coverage map + ATT&CK
+  coverage heatmap + purple-team scorecard (blue), and a notification tracker with live deadline
+  countdowns + itemized evidence register + eradication gates (incident). Each team `SKILL.md` gains
+  an HTML-report field spec; the README's reporting section now covers all four skills.
+- **Council mechanism to state of the art.** The anonymized peer ranking now **rotates position
+  order** per member and **length-normalizes** the briefs, and scorers are told to judge reasoning
+  over verbosity/confidence, mitigating the order, verbosity, and self-assurance biases documented
+  for LLM judges; aggregation reports the spread and prefers the median against an outlier scorer.
+  The calibration journal (`journal.js meta`) adds **Expected Calibration Error (ECE) and a
+  reliability curve** beside the Brier score, so you can see where the panel is over- or
+  under-confident.
+- **Security hardening.** Report input is treated as untrusted: three stored-XSS / CSS-injection
+  paths (a raw percentage, a raw clock value, an unvalidated legend colour) are fixed, all
+  JSON-derived values are HTML-escaped, CSS colours are allowlisted, numerics are clamped, and the
+  council output filename sanitises its `sha`. A **SHA-256 integrity manifest**
+  (`scripts/integrity.sha256`) plus `infosec-council verify` and `npm run integrity` give
+  tamper-evidence (SHA-256, not the collision-broken MD5); CI and `npm test` fail if a shipped
+  script no longer matches its hash. New **`SECURITY.md`** documents the threat model, input
+  handling, the integrity trust model and its limits, and the supply-chain posture (npm provenance,
+  out-of-band hash, pinned refs).
+- **Consolidates** the v1.7.0 5x5 risk matrix + team skills, the v1.7.1 conditional-obligation layer
+  (determination pass, Gate B, obligation ledger), and the v1.8.x observed-vs-assumed guardrail and
+  cross-skill exercise fixture, described in the entries below.
+
 ## v1.8.3 (2026-07-21)
 
 Guardrail against the version-drift class of bug, plus a README refresh.

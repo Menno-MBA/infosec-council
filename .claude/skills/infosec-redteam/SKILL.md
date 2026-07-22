@@ -63,6 +63,26 @@ Produce a Markdown document with these sections:
 
 For any risk rating in findings, use the 5x5 impact x likelihood scale in the infosec-council skill's `frameworks.md`.
 
+## HTML report
+
+Beside the Markdown, offer (or, if the user asks for a report, produce) a Luméro-branded HTML dossier via the zero-dependency Node generator `report.js` that ships with this skill. It shares the council's brand shell (same palette, tables, risk bar, TLP marking) and renders the Adversary Emulation Plan sections. **Never hand-roll your own generator.** Build a JSON object with these fields and pipe it in:
+
+```
+node "<skill_dir>/report.js" < plan.json      # or: --in plan.json ; or: --example for the bundled TA505/Clop sample
+```
+
+Top-level fields: `title`, `subtitle`, `ref`, `version`, `date`, `tlp` (default `AMBER+STRICT`);
+`exec` `{narrative_paras[], tiles:[{num,lab,kind:good|warn|bad|info|neutral}], systemic_issues[], ask_of_management}`;
+`scope` `{authorization_ref, in_scope:[{asset,notes}], out_of_scope:[{asset,reason}], window:{start,end}, environment, deconfliction, stop_conditions[], exclusions[]}`;
+`adversary` `{name, motivation, sector_geo_fit, confidence, source_intrusion, objectives[], flags[], runners_up:[{name,reason}], sources:[{title}]}`;
+`killchain[]` `{step_no, tactic, technique_id, technique_name, procedure_detail, target_asset, atomic_test_ref, expected_observable, range_only}`;
+`scorecard[]` `{step_no, expected_log_source, control_expected, detection_category:none|telemetry|general|tactic|technique, time_to_detect, analyst_note}` + `scorecard_summary:{pct_technique_or_tactic, mean_time_to_detect}`;
+`findings[]` `{id, title, severity, exploitability:{score,rationale}, blast_radius:{score,rationale}, chained_path[], description, remediation, detection_fix}`;
+`safety` `{roe_held, production_harm, deconfliction_events[], aborts[], evidence_handling, safety_lead_signoff:{name,date}}`;
+`seats[]` `{name, role, confidence, stance, summary}`; `verified[]`; `unverified[]`.
+
+On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" --in input.json` rather than fighting shell quoting. The script writes `adversary-emulation-report-<timestamp>.html` and prints the path.
+
 ## Purple-team handoff
 
 The detection opportunities in section 5 are the input to the **infosec-blueteam** skill: hand them over so the blue team builds detections and hunts for exactly the steps that were missed. Red plus blue closing this loop is the purple-team exercise.
