@@ -179,7 +179,7 @@ function install() {
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
   if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
-  console.log(`  ${C.dim("ask the council: <your decision> -deep")}\n`);
+  console.log(`  ${C.dim("ask the infosec-council: <your decision> -deep")}\n`);
 }
 
 // --- minimal, dependency-free .zip writer (deflate) -----------------------
