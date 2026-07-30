@@ -60,9 +60,10 @@ ${C.b("Commands")}
 ${C.b("Install options")}
   --global, -g       Install into ~/.claude (available in every project)
                      default: ./.claude (this project only)
-  --force, -f        Overwrite an existing install (keeps your context.md and
-                     backs up a customized frameworks.md to frameworks.md.prev)
-  --reset-config     With --force, also overwrite your context.md and frameworks.md
+  --force, -f        Overwrite an existing install (keeps your context.md and backs
+                     up a customized frameworks.md / external-websources.md to .prev)
+  --reset-config     With --force, also overwrite your context.md, frameworks.md,
+                     and external-websources.md
                      with the shipped templates (you lose local tuning)
 
 ${C.b("Examples")}
@@ -121,9 +122,12 @@ function install() {
   // hybrid (we ship register updates, the user tunes the Part A knobs). Losing
   // either on `--force` was a real data-loss bug, so guard against it unless the
   // user explicitly asks for --reset-config.
+  // external-websources.md is the same hybrid shape as frameworks.md: we ship
+  // register updates, the user tunes Part A and the [jurisdiction] rows.
   const notes = [];
   let keepContext = null;
   let prevFrameworks = null;
+  let prevSources = null;
   if (fs.existsSync(skillDest) && !RESET) {
     const ctxOld = path.join(skillDest, "context.md");
     if (fs.existsSync(ctxOld)) keepContext = fs.readFileSync(ctxOld);
@@ -131,6 +135,11 @@ function install() {
     const fwNew = path.join(skillSrc, "frameworks.md");
     if (fs.existsSync(fwOld) && fs.existsSync(fwNew) && !fs.readFileSync(fwOld).equals(fs.readFileSync(fwNew))) {
       prevFrameworks = fs.readFileSync(fwOld);
+    }
+    const srcOld = path.join(skillDest, "external-websources.md");
+    const srcNew = path.join(skillSrc, "external-websources.md");
+    if (fs.existsSync(srcOld) && fs.existsSync(srcNew) && !fs.readFileSync(srcOld).equals(fs.readFileSync(srcNew))) {
+      prevSources = fs.readFileSync(srcOld);
     }
   }
 
@@ -146,6 +155,10 @@ function install() {
   if (prevFrameworks != null) {
     fs.writeFileSync(path.join(skillDest, "frameworks.md.prev"), prevFrameworks);
     notes.push("shipped an updated frameworks.md; your previous copy is saved as frameworks.md.prev, re-apply any tuned knobs (control baseline, in-scope regimes)");
+  }
+  if (prevSources != null) {
+    fs.writeFileSync(path.join(skillDest, "external-websources.md.prev"), prevSources);
+    notes.push("shipped an updated external-websources.md; your previous copy is saved as external-websources.md.prev, re-apply any tuned retrieval policy (Part A) and jurisdiction rows");
   }
 
   // team skills: the operational red/blue/incident playbooks ship alongside the
@@ -178,7 +191,7 @@ function install() {
   if (sharedInstalled) console.log(`${C.green("✓")} Installed ${C.b("shared exercise fixtures")} (infosec-shared)`);
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
-  if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);
+  if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md, frameworks.md and external-websources.md were reset to the shipped templates.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
   console.log(`  ${C.dim("ask the infosec-council: <your decision> -deep")}\n`);
 }
@@ -270,6 +283,7 @@ function buildDesktop() {
   const skillDir = path.join(PKG_ROOT, ".claude", "skills", SKILL_NAME);
   fs.copyFileSync(path.join(PKG_ROOT, "desktop", "SKILL.md"), path.join(build, "SKILL.md"));
   fs.copyFileSync(path.join(skillDir, "frameworks.md"), path.join(build, "frameworks.md"));
+  fs.copyFileSync(path.join(skillDir, "external-websources.md"), path.join(build, "external-websources.md"));
   fs.copyFileSync(path.join(skillDir, "context.md"), path.join(build, "context.md"));
   fs.copyFileSync(path.join(skillDir, "report.js"), path.join(build, "report.js"));
   fs.copyFileSync(path.join(skillDir, "report.sh"), path.join(build, "report.sh"));

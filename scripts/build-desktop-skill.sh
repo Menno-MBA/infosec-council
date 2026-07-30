@@ -10,6 +10,7 @@ ZIP="$ROOT/dist/infosec-council-desktop.zip"
 rm -rf "$BUILD" "$ZIP"; mkdir -p "$BUILD/personas"
 cp "$ROOT/desktop/SKILL.md"                              "$BUILD/SKILL.md"
 cp "$ROOT/.claude/skills/infosec-council/frameworks.md"  "$BUILD/frameworks.md"
+cp "$ROOT/.claude/skills/infosec-council/external-websources.md" "$BUILD/external-websources.md"
 cp "$ROOT/.claude/skills/infosec-council/context.md"     "$BUILD/context.md"
 # Council edition ships only the seven council personas (the operational
 # red/blue/incident team personas belong to the Claude Code / plugin edition).
