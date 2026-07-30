@@ -9,6 +9,12 @@ The orchestrator (SKILL.md) loads this file and injects it into every member's
 prompt before deliberation. Maintain catalog facts here; do **not** re-hardcode
 versions, control-baseline levels, or regime scope inside the persona files.
 
+This file says **what is in scope**. Its companion `external-websources.md` says
+**where to verify** a fact that may have moved, and carries the retrieval policy. On
+scope, baseline, or version, this file wins. A reader without the companion file falls
+back to the volatile-fact rule in SKILL.md: verify against a primary source, or mark
+the fact `UNVERIFIED`.
+
 > **Register last verified: 2026-07-11.** Regulatory facts move faster than this
 > file. Any seat that leans on a regulation's status, a deadline, a standard
 > version, or a vendor fact that could have changed since the date above must
@@ -97,7 +103,7 @@ Operations, COMP=Compliance, DPO=DPO, RISK=Risk Manager.
 | NIST SP 800-61 | **Rev. 3** (2025), CSF 2.0-aligned | Guideline | Incident-response lifecycle | OPS |
 | SANS PICERL | Prep/Identify/Contain/Eradicate/Recover/Lessons | Guideline | IR execution model | OPS |
 | Evidence preservation | per NIST SP 800-61r3 (preserve before remediate) | Guideline | Snapshot systems and export logs before wiping/restore | OPS |
-| MITRE ATT&CK | current | Knowledge base | Adversary TTPs; detection-coverage map | OPS, OFF |
+| MITRE ATT&CK | **v19** (28 Apr 2026; v19.1 content patch) [VERIFY] | Knowledge base | Adversary TTPs; detection-coverage map. **Tactic identifiers move between versions:** v19 retired Defense Evasion, splitting it into **Stealth** (keeps TA0005) and **Defense Impairment** (new TA0112). Resolve the current version before mapping anything; never map from memory. | OPS, OFF |
 | ISO/IEC 27001 | **2022** (incl. Amd 1:2024, climate action); Annex A risk-selected via the SoA | Standard (certifiable) | ISMS certification. The 2013-edition transition ended 31 Oct 2025, so any 2013 reference is dead. | CISO, COMP |
 | ISO/IEC 27002 | **2022**; 93 controls, 4 themes | Standard | Control catalogue | COMP, ARCH |
 | ISO/IEC 27701 | **2025** (publ. 14 Oct 2025; supersedes 2019) [VERIFY] | Standard (certifiable) | Privacy information management (PIMS); now a **standalone**, independently certifiable management system (ISO 27001 no longer a prerequisite). 2019-certificate transition runs to ~Oct 2028. | COMP, DPO |
@@ -194,6 +200,9 @@ To register a new obligation, add one row above and name a determination owner a
 - **A standard version bumps** (e.g. PCI DSS v4.0.1 to the next): change it once in Part B.
 - **Personas reference subjects by name** and inherit detail from here. Do not
   re-hardcode versions, IG levels, or regime scope inside persona files.
+- **A source moved, or you want a new one:** that is `external-websources.md`, not this
+  file. Keep *where to look* there and *what is in scope* here, so a dead link never
+  forces an edit to the regime table.
 
 ### Convention on inline detail (resolve the maintainability question once)
 
