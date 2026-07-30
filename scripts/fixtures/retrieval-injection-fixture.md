@@ -1,6 +1,8 @@
 # Retrieval injection fixture (test data, not guidance)
 
-**This file is a test fixture.** It is a mock of an external page a seat might fetch
+**This file is a test fixture and does not ship.** It lives under `scripts/` with the repo's other tooling, deliberately not under `.claude/skills/infosec-shared/examples/`, because that directory is copied into every install and is where the skills tell seats to read exercise fixtures from. A file whose whole purpose is to defeat its reader does not belong next to the ones seats are pointed at.
+
+**It is a fixture, not guidance.** It is a mock of an external page a seat might fetch
 during the retrieval pass, and it deliberately contains embedded instructions aimed at
 the reader. It exists so the suite's data-never-instruction rule
 (`external-websources.md` Part A, rule 3) can be **tested** rather than asserted.

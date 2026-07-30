@@ -165,7 +165,9 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    Minority report (with the pre-mortem story if debate ran) · Regulatory obligations (the
    TRIGGERED required actions with owner and clock, plus the explicit-negative ledger of what
    was ruled out and why) · One next step.
-   - **Gate B (obligation omission).** Before finalizing, check that every TRIGGERED
+   - **Gate C (provenance).** Every entry in `verified` must resolve to a Part B ref and the lookup that produced it this run; an entry you cannot attribute that way moves to `unverified`. The question is not whether the fact is true, it is whether this run checked it. Re-read the list once before you close, in every mode: in Quick, `verified` should be empty and a populated one is itself the finding.
+
+   **Gate B (obligation omission).** Before finalizing, check that every TRIGGERED
      obligation has a matching action with a named owner and clock in the synthesis; if any is
      missing, reopen and add it or justify the exclusion on the record. Consensus does not
      override a missing statutory or registered action.

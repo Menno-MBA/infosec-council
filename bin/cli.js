@@ -128,6 +128,7 @@ function install() {
   let keepContext = null;
   let prevFrameworks = null;
   let prevSources = null;
+  const carriedPrev = {};
   if (fs.existsSync(skillDest) && !RESET) {
     const ctxOld = path.join(skillDest, "context.md");
     if (fs.existsSync(ctxOld)) keepContext = fs.readFileSync(ctxOld);
@@ -141,13 +142,24 @@ function install() {
     if (fs.existsSync(srcOld) && fs.existsSync(srcNew) && !fs.readFileSync(srcOld).equals(fs.readFileSync(srcNew))) {
       prevSources = fs.readFileSync(srcOld);
     }
+    // A second --force would otherwise delete the .prev files the first one wrote:
+    // by then the installed copy equals the shipped one, so nothing new is preserved,
+    // but rmSync still takes the folder. Carry any existing .prev forward so running
+    // --force twice is no worse than running it once.
+    for (const f of fs.readdirSync(skillDest)) {
+      if (f.endsWith(".prev")) carriedPrev[f] = fs.readFileSync(path.join(skillDest, f));
+    }
   }
 
   // skill: replace the whole folder
   if (fs.existsSync(skillDest)) fs.rmSync(skillDest, { recursive: true, force: true });
   copyDir(skillSrc, skillDest);
 
-  // restore preserved config
+  // restore preserved config. Carried .prev files land first so a freshly computed
+  // one from this run overwrites the older copy rather than the other way round.
+  for (const f of Object.keys(carriedPrev)) {
+    fs.writeFileSync(path.join(skillDest, f), carriedPrev[f]);
+  }
   if (keepContext != null) {
     fs.writeFileSync(path.join(skillDest, "context.md"), keepContext);
     notes.push("kept your existing context.md (your house positions were not touched)");

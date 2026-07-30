@@ -624,6 +624,9 @@ infosec-council/
 │   ├── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
 │   ├── sync-chatgpt.js                        #   regenerate chatgpt/knowledge from canonical sources (CI-checked)
 │   ├── check-versions.js                      #   guard: all three manifests agree + tag == version (CI-checked)
+│   ├── check-desktop-parity.js                #   guard: desktop edition states the same retrieval policy as the council
+│   ├── fixtures/
+│   │   └── retrieval-injection-fixture.md     #   test vector for the data-never-instruction rule (not shipped to users)
 │   └── test-reports.js                        #   regression tests for the council + incident report generators
 └── dist/                                      # build output (gitignored)
     └── infosec-council-desktop.zip

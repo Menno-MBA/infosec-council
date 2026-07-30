@@ -77,6 +77,9 @@ left:
 - A **stale register** points at superseded pages while still looking authoritative.
   Part A's staleness interval demotes rows past it, but nothing detects a link that
   quietly changed meaning.
+- The one control with a repeatable test vector is rule 3. The fixture at
+  `scripts/fixtures/retrieval-injection-fixture.md` carries a naive injection and a
+  plausible one written as ordinary advisory prose; it does not ship to users.
 - Query minimisation reduces what a search discloses; it does not make retrieval
   zero-disclosure. For an engagement where **no** third-party lookup is acceptable,
   set `Retrieval: off` rather than relying on minimisation.
@@ -99,6 +102,14 @@ npm run integrity:write             # node scripts/integrity.js --write
 
 CI (`.github/workflows/release.yml`) and `npm test` both run `--check`, so a
 modified script that ships without an updated manifest fails the build.
+
+**Shipped config is tracked too, advisory only.** `frameworks.md` and
+`external-websources.md` are hashed in a second manifest section. They are meant to be
+tuned locally, so drift there is normal and never fails the build — but the register
+steers outbound traffic and its Part A is quoted into prompts, so `verify` reports
+`locally modified config: <file>` rather than staying silent about the one file this
+document tells you to read before you trust it. `context.md` is excluded: it ships blank
+and is pure user config, so drift carries no signal.
 
 **SHA-256, deliberately not MD5.** MD5 is collision-broken and unfit as an
 integrity control; SHA-256 is the current standard.
