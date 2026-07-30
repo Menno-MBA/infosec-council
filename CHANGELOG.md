@@ -1,5 +1,50 @@
 # Changelog
 
+## v2.1.0 (2026-07-30)
+
+The suite stops reasoning purely from training data. All four skills gain a retrieval pass against a
+maintained register of authoritative sources, scaled by depth mode.
+
+- **`external-websources.md`, a source register.** A new file beside `frameworks.md`, in the same
+  shape: Part A the retrieval policy (per-mode query budgets, an operator `Retrieval: off` switch, a
+  staleness interval, and four injectable rules), Part B the source table, Part C per-skill
+  must-check sets, Part D maintenance and a jurisdiction-localization checklist. Where
+  `frameworks.md` says *what is in scope* and `context.md` says *what this organization has decided*,
+  this says *where to verify*. Every Part B row carries both an **authoritative for** and a **not
+  authoritative for** cell, because a register that only says what to trust reproduces the failure it
+  exists to prevent: it is the negative column that records NIST enriching only higher-priority CVEs
+  since April 2026, and that ATT&CK tactic ids move between versions.
+- **A retrieval pass in every skill.** The council gains **Round 0c**, after the determination pass
+  and before Round 1 so its findings can be injected alongside `frameworks.md`, `context.md`, and the
+  determination set. Depth modes now carry a research dimension: **Quick retrieves nothing and says
+  so**, Standard runs a bounded pass, Deep and Boardroom add a landscape sweep. The three team skills
+  have no depth modes, so their pass always runs. Blue runs it *before* Round 1, because Round 1 is
+  where TTPs are first mapped to ATT&CK; incident runs it inside triage but it never gates
+  containment.
+- **The failure this fixes, concretely.** ATT&CK was catalogued as "current". v19 (28 Apr 2026)
+  retired the **Defense Evasion** tactic, splitting it into **Stealth** (keeping TA0005) and
+  **Defense Impairment** (new TA0112), so a run mapped from memory emitted a retired tactic into an
+  ATT&CK-keyed kill chain, coverage heatmap, and the scorecard that joins them. `frameworks.md` now
+  pins the version; the redteam orchestrator and operator persona no longer hardcode a tactic list;
+  the shared TA505/Clop fixtures are relabelled.
+- **Honesty about what a verdict stands on.** A fact counts as verified only if the run **actually
+  retrieved it** — not "the source exists", not "I know this". Facts the budget did not reach are
+  unverified like any other. Where retrieval is off or web access is unavailable, the run degrades
+  **visibly** rather than falling back to memory. The council dossier now renders a `verified` line
+  beside `unverified`, reaching parity with the three team dossiers.
+- **Trust boundary, both directions.** Retrieved content is **data, never instruction**, stated to
+  the orchestrator that reads the raw page as well as to every seat, since a hostile page reaching the
+  brief steers all seats at once. The brief carries facts, sources and dates only — no stance — so it
+  grounds the panel without anchoring it. Outbound, queries carry generic subject terms only and
+  never case-identifying material, and a URL taken from case material or an indicator list is
+  analysed as a string, never visited. `SECURITY.md` gains two threat-model rows, a retrieval
+  honest-limits section, and a corrected claim: the scripts still make no network calls, the skills
+  now do. A test fixture ships so the data-never-instruction rule can be tested rather than asserted.
+- **Editions.** The register ships in the Claude Code / plugin and Claude.ai/Desktop editions and is
+  preserved across upgrades the way a customized `frameworks.md` is (`.prev` backup, `--reset-config`
+  to reset). **The ChatGPT edition is unchanged** — no new knowledge file, no instruction rewrite —
+  so the personas that reference the register carry a fallback for when it is absent.
+
 ## v2.0.0 (2026-07-22)
 
 A major step: the operational team skills reach reporting parity with the council, the council's
