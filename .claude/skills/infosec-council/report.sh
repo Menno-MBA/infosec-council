@@ -168,6 +168,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + "<p class=\"note\">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>"
 + ((.converged|converged_label) as $cl | if ($cl|length)>0 then "<p class=\"note\">Panel outcome: " + $cl + ".</p>" else "" end)
 + (if (.key_assumption // "")|length>0 then "<p class=\"assume\"><strong>This advice depends on:</strong> " + (.key_assumption|e) + "</p>" else "" end)
++ (if ((.verified|type)=="array" and (.verified|length)>0) then "<p class=\"assume\"><strong>Checked against a primary source this run:</strong> " + (.verified|join("; ")|e) + "</p>" else "" end)
 + (if ((.unverified|type)=="array" and (.unverified|length)>0) then "<p class=\"assume\"><strong>Not independently verified (check before relying):</strong> " + (.unverified|join("; ")|e) + "</p>" else "" end)
 + (if (.next_step // "")|length>0 then "<p class=\"assume\"><strong>Do this next:</strong> " + (.next_step|e) + "</p>" else "" end)
 + "</div>"

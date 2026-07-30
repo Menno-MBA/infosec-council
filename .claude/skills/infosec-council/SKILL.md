@@ -235,6 +235,7 @@ Tell the user the run's sha so they can record the outcome later. The `probabili
 echo '{
   "question": "...", "subtitle": "...", "mode": "...", "confidence": "...", "probability": <0-100>,
   "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
+  "verified": ["<load-bearing fact this run actually retrieved, with its source>"],
   "unverified": ["<any load-bearing fact you could not verify>"],
   "converged": "<after-challenge|split|forced-debate>",
   "risks": ["..."], "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],

@@ -184,7 +184,8 @@ array (never empty), a `risk_score` (score it twice: `{inherent:{impact,likeliho
 frameworks.md 5x5 scale, impact negligible/minor/moderate/major/severe x likelihood rare/unlikely/possible/likely/almost certain,
 where an already-observed impact is Almost certain not Possible, and the gap between inherent and residual is the value of the
 recommendation), a `probability`,
-`converged`, an `unverified` array, a `ranking` array, an `obligations` object from the
+`converged`, a `verified` array (what the retrieval pass actually confirmed this run, with
+sources) and an `unverified` array, a `ranking` array, an `obligations` object from the
 determination pass (`{triggered:[{label,action,determination,execution,clock,recipient,ref}], ruled_out:[{label,reason}]}`,
 which renders a Regulatory obligations section, a required-actions table plus the ruled-out ledger,
 under the risk rating), and for a deep run the
