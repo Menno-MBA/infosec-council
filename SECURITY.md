@@ -11,9 +11,12 @@ assets (base64) and render offline.
 skills perform web lookups at run time against the register in
 `external-websources.md`, using the host agent's own web tooling. That is agent
 behaviour, not script behaviour, and it is governed by the register's Part A policy
-rather than by code: it can be switched off there (`Retrieval: off`), it is bounded
-by per-mode budgets, and it is subject to a query-minimisation rule. It adds two
-assets to the threat model below.
+rather than by code: it can be switched off there (`Retrieval: off`, which also
+stops the seats, not just the orchestrator's own pass), it is bounded by per-mode
+budgets **plus a per-seat escalation ceiling**, and it is subject to a
+query-minimisation rule. Size the exposure from the run-level ceiling, not the mode
+budget alone: a Standard council run is 5 orchestrator queries plus up to 3 per seat
+across 7 seats, so **26**, not 5. It adds two assets to the threat model below.
 
 ## Threat model
 

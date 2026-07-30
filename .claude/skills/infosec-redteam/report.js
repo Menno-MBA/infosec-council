@@ -345,6 +345,7 @@ function verifiedBlock() {
 // ---- assemble ---------------------------------------------------------------
 const metaPairs = [];
 if (len(g(D, 'ref'))) metaPairs.push('<span><b>Reference</b>&nbsp;&nbsp;' + e(D.ref) + '</span>');
+if (len(g(D, 'attack_version'))) metaPairs.push('<span><b>ATT&amp;CK</b>&nbsp;&nbsp;' + e(D.attack_version) + '</span>');
 if (len(g(D, 'version'))) metaPairs.push('<span><b>Version</b>&nbsp;&nbsp;' + e(D.version) + '</span>');
 if (len(g(D, 'date'))) metaPairs.push('<span><b>Date</b>&nbsp;&nbsp;' + e(D.date) + '</span>');
 metaPairs.push('<span>' + tlpBadge(D.tlp || 'AMBER+STRICT') + '</span>');

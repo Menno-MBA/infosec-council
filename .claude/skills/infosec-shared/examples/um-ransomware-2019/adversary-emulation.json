@@ -4,6 +4,7 @@
   "ref": "AEP-UM-TA505",
   "version": "1.0",
   "date": "2026-07-22",
+  "attack_version": "v19",
   "tlp": "AMBER+STRICT",
   "exec": {
     "narrative_paras": [

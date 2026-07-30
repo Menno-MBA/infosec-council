@@ -34,8 +34,10 @@ Flip a value here and every skill inherits it.
 | Council budget, Standard | up to **5 queries** | The `[CHURN]` rows in play plus the in-scope regimes for this run. |
 | Council budget, Deep / Boardroom | up to **12 queries** | Standard's set plus a landscape sweep on the decision's subject. |
 | Team-skill budget | up to **8 queries** | Red, blue, and incident have no depth modes; their pass always runs. |
-| Seat escalation ceiling | up to **3 queries per seat** | A seat that hits the ceiling says so in what it reports back. |
-| Staleness interval | **180 days** | Past this, treat Part B as candidate locations, and route any fact not re-confirmed **in this run** to unverified. |
+| Seat escalation ceiling | up to **3 queries per seat** | **Subordinate to the run's state, never independent of it.** When `Retrieval` is `off`, or the mode budget is 0 (Quick), the ceiling is **0** too. A seat that reaches the ceiling says so in what it reports back. |
+| Run-level ceiling | orchestrator budget **+** the per-seat ceiling across the seats that ran | The honest worst case, and the number to quote when sizing disclosure. A Standard council run is 5 + 7x3 = **26**, not 5. The mode budget alone bounds only the orchestrator's own pass. |
+| Retrieval time-box | **2 minutes per pass** | For the incident skill above all: past this the pass is abandoned, unreached refs go to unverified, and the response continues. A lookup must never hold up containment. |
+| Staleness interval | **180 days** | Past this, treat Part B as candidate locations, and route any fact not re-confirmed **in this run** to unverified. The orchestrator compares the header date against the run date in step 1 of the pass; it is not left to a seat to notice. |
 | Transport | **HTTPS, publisher origin only** | No `http://`, no mirrors, no aggregators. A source you cannot reach over TLS at its own origin is not a source. |
 
 ### The four retrieval rules (inject these verbatim)

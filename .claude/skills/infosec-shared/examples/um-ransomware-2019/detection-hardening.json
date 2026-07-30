@@ -3,7 +3,7 @@
   "subtitle": "An assume-breach detection and hardening plan for a flat, single-domain Windows estate (~1,600 servers, ~7,300 workstations) with no central SIEM. Defends against the documented 2019 TA505/Clop chain and scores coverage against the paired adversary-emulation plan.",
   "ref": "DHP-UM-TA505",
   "scope": "Flat single-domain Windows estate; MDR + native consoles, no central SIEM",
-  "attack_version": "v18",
+  "attack_version": "v19",
   "version": "1.0",
   "next_review": "2026-10-22",
   "tlp": "AMBER+STRICT",

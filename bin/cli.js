@@ -159,6 +159,20 @@ function install() {
   if (prevSources != null) {
     fs.writeFileSync(path.join(skillDest, "external-websources.md.prev"), prevSources);
     notes.push("shipped an updated external-websources.md; your previous copy is saved as external-websources.md.prev, re-apply any tuned retrieval policy (Part A) and jurisdiction rows");
+    // Retrieval is an egress switch, not a preference: carry `off` forward rather than
+    // letting an upgrade silently re-enable outbound lookups the operator disabled.
+    const RETRIEVAL_ROW = /^(\|\s*\*\*Retrieval\*\*\s*\|\s*)\*\*(on|off)\*\*(\s*\|)/im;
+    const prevMatch = prevSources.toString("utf8").match(RETRIEVAL_ROW);
+    if (prevMatch && prevMatch[2].toLowerCase() === "off") {
+      const liveFile = path.join(skillDest, "external-websources.md");
+      const live = fs.readFileSync(liveFile, "utf8");
+      if (RETRIEVAL_ROW.test(live)) {
+        fs.writeFileSync(liveFile, live.replace(RETRIEVAL_ROW, "$1**off**$3"));
+        notes.push("kept your Retrieval: off setting (an upgrade must not silently re-enable outbound lookups)");
+      } else {
+        notes.push("WARNING: you had Retrieval: off, but that row could not be found in the new external-websources.md; set it again by hand before your next run");
+      }
+    }
   }
 
   // team skills: the operational red/blue/incident playbooks ship alongside the
