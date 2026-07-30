@@ -73,7 +73,12 @@ function cmdLog() {
   try { input = JSON.parse(raw); } catch (_) { die('log: stdin is not valid JSON'); }
   const q = String(input.question || '');
   if (!q) die('log: .question is required in the JSON');
-  const family = sha1hex(q).slice(0, 8);                 // stable per-question id (links reruns)
+  // Exact-question fingerprint: hashes the verbatim string, so it only matches a
+  // rerun asked with identical wording. It does NOT reliably link reruns; two runs
+  // of the same decision phrased slightly differently get different families.
+  // `lookback` is what actually finds prior runs, via token similarity (see cmdLookback).
+  // Do not build a "have we decided this before" check on family alone.
+  const family = sha1hex(q).slice(0, 8);
   const ts = nowIso();
   let sha = String(input.sha || '');
   if (!sha) sha = sha1hex(q + '|' + ts).slice(0, 8);     // salted: reruns get distinct shas
