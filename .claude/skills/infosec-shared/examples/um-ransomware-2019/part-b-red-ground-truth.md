@@ -34,7 +34,7 @@ long-running compromise where the attacker held full domain admin.**
 | **Discovery / AD recon** | **PowerSploit** (PowerShell recon), **PingCastle** (AD weakness mapping), **AdFind** (directory enumeration) to find privileged accounts and the path to Domain Admin. | T1087 (account discovery), T1482 (domain trust discovery), T1018 (remote system discovery) |
 | **Credential access** | **Mimikatz** to dump credentials from memory, full **Domain Administrator** rights. | T1003 (OS credential dumping) |
 | **C2 backbone** | **Cobalt Strike** planted on **domain controllers** as the control layer for the whole environment. | T1071 / T1572, staging on DCs |
-| **Defense evasion** | Using stolen admin rights, **disable endpoint AV** (McAfee / Windows Defender) on target servers before firing. | T1562.001 (impair defenses) |
+| **Defense impairment** | Using stolen admin rights, **disable endpoint AV** (McAfee / Windows Defender) on target servers before firing. | T1562.001 (impair defenses) |
 | **Impact** | Deploy **Clop** ransomware (`sage.exe` / `swaqp.exe`) to **267 Windows domain-joined servers**, including **reachable online backups**; encryption completes in ~30 minutes. | T1486 (data encrypted for impact), T1490 (inhibit recovery) |
 
 **Key escalation date to mirror:** full domain admin was reached ~5 weeks
