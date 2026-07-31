@@ -7,16 +7,16 @@ council, and their seats are grounded in the ENISA European Cybersecurity Skills
 
 | Skill | Trigger | Seats (ECSF roles) | Deliverable |
 |---|---|---|---|
-| **infosec-redteam** | "red team this", "emulate an attacker", "plan a pentest", "turn this breach into an exercise" | Threat Intelligence Specialist, Penetration Tester, Auditor + Legal (safety lead) | **Adversary Emulation Plan** — ATT&CK kill chain, atomic tests, blue-team detection scorecard |
-| **infosec-blueteam** | "blue team this", "build detections", "threat hunt", "harden the estate", "close the gaps" | Incident Responder (SOC), Threat Intelligence Specialist (hunting), Architect + Implementer | **Detection & Hardening Plan** — log-source map, detection rules, hunt hypotheses, hardening backlog |
-| **infosec-incidentteam** | "we have an incident", "incident response", "we've been breached", "what do we do first" | Incident Responder, Digital Forensics Investigator, Legal & Compliance (DPO) | **Incident Response Report** — timeline, containment, evidence register, notification clocks, decision log |
+| **infosec-redteam** | "red team this", "emulate an attacker", "plan a pentest", "turn this breach into an exercise" | Threat Intelligence Specialist, Penetration Tester, Auditor + Legal (safety lead) | **Adversary Emulation Plan**: ATT&CK kill chain, atomic tests, blue-team detection scorecard |
+| **infosec-blueteam** | "blue team this", "build detections", "threat hunt", "harden the estate", "close the gaps" | Incident Responder (SOC), Threat Intelligence Specialist (hunting), Architect + Implementer | **Detection & Hardening Plan**: log-source map, detection rules, hunt hypotheses, hardening backlog |
+| **infosec-incidentteam** | "we have an incident", "incident response", "we've been breached", "what do we do first" | Incident Responder, Digital Forensics Investigator, Legal & Compliance (DPO) | **Incident Response Report**: timeline, containment, evidence register, notification clocks, decision log |
 
 ## They compose as a lifecycle, not four silos
 
 The **red team** produces a realistic threat. The **blue team** builds detection and hardening
 against it. The **incident team** responds when something gets through. The **council** sits
-above all three for the hard judgment calls — pay or not, rebuild or restore, notify or not —
-that the operational skills escalate rather than settle.
+above all three for the hard judgment calls that the operational skills escalate rather than
+settle: pay or not, rebuild or restore, notify or not.
 
 Red plus blue closing the loop, scoring which emulated steps the defences would actually catch,
 is the purple-team exercise.
@@ -37,7 +37,7 @@ Program](how-it-works.md#model-safety-controls-and-the-cyber-verification-progra
 ## Running them
 
 Each triggers by slash command or natural language, and returns a Markdown deliverable rather
-than a council verdict. Each can also render its own branded HTML dossier — see
+than a council verdict. Each can also render its own branded HTML dossier, see
 [Reports and the decision journal](reports-and-journal.md).
 
 ```
@@ -56,7 +56,7 @@ hardening backlog, and score which steps we would actually catch.
 report weeks ago. Run the response: triage, containment, evidence, and the notification clocks.
 ```
 
-A red-team plan feeds the blue team — that is the purple-team loop — and any hard call that
+A red-team plan feeds the blue team, which is the purple-team loop, and any hard call that
 surfaces inside a response is escalated to the council.
 
 ## The bundled exercise

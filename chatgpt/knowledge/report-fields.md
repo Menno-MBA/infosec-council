@@ -1,6 +1,6 @@
 # Dossier JSON: the fields `report.py` reads
 
-Read this when the user asks for a report. It is reference data, not protocol — the
+Read this when the user asks for a report. It is reference data, not protocol. The
 deliberation rules live in the instructions, which is why they stay there and this does
 not. Splitting it out is deliberate: the instruction field has a hard 8000-byte ceiling
 and this list was consuming an eighth of it, so every protocol correction was being paid
@@ -55,7 +55,7 @@ that stays level with inherent is a real answer, not a failure to fill the field
 `obligations` is `{triggered: [...], ruled_out: [...]}` from the determination pass:
 
 - `triggered`: `{label, action, determination, execution, clock, recipient, ref}`
-- `ruled_out`: `{label, reason}` — the explicit-negative ledger of what was assessed and
+- `ruled_out`: `{label, reason}`, the explicit-negative ledger of what was assessed and
   why it did not apply. Most rows land here for a general SME, and that is the correct,
   auditable default rather than an empty section.
 
@@ -67,7 +67,7 @@ that stays level with inherent is a real answer, not a failure to fill the field
 - `name` is the persona key from `council-personas.md` (`ciso`, `security-architect`,
   `offensive-security`, `security-operations`, `compliance-analyst`, `dpo`,
   `risk-manager`). A key outside that set renders with no role description rather than
-  an error, so it fails quietly — use the exact key.
+  an error, so it fails quietly. Use the exact key.
 - `condition` is what a conditional stance actually requires. Omit it for a plain
   `go` or `no-go`. It is what makes a `label-only` outcome inspectable: without it a
   reader can see that the panel agreed on a verdict and not on what it demanded, but

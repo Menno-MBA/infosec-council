@@ -7,7 +7,7 @@ Three editions, one repo. Pick the row that matches how you work.
 | Install | filesystem `.claude/` (no upload) | upload a skill ZIP in Settings | open the GPT link (nothing to install) |
 | Advisors | 7 isolated sub-agents, dispatched in parallel | 7 personas role-played in **one** context | 7 personas role-played in **one** context |
 | Team skills (red/blue/incident) | yes | council only | council only |
-| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no — sandbox resets per session | no |
+| Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no, the sandbox resets per session | no |
 | HTML report | yes | yes (code-execution sandbox) | yes (Code Interpreter) |
 | Grounding / retrieval | register-backed retrieval pass | register-backed retrieval pass | volatile-fact rule only; the register does not ship here |
 | Best for | the full, isolated multi-agent experience | quick access in the app | anyone who lives in ChatGPT; zero setup |
@@ -24,7 +24,7 @@ No terminal. Easiest if you are not technical.
 Download **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-council/releases/latest/download/infosec-council-desktop.zip)**
 from the latest release. Then in the app:
 
-1. **Settings → Capabilities** — turn on *Code execution & file creation* and *Skills*.
+1. **Settings → Capabilities**: turn on *Code execution & file creation* and *Skills*.
 2. **Customize → Skills** (Team/Enterprise: *Settings → Skills* first) → **+ Create skill /
    Upload skill** → choose the file.
 3. Toggle it on.
@@ -60,7 +60,7 @@ Building your own GPT from this repo: see [`chatgpt/SETUP.md`](../chatgpt/SETUP.
 Requires Claude Code v2.1+. The HTML report needs only Node; `jq` is optional (for the bash
 variants of the report and journal scripts).
 
-**Fastest — install with npx**, no clone:
+**Fastest: install with npx**, no clone:
 
 ```bash
 npx github:Menno-MBA/infosec-council            # install into ./.claude (this project)
@@ -69,7 +69,7 @@ npx github:Menno-MBA/infosec-council --global   # install into ~/.claude (every 
 
 Add `--force` to overwrite an existing install.
 
-**Or clone and run** — agents and skills are auto-detected at project scope:
+**Or clone and run.** Agents and skills are auto-detected at project scope:
 
 ```bash
 git clone https://github.com/Menno-MBA/infosec-council.git
@@ -85,8 +85,8 @@ bash scripts/install-cli.sh   # copies agents → ~/.claude/agents, skills → ~
 
 ### Recommended models (cost vs quality)
 
-Run Claude Code itself on **Opus** — it does the framing and the final synthesis — while the
-seven advisors run as sub-agents on **Sonnet** (set with `model: sonnet` in each persona file).
+Run Claude Code itself on **Opus**, since it does the framing and the final synthesis, while
+the seven advisors run as sub-agents on **Sonnet** (set with `model: sonnet` in each persona file).
 Opus for everything works but burns far more tokens. To force the advisors onto Sonnet
 regardless of your session model:
 
@@ -97,7 +97,7 @@ export CLAUDE_CODE_SUBAGENT_MODEL=sonnet
 ### Updating
 
 **npx does not auto-update.** It keeps the version you first installed. To upgrade, re-run the
-install with `--force` and the latest release tag — the tag also avoids a stale download cache:
+install with `--force` and the latest release tag. The tag also avoids a stale download cache:
 
 ```bash
 npx github:Menno-MBA/infosec-council#v2.2.0 --force --global
@@ -112,7 +112,7 @@ npx github:Menno-MBA/infosec-council --version
 ```
 
 Then close and reopen Claude Code so it loads the new version. Still seeing the old text? An
-older copy in your home folder is being used — the `--global` re-install above overwrites it.
+older copy in your home folder is being used, and the `--global` re-install above overwrites it.
 
 An upgrade never overwrites your tuned `context.md` or `frameworks.md`.
 
@@ -120,7 +120,7 @@ An upgrade never overwrites your tuned `context.md` or `frameworks.md`.
 
 ## Claude Code plugin (also runs in Cowork)
 
-The full suite as a versioned plugin — the council plus the red, blue and incident team skills.
+The full suite as a versioned plugin: the council plus the red, blue and incident team skills.
 
 ```
 /plugin marketplace add Menno-MBA/infosec-council

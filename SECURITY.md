@@ -38,7 +38,7 @@ contents cause **outbound traffic**, and its Part A is written to be quoted into
 prompt. Whoever writes it controls both where a run sends queries and text the seats
 read as policy. Treat a register from an untrusted origin the way you would treat an
 untrusted script: read it before you run it. This is a trust-boundary statement, not a
-control — nothing in the code validates the register.
+control; nothing in the code validates the register.
 
 ## Input handling (report generators)
 
@@ -105,7 +105,7 @@ modified script that ships without an updated manifest fails the build.
 
 **Shipped config is tracked too, advisory only.** `frameworks.md` and
 `external-websources.md` are hashed in a second manifest section. They are meant to be
-tuned locally, so drift there is normal and never fails the build — but the register
+tuned locally, so drift there is normal and never fails the build, but the register
 steers outbound traffic and its Part A is quoted into prompts, so `verify` reports
 `locally modified config: <file>` rather than staying silent about the one file this
 document tells you to read before you trust it. `context.md` is excluded: it ships blank

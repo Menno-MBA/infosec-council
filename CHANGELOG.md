@@ -6,13 +6,13 @@ Three measurement holes in the deliberation mechanism, all found by evaluating a
 than by reading the code.
 
 - **Convergence needs agreeing conditions and a tight spread, not just a shared label.** A stance
-  count was the whole test, and `conditional-go` absorbs any condition — so seven seats can return
+  count was the whole test, and `conditional-go` absorbs any condition, so seven seats can return
   the same word while asking for seven different things and be read as consensus. In run `b043b80c`,
   five of seven returned `conditional-go` on materially different conditions. Convergence now takes
   three things: at least six of seven on the same stance, every pair of their named **CONDITION**
   lines materially agreeing (*would executing seat A's condition satisfy seat B?*), and a probability
-  spread of at most 20 points. Tests 2 and 3 are scoped to the **aligned seats only** — test 1
-  deliberately forgives one dissenter, and measuring across the whole panel would let that same
+  spread of at most 20 points. Tests 2 and 3 are scoped to the **aligned seats only**, because test
+  1 deliberately forgives one dissenter, and measuring across the whole panel would let that same
   forgiven seat fail the spread test and stamp an ordinary 6-of-7 run `label-only`. Seats must name
   the condition; an unnamed one, or an "n/a" placeholder, counts as not agreeing rather than as
   silent assent. Label agreement over substantive divergence is a fourth outcome, **`label-only`**,
@@ -20,11 +20,11 @@ than by reading the code.
   is countable across runs instead of a judgement nobody can audit afterwards. The four outcomes are
   now an explicitly ordered, first-match-wins routing, because the branches overlap: a Deep run that
   passed all three tests matched both "always debate" and "stop early", and a top-down reader took
-  the wrong one. The round cap was reworded to bound repetition rather than a triggered debate — the
+  the wrong one. The round cap was reworded to bound repetition rather than a triggered debate. The
   whole point of a gate firing is that the consensus was not yet worth trusting.
 - **Round 2 is instrumented, which is not the same as justified.** The anonymized cross-exam is the
-  protocol's most expensive round — seven briefs, seven cross-exams, forty-two peer scores — and
-  nothing recorded whether it changed a single position. Each seat's pre-cross-exam stance and
+  protocol's most expensive round, at seven briefs, seven cross-exams and forty-two peer scores,
+  and nothing recorded whether it changed a single position. Each seat's pre-cross-exam stance and
   probability are now logged, and `meta` aggregates them into `round2_value`. **This answers nothing
   yet**; it starts a measurement. Below five runs carrying the data it reports the count and why it
   cannot say, rather than a mean that would read as a finding. Movement is measured in absolute
@@ -34,12 +34,13 @@ than by reading the code.
   attribution by the model that ran both rounds.
 - **`journal grade` turns the pending count into pasteable actions.** Nine runs, zero outcomes, so
   `meta` returned `brier_overall: null` while every synthesis carried a confidence number. Knowing
-  the count was never the obstacle — the pre-flight printed it every run. Composing the command was.
+  the count was never the obstacle, since the pre-flight printed it every run. Composing the
+  command was.
   `grade` prints each ungraded run with its question, its call, the assumption it rested on, and a
   ready-to-paste `outcome` command. The pre-flight ledger sharpens when three or more runs are ripe
   or the oldest passes 60 days, and still never blocks a run.
 - **`confidence` is pinned to `low|medium|high` at log time.** The live journal holds a run logged
-  `medium-high`, which takes its own bucket in `calibration_by_confidence` — so neither it nor
+  `medium-high`, which takes its own bucket in `calibration_by_confidence`, so neither it nor
   `medium` shows the track record you think you are reading. Rejected rather than normalised:
   rewriting it silently would discard what the chairman said and hide the schema violation.
 - **Exercise grading is a convention, not a schema field.** A run against a documented case can be
@@ -48,7 +49,7 @@ than by reading the code.
   Brier score then mixes *we were right about a documented past event* with *our advice held up in
   practice*, which are different claims. The prefix keeps the mix visible where the maths does not.
 - **`chatgpt/INSTRUCTIONS.md` is guarded at ChatGPT's 8000-byte limit**, measured in bytes rather
-  than characters — a 7,950-character edit can be 8,031 bytes, and the platform truncates silently
+  than characters. A 7,950-character edit can be 8,031 bytes, and the platform truncates silently
   at the boundary with no error anywhere in this repo. `sync-chatgpt.js --check` now runs in
   `npm test` as well as CI, where it had been CI-only.
 - **`scripts/test-journal.js`,** wired into `npm test`. `journal.js` carried Brier, ECE and the
@@ -56,21 +57,21 @@ than by reading the code.
   started computing what decisions are calibrated against.
 - **Guards that could go green while the thing they guard was broken.** Found by review, each
   reproduced by executing the failure before fixing it:
-  - The `label-only` parity needle matched the token, which also appears in two JSON schema blocks —
-    so the entire convergence branch could be deleted and the guard still passed. Needles now match
+  - The `label-only` parity needle matched the token, which also appears in two JSON schema
+    blocks, so the entire convergence branch could be deleted and the guard still passed. Needles now match
     the rule's own prose.
   - `check-desktop-parity.js`'s `NOT_SHARED` list was documentation shaped like an assertion; it was
     never read. It is now enforced in both directions.
   - The `grade` ripeness test matched the command's own header text, so hard-wiring ripeness to false
     left every assertion green.
   - `confidence` was compared case-insensitively but stored verbatim, so `"High"` and `" high "`
-    passed the new validator and then split the meter anyway — the exact defect it was added to
-    prevent. Values are normalised on write.
+    passed the new validator and then split the meter anyway, which is the exact defect it was
+    added to prevent. Values are normalised on write.
   - `npm test` ran in no automated context: the release workflow enumerated its checks by hand and
     had already drifted (it never ran the journal tests), and there was no push/PR CI at all. There
     is now a CI workflow, and the release gate is a single `npm test`.
-- **`journal.sh` failed silently on commands it does not implement.** `journal.sh pending` — which the
-  pre-flight mandates every run — printed a help page and exited 0, which an orchestrator reads as
+- **`journal.sh` failed silently on commands it does not implement.** `journal.sh pending`, which the
+  pre-flight mandates every run, printed a help page and exited 0, which an orchestrator reads as
   "nothing pending". Unknown commands now fail loudly and name what is Node-only.
 - **A pasted `grade` command no longer misfires.** The placeholder is quoted, so pasting a line
   unedited fails with the tool's own error instead of being parsed by the shell as a redirect and a
@@ -80,17 +81,17 @@ than by reading the code.
   from a real one.
 - Two corrections found in passing: `journal.sh` rejected `not-tested`, the outcome value v2.1.0
   added and the docs instruct people to use; and the README claimed the `family` id keeps reruns of
-  a decision linked, which it does not (it hashes the verbatim question — `lookback` is what finds
-  a comparable prior run).
+  a decision linked, which it does not (it hashes the verbatim question, and `lookback` is what
+  finds a comparable prior run).
 - **PROBABILITY now means the seat's own position**, not the council's eventual recommendation. It
-  was ambiguous in both directions — a `no-go` dissenter could read it either way and return 90 or
-  15 — which was harmless while the number was only tracked over time and stopped being harmless
-  when it became a gate. Because the spread test is scoped to the aligned seats, and those share a
+  was ambiguous in both directions, since a `no-go` dissenter could read it either way and return
+  90 or 15. That was harmless while the number was only tracked over time, and stopped being
+  harmless when it became a gate. Because the spread test is scoped to the aligned seats, and those share a
   stance, the ambiguity dissolves exactly where the gate operates.
 - **Blind spots are logged as a round-tagged list, not a count.** A bare "2 came from Round 2" had
   no denominator: it could not be told apart from "2 of 2" or "2 of 9", so it could not answer the
   question it was added for. It also froze one judgement into every record where it could never be
-  re-derived or audited — which is precisely what the movement statistics refuse to do, for the same
+  re-derived or audited, which is precisely what the movement statistics refuse to do, for the same
   reason, forty lines above in the same file. The shape is validated at log time; an untagged entry
   is rejected.
 - **A seat's condition renders in the dossier.** `label-only` was countable in the journal and
@@ -99,13 +100,13 @@ than by reading the code.
 - **The ChatGPT edition is guarded on content, not only size.** A 19-byte file passed as "in sync";
   ten policy needles now cover it. That edition also gained real headroom the honest way: the
   dossier JSON field list moved to `chatgpt/knowledge/report-fields.md`, which has no size limit.
-  It is reference data, not protocol — and it was consuming an eighth of an 8000-byte budget in
+  It is reference data, not protocol, and it was consuming an eighth of an 8000-byte budget in
   which every protocol correction had to be paid for by cutting a rule somewhere else. 7808/8000,
   with the routing order restored that an earlier round had dropped for want of bytes.
 - **`report.py` had no test and no CI step at all**; it is now rendered and asserted alongside
   `report.js` and `report.sh`. The calibration maths that `scripts/test-journal.js` was created for
-  — Brier, ECE, the reliability curve, the `p=100` bin clamp, delivery rate, high-confidence misses,
-  and `not-tested` counting for delivery while staying out of accuracy — is now covered too, having
+  (Brier, ECE, the reliability curve, the `p=100` bin clamp, delivery rate, high-confidence
+  misses, and `not-tested` counting for delivery while staying out of accuracy) is now covered too, having
   been missed on the first pass in favour of the new code.
 - Smaller: `pending` and `grade` share one definition of "open" and "ripe" instead of two copies each
   asserting they matched; malformed JSONL is pinned in both directions (skipped on read, preserved
@@ -115,13 +116,13 @@ than by reading the code.
 ### Regulatory register
 
 - **CER / Wwke joins the scope table as a designation-gated regime.** Directive (EU) 2022/2557 was
-  adopted the same day as NIS2 as a deliberate pair — NIS2 for cyber resilience, CER for physical
-  resilience across largely the same sectors — so a register carrying one and not the other had a
+  adopted the same day as NIS2 as a deliberate pair, NIS2 for cyber resilience and CER for physical
+  resilience across largely the same sectors, so a register carrying one and not the other had a
   hole. The Dutch instance is the Wet weerbaarheid kritieke entiteiten, in force 15 Aug 2026
   alongside the Cbw. The default is **No, unless formally designated**, which is the substantive
   point rather than a hedge: scope is ministerial designation, roughly 500 entities in the
   Netherlands, and reading the sector list and concluding you are in scope is the error the row
-  exists to prevent. Three obligation rows, and their clock is deliberately not NIS2's — 24h then a
+  exists to prevent. Three obligation rows, and their clock is deliberately not NIS2's: 24h then a
   detailed report at one month, no 72h stage, and the recipient is the sector's competent authority
   rather than the CSIRT. Two couplings are recorded because they bite even at NOT TRIGGERED: a
   designated entity is automatically a NIS2 *essential* entity regardless of size (NIS2 Art. 3(1)(f)),
@@ -138,7 +139,7 @@ than by reading the code.
   it" with the release process, the repository tree, the obligation-registry schema and the roadmap.
   It is now 217 lines; the rest moved into seven guides under `docs/`, indexed by `docs/README.md`.
   `CONTRIBUTING.md` moved to the root where GitHub surfaces it, and absorbed the release process.
-  Nothing was dropped — and the parts that had gone stale (a repository tree predating half the
+  Nothing was dropped, and the parts that had gone stale (a repository tree predating half the
   scripts, an obligation table without CER, a licence scope corrected in v2.1.1 that the README
   still described the old way) were fixed while moving rather than carried over.
 - `package.json` gains `repository`, `homepage`, `bugs` and `author`. Without `repository`, npm
@@ -190,13 +191,13 @@ maintained register of authoritative sources, scaled by depth mode.
   pins the version; the redteam orchestrator and operator persona no longer hardcode a tactic list;
   the shared TA505/Clop fixtures are relabelled.
 - **Honesty about what a verdict stands on.** A fact counts as verified only if the run **actually
-  retrieved it** — not "the source exists", not "I know this". Facts the budget did not reach are
+  retrieved it**, not "the source exists", not "I know this". Facts the budget did not reach are
   unverified like any other. Where retrieval is off or web access is unavailable, the run degrades
   **visibly** rather than falling back to memory. The council dossier now renders a `verified` line
   beside `unverified`, reaching parity with the three team dossiers.
 - **Trust boundary, both directions.** Retrieved content is **data, never instruction**, stated to
   the orchestrator that reads the raw page as well as to every seat, since a hostile page reaching the
-  brief steers all seats at once. The brief carries facts, sources and dates only — no stance — so it
+  brief steers all seats at once. The brief carries facts, sources and dates only, with no stance, so it
   grounds the panel without anchoring it. Outbound, queries carry generic subject terms only and
   never case-identifying material, and a URL taken from case material or an indicator list is
   analysed as a string, never visited. `SECURITY.md` gains two threat-model rows, a retrieval
@@ -221,7 +222,7 @@ maintained register of authoritative sources, scaled by depth mode.
   needs a journal that survives between sessions) are recorded in the script with their reason.
 - **Editions.** The register ships in the Claude Code / plugin and Claude.ai/Desktop editions and is
   preserved across upgrades the way a customized `frameworks.md` is (`.prev` backup, `--reset-config`
-  to reset). **The ChatGPT edition is unchanged** — no new knowledge file, no instruction rewrite —
+  to reset). **The ChatGPT edition is unchanged**, with no new knowledge file and no instruction rewrite,
   so the personas that reference the register carry a fallback for when it is absent.
 
 ## v2.0.0 (2026-07-22)

@@ -1,6 +1,6 @@
 # Luméro Information Security Council
 
-**Get a second opinion on a hard security decision — from seven experts instead of one.**
+**Get a second opinion on a hard security decision, from seven experts instead of one.**
 
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE.md)
 [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt)
@@ -10,9 +10,9 @@
 [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl)
 [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro)
 
-You describe a decision. Seven security advisors — a CISO, an architect, a hacker, an
-operations lead, a compliance analyst, a privacy officer and a risk manager — each think about
-it separately, then challenge each other without knowing who said what. You get back one clear
+You describe a decision. Seven security advisors each think about it separately: a CISO, an
+architect, a hacker, an operations lead, a compliance analyst, a privacy officer and a risk
+manager. Then they challenge each other without knowing who said what. You get back one clear
 recommendation, the disagreements that survived, and the one thing to do next.
 
 It is built for **European small and mid-sized companies**: limited budget, no big security
@@ -23,7 +23,7 @@ team, a lot of things running on other people's servers.
 > This is a **decision-support tool**, not professional advice. It role-plays security,
 > privacy, compliance and risk perspectives. Its output is **not** legal, regulatory or
 > professional security advice, may be incomplete or wrong, and comes **with no warranty**.
-> You remain responsible for your decisions — validate anything material with a qualified
+> You remain responsible for your decisions. Validate anything material with a qualified
 > professional. It is a point-in-time read, not monitoring; re-run it when the decision, the
 > facts or the rules change.
 
@@ -32,17 +32,17 @@ team, a lot of things running on other people's servers.
 ## What you get
 
 **A verdict you can act on.** A recommendation, a confidence level, the key risks in plain
-language, and one concrete next step. Plus a *minority report* — the strongest objection, kept
+language, and one concrete next step. Plus a *minority report*: the strongest objection, kept
 in even when it lost the argument.
 
 **The legal clocks, surfaced automatically.** Before it starts arguing, the council checks
-every registered statutory duty — a GDPR breach notification, a NIS2 report — and returns each
-one as *this applies, here is who owns it and by when* or *this does not apply, here is why*.
+every registered statutory duty, such as a GDPR breach notification or a NIS2 report, and
+returns each one as *this applies, here is who owns it and by when* or *this does not apply, here is why*.
 That second half is the useful one: it is a written record of what was considered and ruled
 out.
 
 **A track record.** Every run is logged. Months later you tell it how the decision actually
-went, and it scores itself — including how often nobody got round to doing what it recommended.
+went, and it scores itself, including how often nobody got round to doing what it recommended.
 Over time you find out whether its confidence is worth anything. A one-shot answer can never
 tell you that.
 
@@ -65,16 +65,16 @@ They compose as a lifecycle. → [More about the team skills](docs/team-skills.m
 
 ## Try it
 
-**In ChatGPT — nothing to install.** Open
+**In ChatGPT, nothing to install.** Open
 **[Information Security Council by Luméro](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero)**
 and type your decision.
 
-**In Claude Desktop — no terminal.** Download
+**In Claude Desktop, no terminal.** Download
 **[`infosec-council-desktop.zip`](https://github.com/Menno-MBA/infosec-council/releases/latest/download/infosec-council-desktop.zip)**,
 then in the app: **Settings → Capabilities** (turn on *Code execution & file creation* and
 *Skills*) → **Skills → Upload skill**.
 
-**In Claude Code — one command.**
+**In Claude Code, one command.**
 
 ```bash
 npx github:Menno-MBA/infosec-council            # this project
@@ -104,8 +104,8 @@ new mailbox forwarding rules. What is the blast radius, the response, and our GD
 notification duties? -deep
 ```
 
-The more you tell it — size, sector, what data you hold, what rules you fall under, what
-constrains you — the sharper the answer.
+The more you tell it, the sharper the answer: your size, your sector, what data you hold, what
+rules you fall under, what constrains you.
 
 ### How much thinking do you want?
 
@@ -143,11 +143,11 @@ Want to ask questions about the code? There is an AI-generated walkthrough at
 
 Three files hold everything tunable, and an upgrade never overwrites them:
 
-- **`frameworks.md`** — which rules apply to you, which security baseline you hold yourself to,
+- **`frameworks.md`** holds which rules apply to you, which security baseline you hold yourself to,
   and the statutory duties the council checks before every run.
-- **`context.md`** — your house positions: what you have already decided, what is out of
+- **`context.md`** holds your house positions: what you have already decided, what is out of
   appetite regardless of the business case.
-- **`external-websources.md`** — where the council goes to check a fact rather than remembering
+- **`external-websources.md`** says where the council goes to check a fact rather than remembering
   one.
 
 → [Configuration guide](docs/configuration.md)
@@ -173,7 +173,7 @@ npx infosec-council verify
 
 ## Credits and license
 
-Built and maintained by **[Luméro](https://lumero.nl)** — *we do the academic research, you get
+Built and maintained by **[Luméro](https://lumero.nl)**. *We do the academic research, you get
 the infosec tools.*
 
 The multi-agent council architecture is adapted from
@@ -187,14 +187,14 @@ experts, and adds the attack and detection pre-mortems.
 
 | Part | License |
 |---|---|
-| **Software** — `bin/`, `scripts/`, `.github/`, `package.json`, every `*.sh`, and the shipped executables (`report.js`, `journal.js`, `report.py`) | [MIT](LICENSE.md) |
-| **Council content** — persona prompts, the `SKILL.md` orchestrators, the configuration registers, the exercise fixtures, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
+| **Software**: `bin/`, `scripts/`, `.github/`, `package.json`, every `*.sh`, and the shipped executables (`report.js`, `journal.js`, `report.py`) | [MIT](LICENSE.md) |
+| **Council content**: persona prompts, the `SKILL.md` orchestrators, the configuration registers, the exercise fixtures, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
 
 In short: do what you like with the code. If you reuse or adapt the council content, credit
 *"Luméro"*, link back here, say what you changed, and share alike.
 
 The **Luméro** name and logos are reserved trademarks and are **not** covered by those
-licenses — if you fork this under your own brand, replace or remove them.
+licenses. If you fork this under your own brand, replace or remove them.
 
 © 2026 Luméro.
 
@@ -203,7 +203,7 @@ licenses — if you fork this under your own brand, replace or remove them.
 ## Get in touch
 
 Found a bug, or want to propose a new advisor seat? Please open a
-**[GitHub issue](https://github.com/Menno-MBA/infosec-council/issues)** — it keeps feedback
+**[GitHub issue](https://github.com/Menno-MBA/infosec-council/issues)**. It keeps feedback
 public and searchable, and it is the fastest route to a fix. Want to contribute? See
 **[CONTRIBUTING.md](CONTRIBUTING.md)**. Prefer a direct line? Reach Menno Verheij on
 **[LinkedIn](https://www.linkedin.com/in/mennoverheij)**.

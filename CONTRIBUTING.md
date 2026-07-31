@@ -4,7 +4,7 @@ Improvements are welcome: a new advisor seat, a sharper persona mandate, a `fram
 update, or a fix. Open an issue to discuss first, or send a pull request.
 
 Contributors are credited here and in the release notes. By contributing you agree your changes
-are licensed under the project's terms — MIT for code, CC BY-SA 4.0 for content. See
+are licensed under the project's terms: MIT for code, CC BY-SA 4.0 for content. See
 [LICENSE.md](LICENSE.md) for which is which.
 
 ## Before you push
@@ -41,14 +41,14 @@ script no longer matches the integrity manifest, or an edition has lost a rule t
 ## Things worth knowing before you edit
 
 **The three protocol editions are hand-maintained mirrors, not generated.** `SKILL.md`,
-`desktop/SKILL.md` and `chatgpt/INSTRUCTIONS.md` legitimately differ — Desktop has no isolated
+`desktop/SKILL.md` and `chatgpt/INSTRUCTIONS.md` legitimately differ. Desktop has no isolated
 sub-agents, the GPT has no persistent journal. If you change a load-bearing rule in one, change
 it in all three and add a needle to `scripts/check-desktop-parity.js` so the next person cannot
 drop it silently.
 
 **`chatgpt/INSTRUCTIONS.md` has a hard 8000-byte ceiling** set by the ChatGPT platform, and it
 sits close to it. The budget check warns when headroom gets thin. Do not absorb a protocol
-change by shaving prose there — a clause cut to fit is a rule cut to fit. Move detail into a
+change by shaving prose there. A clause cut to fit is a rule cut to fit. Move detail into a
 knowledge file instead; those have no size limit.
 
 **A guard that has never failed is an untested guard.** If you add one, break the thing it
@@ -70,7 +70,7 @@ work.
 # 2. regenerate the integrity manifest and confirm the gate is green
 npm run integrity:write && npm test
 
-# 3. tag and push — the tag must match the version or CI fails the release
+# 3. tag and push. The tag must match the version or CI fails the release
 git tag v2.2.0 && git push origin v2.2.0
 ```
 

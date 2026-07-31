@@ -8,9 +8,9 @@ that tells you, months later, whether the advice was any good.
 ## Branded HTML dossiers
 
 Every skill turns its work into a self-contained HTML dossier in the Luméro house style. All
-four generators share one brand shell — the same palette, typography, tables, 5x5 risk-exposure
-bar, status pills and TLP marking — so a reader who has seen one report reads all of them the
-same way.
+four generators share one brand shell: the same palette, typography, tables, 5x5 risk-exposure
+bar, status pills and TLP marking. A reader who has seen one report reads all of them the same
+way.
 
 Each is a zero-dependency Node `report.js` that reads a JSON object on stdin (or `--in <file>`),
 base64-embeds the logo, and writes one portable `.html` file that renders identically offline
@@ -23,7 +23,7 @@ with no external requests.
 | **infosec-blueteam** | Detection & Hardening Plan | coverage tiles, TTP scope, log-source coverage map, ATT&CK coverage heatmap, detection-rule table, hunt cards, ranked hardening backlog, purple-team scorecard |
 | **infosec-incidentteam** | Incident Response Report | severity banner, notification tracker with live deadline countdowns, breach register, timeline, containment dial, evidence register, decision log, eradication gates, comms log |
 
-In Claude Code, just ask for "a report" after any run — or "a report for `<sha>`" for the
+In Claude Code, just ask for "a report" after any run, or "a report for `<sha>`" for the
 council. To run a generator directly:
 
 ```bash
@@ -52,7 +52,7 @@ default, and the one that works on Windows and inside the Desktop sandbox) and `
 (bash, needs `jq`). You do not need `jq` if you have Node.
 
 > `journal.sh` implements log, outcome, meta, journal, lookback and path. `pending`, `grade`,
-> the ECE and the round-2 statistics are `journal.js` only — it says so rather than failing
+> the ECE and the round-2 statistics are `journal.js` only. It says so rather than failing
 > quietly.
 
 Your journal is **data, not code**. It lives outside the repo and is gitignored.
@@ -64,7 +64,7 @@ Every run is appended to `~/.infosec-council/journal.jsonl`. Override the locati
 another's.
 
 The council tells you each run's `sha`. It also stores a `family` id, but that is a hash of the
-verbatim question, so it only matches a rerun asked in identical words — `lookback` is what
+verbatim question, so it only matches a rerun asked in identical words. `lookback` is what
 actually finds a comparable past decision.
 
 ### Commands
@@ -92,7 +92,7 @@ the DPA had gaps") and the skill routes them to the script.
 
 `not-tested` is the most common real outcome and the one people otherwise stay silent about,
 because the other three do not fit. It records a **delivery gap**, not a wrong call, and it is
-deliberately kept out of the calibration maths — a high not-tested count is an execution
+deliberately kept out of the calibration maths. A high not-tested count is an execution
 problem in the organisation, not an accuracy problem in the panel, and the two must not be read
 off the same number.
 
@@ -103,7 +103,7 @@ prints each ungraded run with its question, the call, the assumption it rested o
 ready-to-paste command.
 
 A run against a documented example case can be graded **now**, against that case's published
-ground truth — start the note with `exercise:` so the record shows it. Those grades share one
+ground truth. Start the note with `exercise:` so the record shows it. Those grades share one
 pool with live decisions, so the Brier score mixes "we were right about a documented past
 event" with "our advice held up in practice". The prefix keeps that visible where the maths
 does not separate it.
@@ -111,15 +111,15 @@ does not separate it.
 ### What calibration tells you
 
 `council meta` reports a **Brier score** and an **Expected Calibration Error** with a
-reliability curve. Brier scores accuracy and calibration together; ECE isolates calibration —
-whether the panel's 70%-confidence calls actually come right about 70% of the time. It also
+reliability curve. Brier scores accuracy and calibration together; ECE isolates calibration,
+meaning whether the panel's 70%-confidence calls actually come right about 70% of the time. It also
 surfaces the high-confidence calls that did not pan out, which are the ones worth learning
 from.
 
 Beside those sits the **delivery rate**: how often a recommendation was actually executed,
 which is a governance metric rather than an accuracy one.
 
-The chairman states the measured reliability beside the asserted one in every synthesis — and
+The chairman states the measured reliability beside the asserted one in every synthesis, and
 says plainly when too few outcomes are graded to claim anything.
 
 ### Whether the cross-examination earns its cost

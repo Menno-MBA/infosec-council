@@ -14,12 +14,12 @@ of how much they matter:
 **1. The calibration journal with outcomes.** Every run is logged with each seat's stance, a
 confidence level, and a numeric probability. You record later how the decision actually turned
 out, and `council meta` scores the panel with a Brier score and an Expected Calibration Error
-plus a reliability curve — not just a hit-rate. Outcomes include `not-tested`, for the common
+plus a reliability curve, not just a hit-rate. Outcomes include `not-tested`, for the common
 case where nobody executed the recommendation, so a delivery gap is never mistaken for a wrong
 call. The council reports its ungraded runs before every deliberation, because a confidence
 number nobody checks is decoration. Over time you learn whether its "high confidence" is worth
-anything, and exactly where it is over- or under-confident — the one thing a one-shot answer
-can never tell you. See [Reports and the decision journal](reports-and-journal.md).
+anything, and exactly where it is over- or under-confident. That is the one thing a one-shot
+answer can never tell you. See [Reports and the decision journal](reports-and-journal.md).
 
 **2. The EU-SME regulatory register, and a retrieval pass that uses it.** `frameworks.md`
 carries the in-scope regimes, the control baseline and the canonical standard versions, each
@@ -35,8 +35,8 @@ counterweights. Where they disagree on feasible-versus-detectable is itself a fi
 backwards from a breach that has already happened, which surfaces failure paths a
 forward-looking design review misses.
 
-The rest of the mechanism — independent first-round analysis, anonymized cross-examination,
-forced debate, the minority report — is shared with the wider LLM-council family.
+The rest of the mechanism is shared with the wider LLM-council family: independent first-round
+analysis, anonymized cross-examination, forced debate, and the minority report.
 
 > **Design note.** The council architecture, the depth modes, the anonymized peer review, the
 > forced debate when consensus looks too clean, the chairman synthesis with a minority report,
@@ -63,8 +63,8 @@ Append a depth flag to your question, or let the council pick. Default is Standa
 [agent-teams](https://code.claude.com/docs/en/agent-teams) teammates who cross-examine each
 other directly instead of through the chairman. It needs the experimental flag
 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; without it, `-boardroom` falls back to Deep.
-Independence still comes first — each seat commits its own position before reading the others —
-and the round cap still holds, because live peer exchange is exactly where
+Independence still comes first, since each seat commits its own position before reading the
+others, and the round cap still holds, because live peer exchange is exactly where
 agreement-by-conformity compounds.
 
 ---
@@ -96,13 +96,13 @@ After the anonymized cross-examination, each seat scores the others on how well 
 would survive scrutiny (1 to 5). Convergence then takes three things, not one:
 
 1. At least **six of seven on the same stance**.
-2. Their **stated conditions materially agreeing** — every pair, not just a majority cluster.
+2. Their **stated conditions materially agreeing**, every pair of them, not just a majority cluster.
 3. A **probability spread of no more than 20 points** among those aligned seats.
 
 A shared label alone is not enough. `conditional-go` absorbs any condition, so seven seats can
 return the same word while asking for seven different things. When the label agrees and the
 substance does not, the run is marked **`label-only`** and goes to the forced debate instead of
-stopping — and that outcome is recorded, so the failure mode is countable across runs rather
+stopping. That outcome is recorded, so the failure mode is countable across runs rather
 than a judgement nobody can see afterwards.
 
 Routing is first-match-wins, in this order:
@@ -110,10 +110,10 @@ Routing is first-match-wins, in this order:
 | | Condition | Outcome |
 |---|---|---|
 | 1 | Deep or Boardroom | Always debate, then record whichever outcome the three tests gave |
-| 2 | Label test fails | `split` — carried into synthesis as a real trade-off |
-| 3 | Label holds, condition or spread fails | `label-only` — debate the divergence the label hid |
+| 2 | Label test fails | `split`, carried into synthesis as a real trade-off |
+| 3 | Label holds, condition or spread fails | `label-only`, so debate the divergence the label hid |
 | 4 | All three hold, but agreement came without friction | `forced-debate` |
-| 5 | All three hold and it survived challenge | `after-challenge` — stop early |
+| 5 | All three hold and it survived challenge | `after-challenge`, stop early |
 
 In a forced debate the dissenter must write a concrete pre-mortem: *"it is 12 months later and
 this failed, here is the story."* Generic contrarianism does not count.
@@ -133,7 +133,7 @@ found into every seat.
 Any seat that leans on a regulation's status, a deadline, a standard version or a vendor fact
 that could have moved must verify it or mark it `UNVERIFIED`. The chairman lists any unverified
 load-bearing fact next to the confidence, so you can see what the verdict is standing on. A
-fact counts as verified only if the run actually retrieved it — so a Quick run, which retrieves
+fact counts as verified only if the run actually retrieved it, so a Quick run, which retrieves
 nothing, says so rather than passing memory off as grounding.
 
 Where retrieval is switched off or web access is unavailable, the run degrades **visibly**
@@ -169,7 +169,7 @@ Cybersecurity Skills Framework (ECSF) role profiles.
 | Forensics Lead | Incident team | Evidence and chain of custody, timeline, the exfiltration read | ECSF Digital Forensics Investigator |
 | Legal & Comms | Incident team | Notification clocks, breach register, external-comms gate | ECSF Legal/Compliance + DPO; GDPR Art 33/34, NIS2/Cbw |
 
-The three security seats form a deliberate triad — Architect (*build* it securely), Offensive
+The three security seats form a deliberate triad: Architect (*build* it securely), Offensive
 Security (*break* it), Security Operations (*see and survive* it failing). That tension keeps
 the room from drifting into "just add another control nobody tests or monitors."
 
@@ -179,8 +179,8 @@ the room from drifting into "just add another control nobody tests or monitors."
 
 Claude's most capable models run real-time cyber safeguards that automatically detect and block
 requests that look like prohibited or high-risk cybersecurity use. The decision council rarely
-trips these; the operational skills — above all the red team's adversary-emulation output — are
-the dual-use part most likely to be interrupted.
+trips these. The operational skills are the dual-use part most likely to be interrupted, above
+all the red team's adversary-emulation output.
 
 - **Prohibited use stays blocked, by design.** Mass data exfiltration, live-production
   ransomware and the like have no legitimate defensive use and cannot be unblocked. The team
@@ -188,7 +188,7 @@ the dual-use part most likely to be interrupted.
 - **Legitimate dual-use work can be verified.** Adversary emulation, vulnerability testing and
   detection engineering may be blocked or interrupted by default. Anthropic runs a free,
   application-based **Cyber Verification Program (CVP)** that lifts these dual-use restrictions
-  for verified practitioners. Some account types and platforms are excluded — check current
+  for verified practitioners. Some account types and platforms are excluded, so check current
   eligibility. Apply with your Organization ID through Anthropic's Cyber Use Case Form;
   decisions typically arrive within two business days. See [Anthropic's cyber safeguards
   guide](https://support.claude.com/en/articles/14604842-real-time-cyber-safeguards-on-claude).
