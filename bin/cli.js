@@ -356,7 +356,7 @@ function buildPlugin() {
   // components at the plugin root (NOT under .claude/)
   copyDir(path.join(PKG_ROOT, ".claude", "agents"), path.join(build, "agents"));
   copyDir(path.join(PKG_ROOT, ".claude", "skills"), path.join(build, "skills"));
-  for (const f of ["README.md", "LICENSE", "LICENSE-CC-BY-SA-4.0.txt"]) {
+  for (const f of ["README.md", "LICENSE.md", "LICENSE-CC-BY-SA-4.0.txt"]) {
     const s = path.join(PKG_ROOT, f);
     if (fs.existsSync(s)) fs.copyFileSync(s, path.join(build, f));
   }
@@ -381,7 +381,18 @@ function verifyIntegrity() {
   catch (e) { console.error(`${C.yellow("!")} integrity tool missing (scripts/integrity.js); this copy cannot self-verify.`); process.exit(1); }
   const r = integrity.check(PKG_ROOT);
   if (r.error) { console.error(`${C.yellow("!")} ${r.error}`); process.exit(1); }
-  if (r.ok) { console.log(`${C.green("✓")} Integrity OK: all ${C.b(String(r.checked))} executable files match the recorded SHA-256 manifest.`); return; }
+  // Shipped config (frameworks.md, external-websources.md) is tracked advisory-only:
+  // tuning it is the intended workflow, so drift never fails the check, but the register
+  // steers outbound traffic and its Part A is quoted into prompts, so say when it changed.
+  const configDrift = r.configDrift || [];
+  const reportConfigDrift = () => configDrift.forEach((f) =>
+    console.log(`  ${C.yellow("•")} locally modified config: ${f} ${C.dim("(expected if you tuned it; re-read it before you trust a run)")}`));
+  if (r.ok) {
+    console.log(`${C.green("✓")} Integrity OK: all ${C.b(String(r.checked))} executable files match the recorded SHA-256 manifest.`);
+    reportConfigDrift();
+    return;
+  }
+  reportConfigDrift();
   console.error(`${C.yellow("!")} Integrity check FAILED, the package scripts do not match their manifest:`);
   r.mismatches.forEach((f) => console.error(`  ${C.yellow("altered")}    ${f}`));
   r.missing.forEach((f) => console.error(`  ${C.yellow("missing")}    ${f}`));

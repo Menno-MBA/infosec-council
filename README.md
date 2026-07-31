@@ -2,7 +2,7 @@
 
 **Make a high-stakes security, privacy, compliance or risk decision with a panel of seven domain experts: they debate it, challenge each other anonymously, and return one calibrated verdict, now with the statutory obligations the decision triggers surfaced explicitly. Beside the council sit three operational team skills, red (adversary emulation), blue (detection and hardening) and incident (live response), that do the operational work and escalate the hard judgment calls back up to it. Calibrated to EU-SME reality.**
 
-[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE.md) [![Content: CC BY-SA 4.0](https://img.shields.io/badge/content-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-CC-BY-SA-4.0.txt) [![Install: npx](https://img.shields.io/badge/install-npx-success.svg)](#install) [![Editions: CLI + Desktop + GPT](https://img.shields.io/badge/editions-CLI%20%2B%20Desktop%20%2B%20GPT-purple.svg)](#install) [![ChatGPT GPT](https://img.shields.io/badge/ChatGPT-Try%20the%20GPT-10A37F.svg?logo=openai&logoColor=white)](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero) [![Website](https://img.shields.io/badge/website-lumero.nl-orange.svg)](https://lumero.nl) [![LinkedIn: Luméro](https://img.shields.io/badge/LinkedIn-Lum%C3%A9ro-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/company/Lum%C3%A9ro) 
 
 > **Disclaimer - informational, not professional advice.** This council is a
 > decision-support tool that role-plays security, privacy, compliance, and risk
@@ -40,8 +40,8 @@ below. Risk is now rated on a standard **5x5** heat map (see [Frameworks](#frame
 
 The defensible differentiators, in order:
 
-1. **The calibration journal with outcomes.** Every run is logged with each seat's stance, a confidence level, and a numeric probability. You record later how the decision actually turned out, and `council meta` scores the panel with a Brier score and an Expected Calibration Error plus a reliability curve, not just a hit-rate. Over time you learn whether its "high confidence" is worth anything (and exactly where it is over- or under-confident), which is the one thing a one-shot answer can never tell you.
-2. **The EU-SME regulatory register.** A single maintained file (`frameworks.md`) carries the in-scope regimes, the control baseline, and the canonical standard versions, each with a "last verified" date. The advice is calibrated to Dutch and EU small-business reality, not a generic global default.
+1. **The calibration journal with outcomes.** Every run is logged with each seat's stance, a confidence level, and a numeric probability. You record later how the decision actually turned out, and `council meta` scores the panel with a Brier score and an Expected Calibration Error plus a reliability curve, not just a hit-rate. Outcomes include `not-tested`, for the common case where nobody executed the recommendation, so a delivery gap is never mistaken for a wrong call; the council reports its ungraded runs before every deliberation, because a confidence number nobody checks is decoration. Over time you learn whether its "high confidence" is worth anything (and exactly where it is over- or under-confident), which is the one thing a one-shot answer can never tell you.
+2. **The EU-SME regulatory register, and a retrieval pass that uses it.** `frameworks.md` carries the in-scope regimes, the control baseline, and the canonical standard versions, each with a "last verified" date. Its companion `external-websources.md` says where to verify them, and every skill runs a retrieval pass against it before deliberating, so the panel checks current facts instead of asserting remembered ones. A fact counts as verified only if the run actually retrieved it. The advice is calibrated to Dutch and EU small-business reality, not a generic global default.
 3. **The build/break/run triad.** The Security Architect (build it securely), Offensive Security (break it), and Security Operations (see and survive it failing) are deliberate counterweights. Where they disagree on feasible-versus-detectable is itself a finding.
 4. **The attack and detection pre-mortems.** The red-team and operations seats reason backwards from a breach that has already happened, which surfaces failure paths a forward-looking design review misses.
 
@@ -495,7 +495,17 @@ Desktop, GPT) behaves the same. The items below are under consideration, not com
 Suggestions are welcome (see [Contributing](#contributing)), and because the project is open
 (CC BY-SA) you are free to fork and change the logic yourself.
 
-**Recently shipped (v2.0.0)**: the suite reaches parity and gets hardened. All three operational
+**Recently shipped (v2.1.0)**: the suite stops answering from memory alone. A new curated register,
+`external-websources.md`, says **where to verify** a fact, and all four skills run a **retrieval pass**
+against it, scaled by depth mode (Quick retrieves nothing and says so). The motivating defect was real:
+ATT&CK was catalogued as "current" while v19 had retired the Defense Evasion tactic, so runs were
+emitting a tactic that no longer exists. Retrieval carries a trust boundary in both directions:
+retrieved content is data and never instruction, queries carry no client names or indicators, and a URL
+taken from case material is never fetched. The **calibration loop is closed** with a `not-tested`
+outcome, a delivery-rate metric, and a pending ledger the council reports every run. Also: a desktop
+parity guard, and a corrected dual-license scope. See `CHANGELOG.md`.
+
+**Shipped in v2.0.0**: the suite reaches parity and gets hardened. All three operational
 team skills now emit their own **branded HTML dossiers** (Adversary Emulation Plan, Detection &
 Hardening Plan, Incident Response Report) sharing one brand shell with the council, so every skill
 produces a portable, offline-rendering report, not just the council. The council mechanism gains
@@ -550,7 +560,7 @@ from them by a build script.
 infosec-council/
 ├── README.md
 ├── CHANGELOG.md                              # what changed per release
-├── LICENSE                                   # MIT (the code)
+├── LICENSE.md                                # MIT (the code) + the dual-license scope table
 ├── LICENSE-CC-BY-SA-4.0.txt                  # CC BY-SA 4.0 (the council content)
 ├── package.json                              # npx installer metadata
 ├── .gitignore
@@ -752,8 +762,8 @@ Creative Commons is for the content, not the code:
 
 | Part | Covers | License |
 |---|---|---|
-| **Software** | `bin/`, `scripts/`, `*.sh`, `package.json`, `.github/` | [MIT](LICENSE) |
-| **Council content** | persona prompts (`.claude/agents/`), the `SKILL.md` orchestrators, `frameworks.md`, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
+| **Software** | `bin/`, `scripts/`, `.github/`, `package.json`, every `*.sh`, and the shipped executables under `.claude/skills/` (`report.js`, `journal.js`) plus `chatgpt/knowledge/report.py` | [MIT](LICENSE.md) |
+| **Council content** | persona prompts (`.claude/agents/`), the `SKILL.md` orchestrators, the configuration registers (`frameworks.md`, `context.md`, `external-websources.md`), the shared exercise fixtures, and the docs | [CC BY-SA 4.0](LICENSE-CC-BY-SA-4.0.txt) |
 
 In short: do what you like with the **code** (MIT). If you reuse or adapt the
 **council content**, you must credit *"Luméro"*, link back to this

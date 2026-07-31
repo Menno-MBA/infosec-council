@@ -27,7 +27,7 @@
     "desktop/",
     "scripts/",
     "README.md",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "engines": {
     "node": ">=16"
