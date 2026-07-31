@@ -109,7 +109,7 @@ trust reproduces the failure it exists to prevent.
 
 | Ref | Source | Authoritative for | Not authoritative for | Seats |
 |---|---|---|---|---|
-| `nis2-supervisor` **[jurisdiction] [CHURN]** | Rijksinspectie Digitale Infrastructuur (NL), https://www.rdi.nl | Cbw supervision, registration duty, notification duty, sector scope, in-force dates | The EU directive text (use `eurlex`); other states' transposition | COMP, CISO, IR-LEG |
+| `nis2-supervisor` **[jurisdiction] [CHURN]** | Rijksinspectie Digitale Infrastructuur (NL), https://www.rdi.nl | Cbw supervision, registration duty, notification duty, sector scope, in-force dates. Also the Wwke (CER) for the sectors EZK designates: energy, space, digital infrastructure | The EU directive text (use `eurlex`); other states' transposition; Wwke sectors under other ministries, where ILT (https://www.ilent.nl) supervises for IenW | COMP, CISO, IR-LEG |
 | `nis2-csirt` **[jurisdiction] [CHURN]** | NCSC-NL, https://www.ncsc.nl | The entity register and the incident-notification portal; national advisories | Whether *you* are in scope; that is a determination, not a lookup | OPS, CISO, IR-CMD, IR-LEG |
 | `csirt-network` | CSIRTs Network, https://csirtsnetwork.eu | Which national CSIRT is the counterpart in another member state | Any national procedure detail; follow the link to that CSIRT | IR-LEG, COMP |
 

@@ -16,5 +16,5 @@ f9a704861ae2a4ff944e415548c1347c12fe70b004211fe1f567899cb4811d5b  scripts/instal
 4f6705049851a6ea7b671210bc31bc805bd6cdf9dfc8befe35284246ec524c4e  scripts/test-journal.js
 662502c247b69758dc503b65cd1d938a1c54112a092734f3c9d4ae536f56a93b  scripts/test-reports.js
 # --- shipped config (advisory: local tuning is expected) ---
-7dc8c6ce12708e6e8e454e3927c9317a31fe74744ce12ed4e506c26e0177f722  .claude/skills/infosec-council/external-websources.md
-796df2b11c7d22193586fcbab897e9b3c89dbdbbe5cc3e006c5cf62f604b9231  .claude/skills/infosec-council/frameworks.md
+9a6d3e6499855c0161861d4c8492dedc29ad8c1961c6f7248a20fed21637796d  .claude/skills/infosec-council/external-websources.md
+070ba5b244b940864c13400b0d12f22401f5a87c9f4cb6de320ac52f1d62994a  .claude/skills/infosec-council/frameworks.md
