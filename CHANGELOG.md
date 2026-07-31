@@ -9,12 +9,19 @@ than by reading the code.
   count was the whole test, and `conditional-go` absorbs any condition — so seven seats can return
   the same word while asking for seven different things and be read as consensus. In run `b043b80c`,
   five of seven returned `conditional-go` on materially different conditions. Convergence now takes
-  three things: at least six of seven on the same stance, their named **CONDITION** lines materially
-  agreeing (*would executing seat A's condition satisfy seat B?*), and a probability spread of at
-  most 20 points. Seats must name the condition; an unnamed one counts as not agreeing rather than
-  as silent assent. Label agreement over substantive divergence is a fourth outcome, **`label-only`**,
+  three things: at least six of seven on the same stance, every pair of their named **CONDITION**
+  lines materially agreeing (*would executing seat A's condition satisfy seat B?*), and a probability
+  spread of at most 20 points. Tests 2 and 3 are scoped to the **aligned seats only** — test 1
+  deliberately forgives one dissenter, and measuring across the whole panel would let that same
+  forgiven seat fail the spread test and stamp an ordinary 6-of-7 run `label-only`. Seats must name
+  the condition; an unnamed one, or an "n/a" placeholder, counts as not agreeing rather than as
+  silent assent. Label agreement over substantive divergence is a fourth outcome, **`label-only`**,
   which routes to the forced debate rather than early-stopping and is recorded so the failure mode
-  is countable across runs instead of a judgement nobody can audit afterwards.
+  is countable across runs instead of a judgement nobody can audit afterwards. The four outcomes are
+  now an explicitly ordered, first-match-wins routing, because the branches overlap: a Deep run that
+  passed all three tests matched both "always debate" and "stop early", and a top-down reader took
+  the wrong one. The round cap was reworded to bound repetition rather than a triggered debate — the
+  whole point of a gate firing is that the consensus was not yet worth trusting.
 - **Round 2 is instrumented, which is not the same as justified.** The anonymized cross-exam is the
   protocol's most expensive round — seven briefs, seven cross-exams, forty-two peer scores — and
   nothing recorded whether it changed a single position. Each seat's pre-cross-exam stance and
@@ -47,10 +54,39 @@ than by reading the code.
 - **`scripts/test-journal.js`,** wired into `npm test`. `journal.js` carried Brier, ECE and the
   reliability curve with no tests at all. Tolerable while it only appended records; not once it
   started computing what decisions are calibrated against.
+- **Guards that could go green while the thing they guard was broken.** Found by review, each
+  reproduced by executing the failure before fixing it:
+  - The `label-only` parity needle matched the token, which also appears in two JSON schema blocks —
+    so the entire convergence branch could be deleted and the guard still passed. Needles now match
+    the rule's own prose.
+  - `check-desktop-parity.js`'s `NOT_SHARED` list was documentation shaped like an assertion; it was
+    never read. It is now enforced in both directions.
+  - The `grade` ripeness test matched the command's own header text, so hard-wiring ripeness to false
+    left every assertion green.
+  - `confidence` was compared case-insensitively but stored verbatim, so `"High"` and `" high "`
+    passed the new validator and then split the meter anyway — the exact defect it was added to
+    prevent. Values are normalised on write.
+  - `npm test` ran in no automated context: the release workflow enumerated its checks by hand and
+    had already drifted (it never ran the journal tests), and there was no push/PR CI at all. There
+    is now a CI workflow, and the release gate is a single `npm test`.
+- **`journal.sh` failed silently on commands it does not implement.** `journal.sh pending` — which the
+  pre-flight mandates every run — printed a help page and exited 0, which an orchestrator reads as
+  "nothing pending". Unknown commands now fail loudly and name what is Node-only.
+- **A pasted `grade` command no longer misfires.** The placeholder is quoted, so pasting a line
+  unedited fails with the tool's own error instead of being parsed by the shell as a redirect and a
+  pipe, which left a stray file behind.
+- **`round2_value` reports its instrumentation rate.** The probability delta is per panel seat by
+  design; without knowing how much of the panel carried the data, a diluted mean is indistinguishable
+  from a real one.
 - Two corrections found in passing: `journal.sh` rejected `not-tested`, the outcome value v2.1.0
   added and the docs instruct people to use; and the README claimed the `family` id keeps reruns of
   a decision linked, which it does not (it hashes the verbatim question — `lookback` is what finds
   a comparable prior run).
+- **Known limitation.** `chatgpt/INSTRUCTIONS.md` is at 7981 of 8000 bytes. Fitting this release's
+  convergence corrections required cutting prose elsewhere, and the budget check now warns below 150
+  bytes of headroom. The next protocol change to that edition needs a structural answer — moving
+  detail into a knowledge file, which has no size limit — not another round of shaving, because a
+  clause cut to fit is a rule cut to fit.
 
 ## v2.1.1 (2026-07-31)
 

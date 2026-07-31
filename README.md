@@ -201,7 +201,8 @@ compounds.
 **How the room converges.** After the anonymized cross-examination, each seat scores the others on
 how well their position would survive scrutiny (1 to 5). Convergence then takes three things, not
 one: at least six of seven on the same stance, their stated conditions materially agreeing, and a
-probability spread of no more than 20 points. A shared label alone is not enough — `conditional-go`
+probability spread of no more than 20 points among those aligned seats. A shared label alone is not
+enough — `conditional-go`
 absorbs any condition, so seven seats can return the same word while asking for seven different
 things. When the label agrees and the substance does not, the run is marked **label-only** and goes
 to the forced debate instead of stopping. Genuine convergence after challenge stops early; agreeing

@@ -27,16 +27,11 @@ jobs:
             tr -d '\000' < "$f" > "$f.tmp"
             if ! cmp -s "$f" "$f.tmp"; then mv "$f.tmp" "$f"; echo "stripped NUL bytes from $f"; else rm -f "$f.tmp"; fi
           done
-      - name: Version parity + tag match (all three manifests agree; tag == version)
-        run: node scripts/check-versions.js
-      - name: Integrity manifest matches the shipped scripts (tamper-evidence)
-        run: node scripts/integrity.js --check
-      - name: Check the ChatGPT knowledge folder is in sync with canonical sources
-        run: node scripts/sync-chatgpt.js --check
-      - name: Check the desktop edition states the same retrieval policy as the council
-        run: node scripts/check-desktop-parity.js
-      - name: Report generator tests (golden file + report.js/report.sh parity + incident report)
-        run: node scripts/test-reports.js
+      # One step, not one per check: this list had already drifted (test-journal.js
+      # was in `npm test` and missing here), and a gate that must be remembered in
+      # two places is a gate that eventually runs in one.
+      - name: Full gate (version + tag parity, integrity, edition parity, all tests)
+        run: npm test
       - name: Build the desktop skill zip
         run: node bin/cli.js build-desktop
       - name: Build the Claude Code plugin zip

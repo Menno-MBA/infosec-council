@@ -11,7 +11,12 @@
  * lost "add any subject-specific source the decision names", so a Desktop run built a
  * narrower must-check set than a CLI run for the same question. That is the drift class
  * worth guarding, and it is checkable: a named set of load-bearing policy sentences must
- * appear in both files.
+ * appear in both files. The set has since grown past retrieval to cover the chairman's
+ * closing checks and the convergence rule.
+ *
+ * Needles must match the RULE's own prose, not a token that also appears in a JSON
+ * schema block or a heading. A needle on the bare token `label-only` passed with the
+ * entire label-only branch deleted, because the token survived in two schema examples.
  *
  * This is the `check-versions.js` shape (assert a small set of invariants across
  * hand-maintained files), not the `sync-chatgpt.js` shape (regenerate one from another).
@@ -47,15 +52,21 @@ const SHARED_POLICY = [
   ['measured reliability beside asserted', 'measured reliability'],
   ['closing check runs in every mode', 'dropped dissent'],
   ['manufactured unanimity check', 'manufactured unanimity'],
-  ['label-only convergence outcome', 'label-only'],
+  // NOT the bare token `label-only`: it also appears in two JSON schema blocks in the
+  // council SKILL.md, so a needle on the token stayed green with the entire rule
+  // deleted. Match a phrase that only occurs in the rule's own prose.
+  ['label-only convergence outcome', 'split wearing one word'],
   ['an unnamed condition is not agreement', 'is not agreement evidence'],
   ['probability spread bounds convergence', 'differ by at most 20 points'],
 ];
 
-// Deliberately NOT checked for parity, with the reason, so a future maintainer does not
-// "fix" the absence: the pending ledger and the per-run calibration read need a journal
-// that survives between sessions. Plain Desktop storage is ephemeral, so those steps have
-// nothing to operate on there and the desktop edition says so instead of mirroring them.
+// Deliberately NOT shared, and asserted as such: each needle must be present in the
+// council file and ABSENT from desktop. Documenting the exclusion is not enough -- an
+// inert list lets the absence be "fixed" silently in either direction, and the reason
+// these are excluded is a real constraint, not a preference. The pending ledger, the
+// per-run calibration read, and the round-2 delta capture all need a journal that
+// survives between sessions; plain Desktop storage is ephemeral, so mirroring them
+// would spend prompt budget on a measurement nobody there can ever read.
 // If Desktop ever gains durable storage by default, move these into SHARED_POLICY.
 const NOT_SHARED = [
   ['pending ledger', 'journal.js pending'],
@@ -98,6 +109,20 @@ function main() {
     } else {
       failures.push(label + ' -- present in ' + (inCouncil ? 'council' : 'desktop') +
         ', missing from ' + (inCouncil ? 'desktop/SKILL.md' : '.claude/skills/infosec-council/SKILL.md'));
+    }
+  }
+
+  for (const [label, rawNeedle] of NOT_SHARED) {
+    const needle = norm(rawNeedle);
+    const inCouncil = council.includes(needle);
+    const inDesktop = desktop.includes(needle);
+    if (inCouncil && !inDesktop) {
+      console.log('  ok: ' + label + ' (council-only, as intended)');
+    } else if (inDesktop) {
+      failures.push(label + ' -- present in desktop/SKILL.md, which NOT_SHARED says it must not be; ' +
+        'either the Desktop edition gained durable storage (move the row to SHARED_POLICY) or the rule leaked');
+    } else {
+      failures.push(label + ' -- absent from BOTH files; drop the row from NOT_SHARED if the rule was retired');
     }
   }
 

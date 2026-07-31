@@ -159,7 +159,7 @@ case "$cmd" in
 
   path) echo "$JOURNAL" ;;
 
-  help|*)
+  help)
     cat <<'USAGE'
 infosec-council decision journal (bash + jq). Prefer journal.js (Node, no deps).
 
@@ -167,8 +167,9 @@ infosec-council decision journal (bash + jq). Prefer journal.js (Node, no deps).
       Read one run as JSON from stdin and append it. Salts the sha so reruns of the
       same question are distinct; also stores a stable "family" id per question.
 
-  journal.sh outcome <sha> <correct|partial|wrong> [note]
-      Record how the decision actually turned out, later.
+  journal.sh outcome <sha> <correct|partial|wrong|not-tested> [note]
+      Record how the decision actually turned out, later. `not-tested` means nobody
+      executed the recommendation, so it was never put to the test.
 
   journal.sh meta
       Calibration: hit-rate AND Brier score by confidence level, high-confidence
@@ -186,6 +187,19 @@ infosec-council decision journal (bash + jq). Prefer journal.js (Node, no deps).
 Environment:
   COUNCIL_HOME   journal directory (default: ~/.infosec-council)
   COUNCIL_ORG    per-org subfolder (keeps one client's journal out of another's)
+
+Not implemented here (journal.js only): pending, grade, Expected Calibration Error,
+the reliability curve, the delivery rate, and the round-2 statistics.
 USAGE
+    ;;
+
+  # An unknown command must fail loudly. This used to fall through to `help` with a
+  # zero exit, so `journal.sh pending` -- which SKILL.md's pre-flight mandates every
+  # run -- printed a help page and reported success. An orchestrator reads that as
+  # "nothing pending", which is the precise failure the pending ledger exists to
+  # prevent. Better to name the gap than to hide it behind a usage screen.
+  *)
+    die "unknown command '$cmd'. journal.sh implements: log, outcome, meta, journal, lookback, path, help.
+  pending, grade, ECE and the round-2 statistics are journal.js-only; use Node for those."
     ;;
 esac

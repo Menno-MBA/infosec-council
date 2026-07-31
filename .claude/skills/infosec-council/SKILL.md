@@ -113,7 +113,7 @@ The council's value is precise, current advice, so it must not assert stale regu
 
 ## Round 0. Pre-flight (before any member runs)
 
-1. **Command routing.** If the user asked for a journal action (`outcome`, `meta`, `journal`) or a bare `report <sha>`, handle it (see "Decision journal") and do not run the council.
+1. **Command routing.** If the user asked for a journal action (`outcome`, `meta`, `journal`, `pending`, `grade`) or a bare `report <sha>`, handle it (see "Decision journal") and do not run the council. The list must stay in step with the journal's own commands: a command the pre-flight does not recognise convenes seven seats to answer a bookkeeping request.
 2. **Triviality gate.** If the question is factual, trivial, or has an obvious answer, say so and skip the council.
 3. **Context-sufficiency gate.** Grounding quality dominates output quality. If the essentials are missing (sector, rough headcount, the data types involved, which regimes are in scope) AND `context.md` is blank, ask ONE compact clarifying question before Round 1. In an unattended/headless run, do not block: state the assumed profile (generic EU SME plus whatever was given) in one line at the top of the synthesis and proceed.
 4. **Journal lookback.** If a journal exists, run `journal.js lookback "<the question>"`. Use the command, do not eyeball the file: it matches on token similarity, which catches a rerun phrased differently. The `family` hash is an exact-question fingerprint and will miss those, so never search on it alone. If a comparable run has a recorded outcome, carry it into your own context and into the chairman synthesis, e.g. "a similar call was rated high confidence and turned out partial; the note said the DPA had gaps." Past calibration on this kind of decision is a first-class input, not trivia.
@@ -213,23 +213,27 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 **Convergence detection and early stopping.** A shared STANCE label is necessary for convergence and not sufficient. `conditional-go` absorbs any condition, so seven seats can return the same word while asking for seven different things, and a stance count would read that as consensus. Test all three:
 
 1. **Label.** >= 6 of 7 on the same stance.
-2. **Condition.** Where any of those seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree. The test is a question with an answer: *would executing seat A's condition satisfy seat B?* A seat that returned a conditional stance without naming its condition is not agreement evidence; treat it as not agreeing. Reading silence as assent is the same defect one level down.
-3. **Spread.** The highest and lowest PROBABILITY across the panel differ by at most 20 points. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement.
+2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree — **every pair of them**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. The test is a question with an answer: *would executing seat A's condition satisfy seat B, and B's satisfy A?* A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
+3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
 
-Then read the result:
-- **All three hold -> genuine convergence, stop early.** If that convergence also survived the cross-exam (members explicitly weighed and rejected the alternatives; nobody flipped merely to join the majority; no unresolved hard-stop), treat it as settled. Do not run further exchanges; go to synthesis and note "converged after challenge." Extra rounds past genuine convergence mostly amplify conformity.
-- **Label holds, condition or spread fails -> `label-only`.** A split wearing one word, and the failure this test exists to catch. Do NOT early-stop: run the forced debate exactly as for suspiciously-clean consensus, aimed at the divergence the label hid. Record `converged: "label-only"` so the failure mode is countable across runs instead of a judgement made once that nobody can see afterwards.
-- **Suspiciously clean consensus -> forced debate.** If the seats agreed *without much friction* (Standard: >= 6 of 7 aligned already in Round 1 with thin disagreement; Deep and Boardroom: always), do NOT trust it yet. Run one focused debate round (below).
-- **Persistent divergence -> no early stop.** If stances stay split, that is live conflict. Carry it into synthesis as a tradeoff; never manufacture agreement and never early-stop over the top of it.
+Then route on the result. **Check in this order and take the first match** — the branches overlap by design, and reading top-down is what makes them deterministic.
+
+1. **Deep and Boardroom debate regardless.** These modes always run the forced debate; the depth table is not negotiable and no test result excuses it. Run it, then record the outcome the three tests actually gave (`after-challenge`, `label-only` or `split`) rather than flattening every Deep run to `forced-debate`.
+2. **Label fails -> `split`.** Stances stayed divided. That is live conflict: carry it into synthesis as a tradeoff, never manufacture agreement and never early-stop over the top of it.
+3. **Label holds, condition or spread fails -> `label-only`.** A split wearing one word, and the failure this test exists to catch. Do NOT early-stop: run the forced debate, aimed at the divergence the label hid rather than at the consensus. Record `converged: "label-only"` so the failure mode is countable across runs instead of a judgement made once that nobody can see afterwards.
+4. **All three hold but the agreement came without friction -> forced debate.** In Standard, that means >= 6 of 7 were already aligned in Round 1 with thin disagreement. Do not trust it yet; run one focused debate round and record `forced-debate`.
+5. **All three hold and the agreement survived challenge -> stop early.** Members explicitly weighed and rejected the alternatives, nobody flipped merely to join the majority, no unresolved hard-stop. Go to synthesis and note "converged after challenge." Extra rounds past genuine convergence mostly amplify conformity.
+
+**Test 1 forgives the dissenting seat; you do not.** Where 6 of 7 align, the seventh's position, and its CONDITION if it named one, still goes to the minority report and to the dropped-dissent closing check. Convergence is permission to stop deliberating, never permission to drop the seat that disagreed — and a lone seat naming a blocking condition is exactly the finding a stance count would have buried.
 
 **Forced debate round.** Assign the two members with the most opposed mandates to argue the strongest case against the emerging consensus. The dissenter must produce a concrete **pre-mortem artifact**, not generic contrarianism: "It is 12 months later and this decision failed. Here is the specific story, the trigger, and what we missed." Dynamic dissent aimed at the actual recommendation is what moves a decision; a canned objection is not.
 
-**Round cap.** Cap deliberation at two exchanges in Standard and three in Deep/Boardroom (Round 1 counts as the first). More rounds trade tokens for compounding sycophancy, not accuracy. Stop at the cap even if not fully converged, and report the residual split honestly.
+**Round cap.** Standard runs Round 1, the cross-exam, and — when a gate above fires — at most one forced debate. Deep and Boardroom get one further exchange beyond that. The cap bounds *repetition*, not the debate: no second cross-exam, no second debate. A triggered forced debate is never skipped for want of a round, because the whole point of the gates is that the consensus was not yet worth trusting. More rounds past that trade tokens for compounding sycophancy, not accuracy, so stop at the cap even if not fully converged and report the residual split honestly.
 
 ### Round 3. Chairman synthesis (you write this)
 0. **Frame check**: did any member challenge the premise? If a materially superior alternative surfaced, lead with it. Do not bury a "right answer to the wrong question" finding inside the recommendation.
 1. **Decision**: restate what is being decided, one line.
-2. **Mode used**: and which members were consulted; note whether the panel converged after challenge, was split, or was pushed through a forced debate.
+2. **Mode used**: and which members were consulted; note whether the panel converged after challenge, shared a label without sharing the substance behind it (`label-only`), stayed split, or was pushed through a forced debate.
 3. **Consensus**: where members agreed, and whether that agreement is trustworthy (genuine-after-challenge vs thin).
 4. **Live conflicts**: unresolved disagreements as tradeoffs, not mush.
 5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed. Count how many of these first appeared in Round 2 rather than Round 1 and log it as `blind_spots_from_r2`. This measures the cross-exam's unique contribution rather than mere churn, and it is your own attribution, so `meta` reports it apart from the seats' arithmetic movement rather than blended in. Count honestly, including zero.
@@ -303,7 +307,7 @@ echo '{
   "key_assumption": "<the load-bearing assumption>",
   "converged": "<after-challenge|label-only|split|forced-debate>",
   "blind_spots_from_r2": <how many of the synthesis blind spots first appeared in Round 2; omit in Quick>,
-  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
+  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","condition":"<the seat's CONDITION line verbatim, or omit for a plain go/no-go>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
 `confidence` must be one of `low`, `medium`, `high`. The log rejects anything else, including compounds like `medium-high`, because `meta` buckets calibration by this value and a fourth spelling silently splits the meter. If the log command fails, correct the value and re-run the line; do not skip the logging.
@@ -355,7 +359,7 @@ The script writes `council-report-<timestamp>-<sha>.html` and prints the path. T
 Every member must end their response with:
 ```
 STANCE: <go | conditional-go | no-go | defer | reframe>
-CONDITION: <required when your stance is conditional-go, defer or reframe: the one thing that must be true or must happen for you to move to go. Omit this line entirely for a plain go or no-go.>
+CONDITION: <required when your stance is conditional-go, defer or reframe: the one thing that must be true or must happen for you to move to go. Omit this line entirely for a plain go or no-go. Never write "none" or "n/a" on a conditional stance: a placeholder reads as a named condition and passes a comparison it should have failed.>
 CONFIDENCE: <low | medium | high>
 PROBABILITY: <0-100>%  (your estimate that this recommendation would survive a 12-month look-back)
 ASSUMPTIONS: <the load-bearing assumptions behind my view>

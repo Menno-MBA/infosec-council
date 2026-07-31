@@ -118,15 +118,16 @@ const CONVERGED_CASES = [
   ['split', 'stayed split'],
   ['forced-debate', 'stress-tested in a forced debate']
 ];
-const convergedPhrases = new Set();
 for (const [value, phrase] of CONVERGED_CASES) {
   const out = render('node', [path.join(SKILL, 'report.js')], { converged: value });
   assert(out.includes('Panel outcome:') && out.includes(phrase),
     'converged "' + value + '" renders its own phrase');
-  convergedPhrases.add(phrase);
+  // Distinctness has to be read off the OUTPUT. Comparing the test's own literal
+  // phrases to each other would pass against a stub generator.
+  const others = CONVERGED_CASES.filter(c => c[0] !== value).map(c => c[1]);
+  assert(others.every(p => !out.includes(p)),
+    'converged "' + value + '" does not also render another outcome\'s phrase');
 }
-assert(convergedPhrases.size === CONVERGED_CASES.length,
-  'the four panel outcomes render distinctly, none collapsing onto another');
 
 // An unrecognised value must degrade to no panel-outcome line rather than leaking the
 // raw token into a business-facing dossier.
@@ -141,6 +142,13 @@ if (cp.spawnSync('bash', ['-c', 'command -v jq'], { encoding: 'utf8' }).stdout.t
   try {
     const sh = render('bash', [path.join(SKILL, 'report.sh')]);
     assert(js.replace(/\n+$/, '') === sh.replace(/\n+$/, ''), 'report.sh is byte-identical to report.js');
+    // The default fixture is `forced-debate`, so a byte-compare on it alone never
+    // exercises a newly added branch in the jq map. Render the new value too, or the
+    // bash edition can silently lose a case while parity stays green.
+    const jsLO = render('node', [path.join(SKILL, 'report.js')], { converged: 'label-only' });
+    const shLO = render('bash', [path.join(SKILL, 'report.sh')], { converged: 'label-only' });
+    assert(jsLO.replace(/\n+$/, '') === shLO.replace(/\n+$/, ''),
+      'report.sh matches report.js on the label-only outcome too');
   } catch (e) { assert(false, 'report.sh ran: ' + e.message); }
 } else {
   console.log('report.sh: skipped (jq not available)');

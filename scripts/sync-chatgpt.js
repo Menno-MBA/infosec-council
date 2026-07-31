@@ -74,6 +74,14 @@ function checkInstructionBudget() {
   }
   console.log('instruction budget: ' + rel + ' = ' + bytes + '/' + CHATGPT_INSTRUCTION_LIMIT
     + ' bytes (' + headroom + ' to spare)');
+  // The file is effectively full. Say so before the next edit is attempted, because the
+  // failure mode is not "the check fails" -- it is that whoever hits the wall shaves a
+  // clause to fit, and a clause is a rule. Past this line the honest move is structural:
+  // move protocol detail into a knowledge file (no size limit) or accept a narrower GPT.
+  if (headroom < 150) {
+    console.log('  note: headroom is thin. Do not absorb the next protocol change by cutting'
+      + ' prose here -- move detail to a knowledge file instead.');
+  }
   return 0;
 }
 

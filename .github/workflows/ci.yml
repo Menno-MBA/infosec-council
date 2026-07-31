@@ -1,0 +1,26 @@
+name: CI
+
+# The release workflow only fires on a version tag, so until this existed none of
+# the repo's guards ran on a merge: a commit could invert the confidence validator
+# or the round-2 aggregation, land on main, and the first automated check would be
+# whenever someone next cut a tag. `npm test` is the single definition of the gate
+# (version parity, desktop parity, integrity, ChatGPT sync + instruction budget,
+# report tests, journal tests) so a new check joins CI by being added there, not by
+# being remembered here.
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Full gate
+        run: npm test

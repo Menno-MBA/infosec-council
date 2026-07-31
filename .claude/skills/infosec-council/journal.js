@@ -67,8 +67,10 @@ function jaccard(a, b) {
 const cmd = process.argv[2] || 'help';
 const rest = process.argv.slice(3);
 
-// The vocabulary the synthesis is instructed to emit. Kept to three because it is what
-// `meta` buckets by, not because a fourth shade would be meaningless to a reader.
+// The vocabulary the synthesis is instructed to emit. Kept to three not because a
+// fourth shade would be meaningless to a reader, but because `meta` buckets by whatever
+// string it finds: a fourth spelling does not add a shade, it splits the meter, and
+// neither bucket then shows the track record you think you are reading.
 const CONFIDENCE_VALUES = ['low', 'medium', 'high'];
 
 function cmdLog() {
@@ -99,8 +101,16 @@ function cmdLog() {
   const ts = nowIso();
   let sha = String(input.sha || '');
   if (!sha) sha = sha1hex(q + '|' + ts).slice(0, 8);     // salted: reruns get distinct shas
+  // Store the NORMALIZED value, not the raw one. Validating case-insensitively while
+  // writing verbatim reopens the exact split this check exists to close: "High",
+  // "high" and " high " all pass the guard and then land in three separate
+  // calibration buckets, and `high_confidence_misses` (which compares === 'high')
+  // silently skips the ones that were not already lowercase.
+  const confidence = (input.confidence == null || input.confidence === '')
+    ? input.confidence
+    : String(input.confidence).trim().toLowerCase();
   const record = Object.assign({}, input, {
-    sha, family, ts,
+    sha, family, ts, confidence,
     mode: input.mode || 'standard',
     members: Array.isArray(input.members) ? input.members : [],
     outcome: input.outcome || { recorded: false }
@@ -212,7 +222,7 @@ function cmdMeta() {
       return out;
     }
 
-    let flipRuns = 0, flipSeats = 0, deltaSum = 0;
+    let flipRuns = 0, flipSeats = 0, deltaSum = 0, measuredSeats = 0, totalSeats = 0;
     for (const r of scored) {
       const members = r.members || [];
       const flips = members.filter(m => m && typeof m.stance_r1 === 'string' && m.stance_r1 !== m.stance).length;
@@ -220,7 +230,15 @@ function cmdMeta() {
       flipSeats += flips;
       // Absolute, so a seat losing confidence does not cancel a seat gaining it --
       // two seats moving 30 points in opposite directions is movement, not stillness.
+      //
+      // The denominator is the whole panel, not the seats that carried r1 data: this
+      // reads as "movement per panel seat", which is the quantity that answers whether
+      // the round was worth running for the panel. The cost is that a chairman who
+      // records r1 only for the seats that moved deflates the figure, so `seats_measured`
+      // below reports the instrumentation rate and the mean must be read next to it.
       const withBoth = members.filter(m => m && typeof m.probability_r1 === 'number' && typeof m.probability === 'number');
+      measuredSeats += withBoth.length;
+      totalSeats += members.length;
       if (members.length) {
         deltaSum += withBoth.reduce((a, m) => a + Math.abs(m.probability - m.probability_r1), 0) / members.length;
       }
@@ -229,6 +247,11 @@ function cmdMeta() {
     out.share_of_runs_with_a_stance_flip = +(flipRuns / scored.length).toFixed(3);
     out.mean_seats_with_stance_flip = +(flipSeats / scored.length).toFixed(3);
     out.mean_abs_probability_delta = +(deltaSum / scored.length).toFixed(3);
+    // How much of the panel was actually instrumented. A delta of 1.4 over full
+    // instrumentation and the same 1.4 over one seat in seven are different claims,
+    // and without this the reader cannot tell them apart.
+    out.seats_measured = { measured: measuredSeats, of: totalSeats,
+      rate: totalSeats ? +(measuredSeats / totalSeats).toFixed(3) : null };
 
     // Kept in its own block, deliberately. The two figures above are arithmetic on
     // what the seats actually returned. This one is the chairman's own attribution of
@@ -372,9 +395,12 @@ function cmdGrade() {
   const self = process.argv[1];
   const shown = function (v) { return (v == null || v === '') ? '(not recorded)' : String(v); };
 
-  const open = readRecords().filter(r => !(r.outcome && r.outcome.recorded));
+  const all = readRecords();
+  const open = all.filter(r => !(r.outcome && r.outcome.recorded));
   if (!open.length) {
-    console.log('Nothing to grade: every logged run already has a recorded outcome.');
+    console.log(all.length
+      ? 'Nothing to grade: every logged run already has a recorded outcome.'
+      : 'Nothing to grade: no runs have been logged yet.');
     return;
   }
 
@@ -403,8 +429,11 @@ function cmdGrade() {
     console.log('    Decision: ' + shown(r.question));
     console.log('    Call:     ' + shown(r.recommendation));
     console.log('    Rests on: ' + shown(r.key_assumption));
+    // The placeholder is single-quoted so that pasting the line unedited fails
+    // harmlessly. Unquoted, a shell reads `<correct|...>` as a redirect and a pipe:
+    // it errors, exits 127, and leaves a stray file named after the note behind.
     console.log('    node "' + self + '" outcome ' + r.sha
-      + ' <correct|partial|wrong|not-tested> "one line on what actually happened"');
+      + " '<correct|partial|wrong|not-tested>' 'one line on what actually happened'");
     console.log('');
   });
 

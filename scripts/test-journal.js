@@ -180,6 +180,11 @@ console.log('round-2 value statistics:');
   assert(rv.mean_abs_probability_delta === expectedDelta,
     'a downward move contributes its absolute value and does not cancel an upward one');
 
+  // Partial instrumentation must be visible. Runs 1/3/5/6 carry all seven seats;
+  // run 2 carries seven too, so 35 of 35 here -- the next case exercises the gap.
+  assert(rv.seats_measured && rv.seats_measured.rate === 1,
+    'full instrumentation reports a measurement rate of 1');
+
   assert(rv.blind_spots_attributed_to_round2 != null, 'blind-spot attribution is reported');
   assert(rv.blind_spots_attributed_to_round2.runs_with_data === 4,
     'a record missing blind_spots_from_r2 is skipped, not counted as zero');
@@ -190,6 +195,26 @@ console.log('round-2 value statistics:');
   assert(typeof rv.blind_spots_attributed_to_round2.note === 'string'
       && /self-report/i.test(rv.blind_spots_attributed_to_round2.note),
     'the blind-spot figure is labelled as self-reported, unlike the arithmetic deltas');
+}
+
+{
+  // Partial instrumentation: five runs of seven seats where only ONE seat per run
+  // carries probability_r1, and that seat moved 70 points. The denominator is the
+  // whole panel by design ("movement per panel seat"), so the mean is 70/7 = 10 --
+  // NOT 70. A denominator over measured seats only would report 70 and read as a
+  // panel in turmoil. This pins the choice, which no fixture previously did.
+  const partial = (i) => i === 0
+    ? member('seat0', 'go', 90, { stance_r1: 'go', probability_r1: 20 })
+    : member('seat' + i, 'go', 70, { stance_r1: 'go' });
+  const runs = ['g1', 'g2', 'g3', 'g4', 'g5'].map(
+    s => r2Record(s, Array.from({ length: 7 }, (_, i) => partial(i))));
+  const rv = runJSON(seed(freshHome(), runs), ['meta']).round2_value;
+  assert(rv.mean_abs_probability_delta === 10,
+    'the probability delta is per panel seat, not per measured seat');
+  assert(rv.seats_measured.measured === 5 && rv.seats_measured.of === 35,
+    'partial instrumentation is reported, so a diluted mean is not read as full coverage');
+  assert(rv.seats_measured.rate === +(5 / 35).toFixed(3),
+    'the measurement rate exposes how much of the panel the mean actually covers');
 }
 
 {
@@ -232,6 +257,22 @@ console.log('confidence vocabulary at log time:');
   // optional field into a required one.
   const none = run(home, ['log'], JSON.stringify(base));
   assert(none.status === 0, 'log still accepts a record with no confidence at all');
+}
+
+{
+  // Validating case-insensitively while storing verbatim reopens the split the check
+  // exists to close: the guard passes, and meta then buckets "High", " high " and
+  // "high" separately. The value must be normalised on the way in, not just compared.
+  const home = freshHome();
+  for (const v of ['High', ' high ', 'HIGH', 'high']) {
+    const r = run(home, ['log'], JSON.stringify({ question: 'Q ' + v, mode: 'deep', confidence: v, probability: 80 }));
+    assert(r.status === 0, 'log accepts confidence "' + v + '"');
+  }
+  const meta = runJSON(home, ['meta']);
+  const buckets = meta.calibration_by_confidence.map(c => c.confidence);
+  assert(buckets.length === 1 && buckets[0] === 'high',
+    'case and whitespace variants collapse into one bucket instead of splitting the meter');
+  assert(meta.calibration_by_confidence[0].runs === 4, 'all four variants land in that one bucket');
 }
 
 // ---------------------------------------------------------------------------
@@ -287,10 +328,19 @@ console.log('grade: turning the pending count into pasteable actions:');
   const home = seed(freshHome(), [recent]);
   const at30 = run(home, ['grade', '30']);
   const at60 = run(home, ['grade', '60']);
-  assert(/ripe/i.test(at30.out), 'a 40-day-old run is ripe at the 30-day threshold');
-  assert(!/\bripe\b/i.test(at60.out.replace(/ripe after \d+ days/gi, '')),
-    'the same run is not yet ripe at 60 days');
+  // Assert on the per-record marker, not on the word "ripe": the header always reads
+  // "(ripe after N days)", so a substring test passed even with ripeness hard-wired
+  // to false. The positive direction has to be pinned by the marker itself.
+  assert(/\[ripe\]/.test(at30.out) && !/too recent to judge/.test(at30.out),
+    'a 40-day-old run is marked ripe at the 30-day threshold');
+  assert(/too recent to judge/.test(at60.out) && !/\[ripe\]/.test(at60.out),
+    'the same run is marked too recent at the 60-day threshold');
   assert(/ffffffff/.test(at60.out), 'a not-yet-ripe run is still listed, not filtered away');
+  // `grade` claims the same day semantics as `pending`; nothing compared them.
+  const pend30 = runJSON(home, ['pending', '30']);
+  const pend60 = runJSON(home, ['pending', '60']);
+  assert(pend30.ripe_total === 1 && pend60.ripe_total === 0,
+    'pending agrees with grade on what is ripe at each threshold');
 }
 
 // ---------------------------------------------------------------------------
