@@ -104,8 +104,9 @@ function main() {
   if (failures.length) {
     console.error('\ndesktop parity FAILED:');
     failures.forEach(function (f) { console.error('  ' + f); });
-    console.error('\nThe two editions must state the same retrieval policy. Fix the file that');
-    console.error('lost the rule, or update SHARED_POLICY if the wording intentionally changed.');
+    console.error('\nThe two editions must state the same load-bearing rules (retrieval policy,');
+    console.error('closing checks, convergence). Fix the file that lost the rule, or update');
+    console.error('SHARED_POLICY if the wording intentionally changed.');
     process.exit(1);
   }
   console.log('\ndesktop parity passed.');

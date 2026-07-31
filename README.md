@@ -184,11 +184,12 @@ Append a depth flag (`-quick`, `-standard`, `-deep`, or the experimental `-board
 | **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Bounded pass + landscape sweep | Yes | Always | Full synthesis audit |
 | **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Full synthesis audit |
 
-Every member ends with a **required output block** (stance / confidence / probability /
-assumptions / what would change my mind / unknowns) so the verdict is calibrated, not just
-asserted. The **stance** (go / conditional-go / no-go / defer / reframe) makes the convergence
-and debate triggers mechanical; the **probability** (a number, not just low/med/high) is what the
-decision journal scores over time.
+Every member ends with a **required output block** (stance / condition / confidence /
+probability / assumptions / what would change my mind / unknowns) so the verdict is calibrated,
+not just asserted. The **stance** (go / conditional-go / no-go / defer / reframe) makes the
+convergence and debate triggers mechanical; the **condition** is what a conditional stance
+actually requires, so that a shared label cannot pass as agreement; the **probability** (a number,
+not just low/med/high) is what the decision journal scores over time.
 
 **Boardroom mode** runs the panel as live [agent-teams](https://code.claude.com/docs/en/agent-teams)
 teammates who cross-examine each other directly instead of through the chairman. It needs the
@@ -198,12 +199,16 @@ and the round cap still holds, because live peer exchange is exactly where agree
 compounds.
 
 **How the room converges.** After the anonymized cross-examination, each seat scores the others on
-how well their position would survive scrutiny (1 to 5). The council then reads the stances: if the
-panel genuinely converged after being challenged it stops early; if it agreed too easily it is pushed
-through a forced debate where the dissenter must write a concrete pre-mortem ("it is 12 months later
-and this failed, here is the story"); if it stays split, the split is reported as a real trade-off
-rather than smoothed away. Deliberation is capped at two exchanges (three in Deep and Boardroom),
-because more rounds trade tokens for conformity, not accuracy.
+how well their position would survive scrutiny (1 to 5). Convergence then takes three things, not
+one: at least six of seven on the same stance, their stated conditions materially agreeing, and a
+probability spread of no more than 20 points. A shared label alone is not enough — `conditional-go`
+absorbs any condition, so seven seats can return the same word while asking for seven different
+things. When the label agrees and the substance does not, the run is marked **label-only** and goes
+to the forced debate instead of stopping. Genuine convergence after challenge stops early; agreeing
+too easily is pushed through the same forced debate, where the dissenter must write a concrete
+pre-mortem ("it is 12 months later and this failed, here is the story"); a real split is reported as
+a trade-off rather than smoothed away. Deliberation is capped at two exchanges (three in Deep and
+Boardroom), because more rounds trade tokens for conformity, not accuracy.
 
 **Grounding.** Before the panel deliberates, the council runs a **retrieval pass** against
 `external-websources.md`, a maintained register of authoritative sources, and injects what it found

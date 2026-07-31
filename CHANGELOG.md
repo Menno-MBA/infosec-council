@@ -1,5 +1,57 @@
 # Changelog
 
+## v2.2.0 (2026-07-31)
+
+Three measurement holes in the deliberation mechanism, all found by evaluating a real run rather
+than by reading the code.
+
+- **Convergence needs agreeing conditions and a tight spread, not just a shared label.** A stance
+  count was the whole test, and `conditional-go` absorbs any condition — so seven seats can return
+  the same word while asking for seven different things and be read as consensus. In run `b043b80c`,
+  five of seven returned `conditional-go` on materially different conditions. Convergence now takes
+  three things: at least six of seven on the same stance, their named **CONDITION** lines materially
+  agreeing (*would executing seat A's condition satisfy seat B?*), and a probability spread of at
+  most 20 points. Seats must name the condition; an unnamed one counts as not agreeing rather than
+  as silent assent. Label agreement over substantive divergence is a fourth outcome, **`label-only`**,
+  which routes to the forced debate rather than early-stopping and is recorded so the failure mode
+  is countable across runs instead of a judgement nobody can audit afterwards.
+- **Round 2 is instrumented, which is not the same as justified.** The anonymized cross-exam is the
+  protocol's most expensive round — seven briefs, seven cross-exams, forty-two peer scores — and
+  nothing recorded whether it changed a single position. Each seat's pre-cross-exam stance and
+  probability are now logged, and `meta` aggregates them into `round2_value`. **This answers nothing
+  yet**; it starts a measurement. Below five runs carrying the data it reports the count and why it
+  cannot say, rather than a mean that would read as a finding. Movement is measured in absolute
+  terms, because two seats moving 30 points in opposite directions is movement, not stillness. The
+  chairman's count of blind spots first surfacing in Round 2 sits in its own block with a
+  self-report caveat: the movement figures are arithmetic on what the seats returned, that one is an
+  attribution by the model that ran both rounds.
+- **`journal grade` turns the pending count into pasteable actions.** Nine runs, zero outcomes, so
+  `meta` returned `brier_overall: null` while every synthesis carried a confidence number. Knowing
+  the count was never the obstacle — the pre-flight printed it every run. Composing the command was.
+  `grade` prints each ungraded run with its question, its call, the assumption it rested on, and a
+  ready-to-paste `outcome` command. The pre-flight ledger sharpens when three or more runs are ripe
+  or the oldest passes 60 days, and still never blocks a run.
+- **`confidence` is pinned to `low|medium|high` at log time.** The live journal holds a run logged
+  `medium-high`, which takes its own bucket in `calibration_by_confidence` — so neither it nor
+  `medium` shows the track record you think you are reading. Rejected rather than normalised:
+  rewriting it silently would discard what the chairman said and hide the schema violation.
+- **Exercise grading is a convention, not a schema field.** A run against a documented case can be
+  graded now, against that case's published ground truth, and it enters the same pool as a live
+  decision. Prefix the outcome note with `exercise:`. This was a deliberate choice with a cost: the
+  Brier score then mixes *we were right about a documented past event* with *our advice held up in
+  practice*, which are different claims. The prefix keeps the mix visible where the maths does not.
+- **`chatgpt/INSTRUCTIONS.md` is guarded at ChatGPT's 8000-byte limit**, measured in bytes rather
+  than characters — a 7,950-character edit can be 8,031 bytes, and the platform truncates silently
+  at the boundary with no error anywhere in this repo. `sync-chatgpt.js --check` now runs in
+  `npm test` as well as CI, where it had been CI-only.
+- **`scripts/test-journal.js`,** wired into `npm test`. `journal.js` carried Brier, ECE and the
+  reliability curve with no tests at all. Tolerable while it only appended records; not once it
+  started computing what decisions are calibrated against.
+- Two corrections found in passing: `journal.sh` rejected `not-tested`, the outcome value v2.1.0
+  added and the docs instruct people to use; and the README claimed the `family` id keeps reruns of
+  a decision linked, which it does not (it hashes the verbatim question — `lookback` is what finds
+  a comparable prior run).
+
 ## v2.1.1 (2026-07-31)
 
 The chairman's self-smoothing check no longer runs only in Deep.
