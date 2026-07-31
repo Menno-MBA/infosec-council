@@ -116,7 +116,17 @@ The council's value is precise, current advice, so it must not assert stale regu
 1. **Command routing.** If the user asked for a journal action (`outcome`, `meta`, `journal`) or a bare `report <sha>`, handle it (see "Decision journal") and do not run the council.
 2. **Triviality gate.** If the question is factual, trivial, or has an obvious answer, say so and skip the council.
 3. **Context-sufficiency gate.** Grounding quality dominates output quality. If the essentials are missing (sector, rough headcount, the data types involved, which regimes are in scope) AND `context.md` is blank, ask ONE compact clarifying question before Round 1. In an unattended/headless run, do not block: state the assumed profile (generic EU SME plus whatever was given) in one line at the top of the synthesis and proceed.
-4. **Journal lookback.** If a journal exists, search it for comparable past decisions (same `family` hash or similar question text). If a comparable run has a recorded outcome, carry it into your own context and into the chairman synthesis, e.g. "a similar call was rated high confidence and turned out partial; the note said the DPA had gaps." Past calibration on this kind of decision is a first-class input, not trivia.
+4. **Journal lookback.** If a journal exists, run `journal.js lookback "<the question>"`. Use the command, do not eyeball the file: it matches on token similarity, which catches a rerun phrased differently. The `family` hash is an exact-question fingerprint and will miss those, so never search on it alone. If a comparable run has a recorded outcome, carry it into your own context and into the chairman synthesis, e.g. "a similar call was rated high confidence and turned out partial; the note said the DPA had gaps." Past calibration on this kind of decision is a first-class input, not trivia.
+
+5. **Pending ledger.** Run `journal.js pending`. Report the ripe-but-ungraded runs in one line before Round 1, e.g. "3 past decisions are still ungraded, the oldest from 12 March." Keep it to one line; this is a visible reminder, not a ceremony. A confidence number nobody ever checks is decoration, and the only reason it stays unchecked is that nothing ever asks.
+
+6. **Ungraded prior run: ask before deliberating.** If step 4 found a comparable prior run that is **still pending**, ask the user for its outcome now, before Round 1. That result is the single highest-value input available to this run, and asking later wastes the deliberation. Offer the four values and their plain meanings:
+   - `correct` — the advice held up.
+   - `partial` — broadly right, but it missed something material or only half worked.
+   - `wrong` — the advice did not hold.
+   - `not-tested` — **nobody executed it, so it was never put to the test.** This is the most common real outcome and the one people otherwise stay silent about, because the other three do not fit. It is not a failure of the panel; it is a delivery signal, and it is excluded from the calibration maths for exactly that reason.
+
+   Ask once. If the user does not know yet, or does not want to answer, proceed without it and say so in the synthesis. **Never block the council on this**, and never hold up a live incident to collect bookkeeping.
 
 ## Round 0b. Determination pass (obligations, before any member deliberates)
 
@@ -214,6 +224,8 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed.
 6. **Minority report**: the strongest dissent worth preserving even if outvoted, including the pre-mortem story if the forced debate ran.
 7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high), a PROBABILITY it survives a 12-month look-back, the key assumption it rests on, and any `UNVERIFIED` load-bearing fact it depends on.
+
+   **State the measured reliability beside the asserted one.** If the journal holds graded outcomes, run `journal.js meta` and add one plain line next to the confidence, e.g. "medium confidence, 70%; historically this panel's medium calls came right 6 times in 10 across 11 graded runs." If too few outcomes are graded to say anything, say that instead: "no measured track record yet, 2 of 9 runs graded." This is the same discipline as Gate C. Do not assert a number you cannot show, and do not let an unmeasured confidence read as a measured one.
 8. **Executive summary**: 3 to 5 plain sentences for a busy decision-maker, naming the problem, the call, and why.
 9. **Key risks**: the main risks of the decision, in plain language (a non-expert reads this section first).
 9b. **Risk rating**: score the decision on the qualitative impact x likelihood 5x5 scale in `frameworks.md` (impact: negligible/minor/moderate/major/severe; likelihood: rare/unlikely/possible/likely/almost certain). Score it **twice**: the **inherent** exposure (current state, before your recommended response) and the **residual** exposure (what remains after the recommendation is executed as intended), each with a one-line rationale. The report draws both as two markers on the exposure bar, so the gap between them is the visible value of the recommendation. **Anchoring rule:** if an adverse impact is already observed or confirmed (files encrypted, an outage under way, data exposed), the risk has materialized, so its likelihood is **Almost certain**, not Possible; never rate an already-observed impact below Likely. Residual may be lower only to the extent the recommendation actually reduces it; be honest when a tail (probable prior exfiltration, persistence that survives recovery, irreversible loss) keeps residual at inherent. It rates the decision or change, not only a vulnerability.
@@ -246,7 +258,8 @@ Seven personas on one model largely re-sample one distribution. For a genuinely 
 A journal records each run and lets the user record how the decision actually turned out, so calibration is measurable over time. Two interchangeable scripts sit in this skill's directory: `journal.js` (Node, zero-dependency, **preferred**, works on Windows and inside the Desktop/Cowork sandbox) and `journal.sh` (bash, needs `jq`). Use `journal.js` by default; fall back to `journal.sh` only if Node is unavailable. Resolve the journal location from `COUNCIL_HOME` (and `COUNCIL_ORG` for per-org separation).
 
 **Command routing.** Handle these WITHOUT running the council:
-- `outcome <sha> <correct|partial|wrong> [note]` -> `journal.js outcome ...`.
+- `outcome <sha> <correct|partial|wrong|not-tested> [note]` -> `journal.js outcome ...`. `not-tested` means the recommendation was never executed, so it was never put to the test; it records a delivery gap and is kept out of the calibration maths.
+- `pending [days]` -> `journal.js pending`, the ungraded runs that are old enough to grade.
 - `meta` -> `journal.js meta`, then summarize the calibration in plain language: hit-rate and Brier score by confidence level, the overall Expected Calibration Error (ECE) and what the reliability curve shows (where the panel is over- or under-confident, e.g. its 80-100% calls only come right 60% of the time), which confidence levels are trustworthy, and what the high-confidence misses teach.
 - `journal [n]` -> `journal.js journal` and show recent runs.
 

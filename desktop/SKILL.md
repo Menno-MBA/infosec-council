@@ -224,6 +224,19 @@ save it, or keep the journal file in a connected Google Drive / folder rather th
 sandbox. In Cowork with the plugin edition, the journal can persist to the connected
 project folder.
 
+**Outcome vocabulary.** When recording how a decision turned out, the four values are
+`correct`, `partial`, `wrong`, and `not-tested`. `not-tested` means nobody executed the
+recommendation, so it was never put to the test; it records a delivery gap rather than a
+wrong call, and it is deliberately kept out of the calibration maths.
+
+**The pending ledger and measured calibration need a journal that survives.** On plain
+Desktop it does not, so there is nothing to be pending about and no track record to
+measure. Where the journal does persist (Cowork, or a connected folder), the CLI edition's
+behaviour applies: report ungraded runs before deliberating, ask for a comparable prior
+run's outcome before Round 1, and state measured reliability beside asserted confidence.
+On ephemeral storage, say plainly that no track record is available rather than implying
+the confidence figure has been checked against anything.
+
 ## Rules
 - Never collapse disagreement into false consensus. Conflict is the product.
 - Verify volatile regulatory/version/vendor facts or mark them UNVERIFIED.
