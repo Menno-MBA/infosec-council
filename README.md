@@ -369,7 +369,13 @@ and `journal.sh` (bash, needs `jq`). You do not need `jq` if you have Node.
   council tells you each run's `sha`, and stores a stable `family` id so reruns of the
   same decision stay linked.
 - Record the outcome later, once the decision plays out:
-  `council outcome <sha> correct|partial|wrong "short note"`
+  `council outcome <sha> correct|partial|wrong|not-tested "short note"`
+  Use `not-tested` when nobody executed the recommendation, so it was never put to the
+  test. It is the most common real outcome, it records a delivery gap rather than a wrong
+  call, and it is kept out of the calibration maths on purpose.
+- See what is still ungraded: `council pending` lists runs old enough to have a result.
+  The council reports this before every run, because a confidence number nobody checks is
+  decoration.
 - See calibration: `council meta` gives hit-rate **and a Brier score** by confidence
   level (the Brier score uses each run's numeric probability, so it is a real calibration
   measure, not just a bucket count), the high-confidence calls that didn't pan out (the

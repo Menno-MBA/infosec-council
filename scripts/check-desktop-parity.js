@@ -43,6 +43,18 @@ const SHARED_POLICY = [
   ['Quick resolves to OFF', 'OFF (Quick mode)'],
   ['provenance gate', 'Gate C'],
   ['register is where to verify', 'external-websources.md'],
+  ['outcome vocabulary includes not-tested', 'not-tested'],
+  ['measured reliability beside asserted', 'measured reliability'],
+];
+
+// Deliberately NOT checked for parity, with the reason, so a future maintainer does not
+// "fix" the absence: the pending ledger and the per-run calibration read need a journal
+// that survives between sessions. Plain Desktop storage is ephemeral, so those steps have
+// nothing to operate on there and the desktop edition says so instead of mirroring them.
+// If Desktop ever gains durable storage by default, move these into SHARED_POLICY.
+const NOT_SHARED = [
+  ['pending ledger', 'journal.js pending'],
+  ['ungraded prior run prompt', 'still pending'],
 ];
 
 function main() {

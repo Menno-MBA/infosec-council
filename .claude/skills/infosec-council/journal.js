@@ -9,9 +9,10 @@
  *
  * Usage:
  *   node journal.js log                 # read one run as JSON on stdin, append it
- *   node journal.js outcome <sha> <correct|partial|wrong> [note]
+ *   node journal.js outcome <sha> <correct|partial|wrong|not-tested> [note]
  *   node journal.js meta                # calibration report (hit-rate + Brier + ECE)
  *   node journal.js journal [n]         # show last n runs (default 10)
+ *   node journal.js pending [days]      # ungraded runs, ripe after N days (default 30)
  *   node journal.js lookback <text...>  # comparable past runs (for pre-flight)
  *   node journal.js path                # print the journal file path
  *
@@ -97,8 +98,17 @@ function cmdOutcome() {
   const sha = rest[0];
   const result = rest[1];
   const note = rest.slice(2).join(' ');
-  if (!sha) die('usage: journal.js outcome <sha> <correct|partial|wrong> [note]');
-  if (!['correct', 'partial', 'wrong'].includes(result)) die('result must be: correct | partial | wrong');
+  if (!sha) die('usage: journal.js outcome <sha> <correct|partial|wrong|not-tested> [note]');
+  // `not-tested` exists because the other three do not fit the most common real
+  // outcome: the recommendation was never executed, so it was never put to the
+  // test. Forcing that case into correct/partial/wrong is what makes people
+  // record nothing at all, which is how a journal ends up with 8 runs and 0
+  // outcomes. It is deliberately kept out of ACTUAL below, so it never enters
+  // the Brier or ECE maths: it says nothing about whether the advice was right,
+  // only about whether the organisation delivered it.
+  if (!['correct', 'partial', 'wrong', 'not-tested'].includes(result)) {
+    die('result must be: correct | partial | wrong | not-tested');
+  }
   const lines = readLines();
   let found = false;
   const out = lines.map(line => {
@@ -177,9 +187,25 @@ function cmdMeta() {
       correct: o.filter(r => r.outcome.result === 'correct').length,
       partial: o.filter(r => r.outcome.result === 'partial').length,
       wrong: o.filter(r => r.outcome.result === 'wrong').length,
+      not_tested: o.filter(r => r.outcome.result === 'not-tested').length,
       brier: brierOf(g)
     };
   });
+
+  // Delivery rate is a governance metric, not a calibration one. A run graded
+  // `not-tested` means the analysis was never put to the test because nobody
+  // executed it. A high not-tested count is an execution problem in the
+  // organisation, not an accuracy problem in the panel, and the two must not be
+  // read off the same number.
+  const graded = withOutcome.filter(r => ACTUAL[r.outcome.result] != null).length;
+  const notTested = withOutcome.filter(r => r.outcome.result === 'not-tested').length;
+  const delivery = {
+    outcomes_recorded: withOutcome.length,
+    tested: graded,
+    not_tested: notTested,
+    delivery_rate: withOutcome.length ? +(graded / withOutcome.length).toFixed(2) : null,
+    note: 'delivery_rate is how often a recommendation was actually executed, not how often it was right'
+  };
 
   const highMisses = recs
     .filter(r => r.confidence === 'high' && r.outcome && (r.outcome.result === 'wrong' || r.outcome.result === 'partial'))
@@ -196,6 +222,8 @@ function cmdMeta() {
   const report = {
     total_runs: recs.length,
     with_outcome: withOutcome.length,
+    pending: recs.length - withOutcome.length,
+    delivery,
     brier_overall: brierOf(recs),
     ece_overall: eceOf(recs),
     calibration_by_confidence: calibration,
@@ -220,6 +248,40 @@ function cmdJournal() {
       outcome: (r.outcome && r.outcome.result) || 'pending'
     }));
   }
+}
+
+// Ripe-but-ungraded runs: decisions old enough that the result should be known,
+// with no outcome recorded. The council's pre-flight calls this on every run, so
+// the ledger is visible rather than quietly accumulating. Default 30 days,
+// because most security decisions show their result inside a month.
+function cmdPending() {
+  ensure();
+  const days = parseInt(rest[0], 10) || 30;
+  const cutoff = Date.now() - days * 86400000;
+  const recs = readRecords();
+  const ripe = recs
+    .filter(r => !(r.outcome && r.outcome.recorded))
+    .map(r => {
+      const t = Date.parse(r.ts || '');
+      return {
+        sha: r.sha,
+        ts: r.ts,
+        age_days: isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000),
+        mode: r.mode,
+        confidence: r.confidence || 'n/a',
+        probability: (typeof r.probability === 'number') ? r.probability : null,
+        question: String(r.question || '').slice(0, 100),
+        ripe: isNaN(t) ? true : t < cutoff
+      };
+    })
+    .sort((a, b) => (b.age_days || 0) - (a.age_days || 0));
+  const out = {
+    threshold_days: days,
+    pending_total: ripe.length,
+    ripe_total: ripe.filter(r => r.ripe).length,
+    pending: ripe
+  };
+  console.log(JSON.stringify(out, null, 2));
 }
 
 function cmdLookback() {
@@ -248,6 +310,7 @@ switch (cmd) {
   case 'outcome': cmdOutcome(); break;
   case 'meta': cmdMeta(); break;
   case 'journal': cmdJournal(); break;
+  case 'pending': cmdPending(); break;
   case 'lookback': cmdLookback(); break;
   case 'path': console.log(JOURNAL); break;
   default:
@@ -255,9 +318,10 @@ switch (cmd) {
       'infosec-council decision journal (Node, zero-dependency)',
       '',
       '  node journal.js log                 read one run as JSON on stdin, append it',
-      '  node journal.js outcome <sha> <correct|partial|wrong> [note]',
+      '  node journal.js outcome <sha> <correct|partial|wrong|not-tested> [note]',
       '  node journal.js meta                calibration (hit-rate + Brier + ECE)',
       '  node journal.js journal [n]         show last n runs (default 10)',
+      '  node journal.js pending [days]      ungraded runs, ripe after N days (default 30)',
       '  node journal.js lookback <text>     comparable past runs (pre-flight)',
       '  node journal.js path                print the journal file path',
       '',
