@@ -56,8 +56,11 @@ case "$cmd" in
     need_jq; ensure
     s="${1:-}"; result="${2:-}"; shift 2 2>/dev/null || true
     note="${*:-}"
-    [ -n "$s" ] || die "usage: journal.sh outcome <sha> <correct|partial|wrong> [note]"
-    case "$result" in correct|partial|wrong) ;; *) die "result must be: correct | partial | wrong";; esac
+    # `not-tested` must be accepted here too: it is the documented vocabulary, and a
+    # fallback that rejects the value the docs tell people to use is worse than no
+    # fallback. It is excluded from the calibration maths, not from the record.
+    [ -n "$s" ] || die "usage: journal.sh outcome <sha> <correct|partial|wrong|not-tested> [note]"
+    case "$result" in correct|partial|wrong|not-tested) ;; *) die "result must be: correct | partial | wrong | not-tested";; esac
     jq -e --arg s "$s" 'select(.sha==$s)' "$JOURNAL" >/dev/null 2>&1 || die "no run found with sha $s"
     tmp="$(mktemp)"
     while IFS= read -r line; do

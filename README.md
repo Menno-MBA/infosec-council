@@ -366,8 +366,9 @@ and `journal.sh` (bash, needs `jq`). You do not need `jq` if you have Node.
 - Every council run is appended automatically to `~/.infosec-council/journal.jsonl`
   (override the location with `COUNCIL_HOME`; set `COUNCIL_ORG` to keep one client's
   journal and house-context out of another's, which matters for consultancies). The
-  council tells you each run's `sha`, and stores a stable `family` id so reruns of the
-  same decision stay linked.
+  council tells you each run's `sha`. It also stores a `family` id, but that is a hash of
+  the verbatim question, so it only matches a rerun asked in identical words; `lookback`
+  below is what actually finds a comparable past decision.
 - Record the outcome later, once the decision plays out:
   `council outcome <sha> correct|partial|wrong|not-tested "short note"`
   Use `not-tested` when nobody executed the recommendation, so it was never put to the
@@ -376,6 +377,13 @@ and `journal.sh` (bash, needs `jq`). You do not need `jq` if you have Node.
 - See what is still ungraded: `council pending` lists runs old enough to have a result.
   The council reports this before every run, because a confidence number nobody checks is
   decoration.
+- Actually grade them: `council grade` prints the same runs as ready-to-paste `outcome`
+  commands, each with the question, the call, and the assumption it rested on. Knowing the
+  count was never what stopped anyone; composing the command was.
+  A run against a documented example case can be graded now, against that case's published
+  ground truth — start the note with `exercise:` so the record shows it. Those grades share
+  one pool with live decisions, so the Brier score mixes "we were right about a documented
+  past event" with "our advice held up in practice". The prefix keeps that visible.
 - See calibration: `council meta` gives hit-rate **and a Brier score** by confidence
   level (the Brier score uses each run's numeric probability, so it is a real calibration
   measure, not just a bucket count), the high-confidence calls that didn't pan out (the

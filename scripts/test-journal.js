@@ -208,6 +208,92 @@ console.log('round-2 value statistics:');
 }
 
 // ---------------------------------------------------------------------------
+console.log('confidence vocabulary at log time:');
+// ---------------------------------------------------------------------------
+{
+  const base = { question: 'Should we do X?', mode: 'deep', probability: 70 };
+  const home = freshHome();
+
+  for (const value of ['low', 'medium', 'high']) {
+    const r = run(home, ['log'], JSON.stringify(Object.assign({}, base, { confidence: value })));
+    assert(r.status === 0, 'log accepts confidence "' + value + '"');
+  }
+
+  // The live journal contains a run logged as `medium-high`. meta buckets calibration
+  // by this value, so a fourth spelling silently splits the meter -- and the split is
+  // invisible until someone reads the bucket list and wonders why it has four rows.
+  const bad = run(home, ['log'], JSON.stringify(Object.assign({}, base, { confidence: 'medium-high' })));
+  assert(bad.status !== 0, 'log rejects a confidence outside the documented vocabulary');
+  assert(/low/.test(bad.err) && /medium/.test(bad.err) && /high/.test(bad.err),
+    'the rejection names the three valid values');
+  assert(/medium-high/.test(bad.err), 'the rejection quotes the offending value');
+
+  // Absent confidence was always allowed; validating new writes must not turn an
+  // optional field into a required one.
+  const none = run(home, ['log'], JSON.stringify(base));
+  assert(none.status === 0, 'log still accepts a record with no confidence at all');
+}
+
+// ---------------------------------------------------------------------------
+console.log('grade: turning the pending count into pasteable actions:');
+// ---------------------------------------------------------------------------
+{
+  const empty = run(freshHome(), ['grade']);
+  assert(empty.status === 0 && !/undefined/.test(empty.out) && empty.out.trim().length > 0,
+    'grade on an empty journal says so instead of printing an empty block or crashing');
+}
+
+{
+  const home = seed(freshHome(), [
+    legacyRecord('dddddddd1'),
+    legacyRecord('dddddddd2'),
+    legacyRecord('dddddddd3', { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'correct', note: '' } })
+  ]);
+  const r = run(home, ['grade']);
+  assert(r.status === 0, 'grade exits clean');
+
+  const commands = (r.out.match(/^\s*node .*outcome .*/gm) || []);
+  assert(commands.length === 2, 'grade emits one pasteable command per pending run, and none for the graded one');
+  assert(!/dddddddd3/.test(r.out), 'an already-graded run does not appear');
+
+  // The point of the command line is that it works. Parse one back out and run it.
+  const m = commands[0].match(/outcome\s+(\S+)/);
+  assert(m != null, 'the emitted line carries the sha in the position outcome expects');
+  const applied = run(home, ['outcome', m[1], 'partial', 'graded from the emitted line']);
+  assert(applied.status === 0, 'an emitted command line is accepted verbatim by outcome');
+
+  const after = run(home, ['grade']);
+  assert((after.out.match(/^\s*node .*outcome .*/gm) || []).length === 1,
+    'a run drops off the grade list once its outcome is recorded');
+}
+
+{
+  // The earliest runs predate `recommendation` and `key_assumption`. A block that
+  // prints "undefined" for them is worse than one that says nothing was recorded.
+  const home = seed(freshHome(), [
+    { sha: 'eeeeeeee', ts: '2026-01-01T00:00:00Z', mode: 'deep', question: 'A bare old run', outcome: { recorded: false } }
+  ]);
+  const r = run(home, ['grade']);
+  assert(r.status === 0 && !/undefined/.test(r.out) && !/null/.test(r.out),
+    'a record missing recommendation and key_assumption still renders a usable block');
+  assert(/eeeeeeee/.test(r.out), 'the sparse record is still offered for grading');
+}
+
+{
+  // Same day-threshold semantics as `pending`: the argument moves what counts as
+  // ripe, it does not filter records out of the list.
+  const recent = { sha: 'ffffffff', ts: new Date(Date.now() - 40 * 86400000).toISOString().replace(/\.\d+Z$/, 'Z'),
+    mode: 'deep', question: 'Forty days ago', confidence: 'medium', probability: 70, outcome: { recorded: false } };
+  const home = seed(freshHome(), [recent]);
+  const at30 = run(home, ['grade', '30']);
+  const at60 = run(home, ['grade', '60']);
+  assert(/ripe/i.test(at30.out), 'a 40-day-old run is ripe at the 30-day threshold');
+  assert(!/\bripe\b/i.test(at60.out.replace(/ripe after \d+ days/gi, '')),
+    'the same run is not yet ripe at 60 days');
+  assert(/ffffffff/.test(at60.out), 'a not-yet-ripe run is still listed, not filtered away');
+}
+
+// ---------------------------------------------------------------------------
 if (failed) {
   console.error('\n' + failed + ' journal test(s) failed.');
   process.exit(1);

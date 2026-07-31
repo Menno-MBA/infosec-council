@@ -120,6 +120,8 @@ The council's value is precise, current advice, so it must not assert stale regu
 
 5. **Pending ledger.** Run `journal.js pending`. Report the ripe-but-ungraded runs in one line before Round 1, e.g. "3 past decisions are still ungraded, the oldest from 12 March." Keep it to one line; this is a visible reminder, not a ceremony. A confidence number nobody ever checks is decoration, and the only reason it stays unchecked is that nothing ever asks.
 
+   **Sharpen when it goes stale.** If three or more runs are ripe, or the oldest ripe run is past 60 days, say the count and the oldest date and point at `grade`, which renders them as pasteable commands: "5 decisions ripe for grading, the oldest 84 days old; run `grade` for the commands." Still one line. Still **never blocking** — a nagging mechanism that interrupts gets suppressed, and the first thing suppressed during an incident is the one you most needed later. Say it once and move to Round 1.
+
 6. **Ungraded prior run: ask before deliberating.** If step 4 found a comparable prior run that is **still pending**, ask the user for its outcome now, before Round 1. That result is the single highest-value input available to this run, and asking later wastes the deliberation. Offer the four values and their plain meanings:
    - `correct` — the advice held up.
    - `partial` — broadly right, but it missed something material or only half worked.
@@ -286,6 +288,7 @@ A journal records each run and lets the user record how the decision actually tu
 **Command routing.** Handle these WITHOUT running the council:
 - `outcome <sha> <correct|partial|wrong|not-tested> [note]` -> `journal.js outcome ...`. `not-tested` means the recommendation was never executed, so it was never put to the test; it records a delivery gap and is kept out of the calibration maths.
 - `pending [days]` -> `journal.js pending`, the ungraded runs that are old enough to grade.
+- `grade [days]` -> `journal.js grade`, the same runs rendered as pasteable `outcome` commands, each with the question, the call and the assumption it rested on. Offer this whenever the user reacts to the pending ledger: knowing a count was never the obstacle, composing the command was.
 - `meta` -> `journal.js meta`, then summarize the calibration in plain language: hit-rate and Brier score by confidence level, the overall Expected Calibration Error (ECE) and what the reliability curve shows (where the panel is over- or under-confident, e.g. its 80-100% calls only come right 60% of the time), which confidence levels are trustworthy, and what the high-confidence misses teach.
 - `journal [n]` -> `journal.js journal` and show recent runs.
 
@@ -303,6 +306,10 @@ echo '{
   "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
+`confidence` must be one of `low`, `medium`, `high`. The log rejects anything else, including compounds like `medium-high`, because `meta` buckets calibration by this value and a fourth spelling silently splits the meter. If the log command fails, correct the value and re-run the line; do not skip the logging.
+
+**Grading a run against a documented case.** A run on an example brief (the UM 2019 ransomware case, the MKB invoice-fraud brief) will never come true in the world, but it can be graded now against that case's published ground truth, and it enters the same pool as a live decision. Start the outcome note with `exercise:` so the record shows which grades came from a case whose answers were already known. Be straight about what that pooling costs: the Brier score then mixes "we were right about a documented past event" with "our advice held up in practice", which are different claims. The prefix keeps the mix visible even though the maths does not separate it.
+
 Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. The `_r1` fields and `blind_spots_from_r2` are what let `meta` say whether the cross-exam moves anyone; leave them out of a Quick run, which has no Round 2 to measure, rather than writing them as unchanged. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
 
 **HTML report.** Two generators sit beside the journal scripts and produce the identical branded dossier: `report.js` (Node, zero dependencies, **preferred**) and `report.sh` (bash, needs `jq`). **Use `report.js` by default** (no `jq`, and it base64-embeds the brand logos so header/footer always render). Only fall back to `report.sh` if Node is unavailable. **Never hand-roll your own report generator**; if one script errors, switch to the other. After synthesis, offer (or, if the user asked for a report, produce) the dossier. Build a rich JSON object with these fields and pipe it to the generator:

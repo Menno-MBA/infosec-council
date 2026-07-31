@@ -13,6 +13,7 @@
  *   node journal.js meta                # calibration report (hit-rate + Brier + ECE)
  *   node journal.js journal [n]         # show last n runs (default 10)
  *   node journal.js pending [days]      # ungraded runs, ripe after N days (default 30)
+ *   node journal.js grade [days]        # the same runs, as pasteable outcome commands
  *   node journal.js lookback <text...>  # comparable past runs (for pre-flight)
  *   node journal.js path                # print the journal file path
  *
@@ -66,6 +67,10 @@ function jaccard(a, b) {
 const cmd = process.argv[2] || 'help';
 const rest = process.argv.slice(3);
 
+// The vocabulary the synthesis is instructed to emit. Kept to three because it is what
+// `meta` buckets by, not because a fourth shade would be meaningless to a reader.
+const CONFIDENCE_VALUES = ['low', 'medium', 'high'];
+
 function cmdLog() {
   ensure();
   let raw = '';
@@ -74,6 +79,17 @@ function cmdLog() {
   try { input = JSON.parse(raw); } catch (_) { die('log: stdin is not valid JSON'); }
   const q = String(input.question || '');
   if (!q) die('log: .question is required in the JSON');
+  // `meta` buckets calibration by `confidence`, so a fourth spelling does not just look
+  // untidy, it silently splits the meter: a run logged `medium-high` gets its own bucket
+  // and neither it nor `medium` shows the track record you think you are reading. The
+  // field stays optional -- records without it were always allowed -- but a value that
+  // is present must be one of the three the synthesis is instructed to produce.
+  if (input.confidence != null && input.confidence !== ''
+      && !CONFIDENCE_VALUES.includes(String(input.confidence).trim().toLowerCase())) {
+    die('log: confidence must be one of low | medium | high (got "' + input.confidence + '").\n'
+      + '  meta buckets calibration by this value, so a fourth spelling splits the meter.\n'
+      + '  Pick the nearest of the three and re-run this line; do not skip the log.');
+  }
   // Exact-question fingerprint: hashes the verbatim string, so it only matches a
   // rerun asked with identical wording. It does NOT reliably link reruns; two runs
   // of the same decision phrased slightly differently get different families.
@@ -343,6 +359,66 @@ function cmdPending() {
   console.log(JSON.stringify(out, null, 2));
 }
 
+// `pending` answers "how many are ungraded". That was never the obstacle: the pre-flight
+// has printed that count on every run and the journal still held nine runs and zero
+// outcomes. The obstacle is what grading costs -- read the count, find the run, remember
+// what was recommended, compose the command. This collapses that into one line per run
+// that can be pasted as-is. Same day-threshold semantics as `pending`: the argument moves
+// what counts as ripe, it does not filter records out of the list.
+function cmdGrade() {
+  ensure();
+  const days = parseInt(rest[0], 10) || 30;
+  const cutoff = Date.now() - days * 86400000;
+  const self = process.argv[1];
+  const shown = function (v) { return (v == null || v === '') ? '(not recorded)' : String(v); };
+
+  const open = readRecords().filter(r => !(r.outcome && r.outcome.recorded));
+  if (!open.length) {
+    console.log('Nothing to grade: every logged run already has a recorded outcome.');
+    return;
+  }
+
+  const rows = open.map(r => {
+    const t = Date.parse(r.ts || '');
+    return {
+      rec: r,
+      age: isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000),
+      ripe: isNaN(t) ? true : t < cutoff
+    };
+  }).sort((a, b) => (b.age || 0) - (a.age || 0));
+
+  const ripeCount = rows.filter(r => r.ripe).length;
+  console.log(rows.length + ' decision' + (rows.length === 1 ? '' : 's')
+    + ' waiting for an outcome, ' + ripeCount + ' old enough to know (ripe after ' + days + ' days).\n');
+
+  rows.forEach(function (row, i) {
+    const r = row.rec;
+    const meta = [
+      r.ts ? 'logged ' + String(r.ts).slice(0, 10) : 'undated',
+      row.age == null ? 'age unknown' : row.age + ' days',
+      r.mode || 'standard',
+      row.ripe ? '[ripe]' : '[too recent to judge]'
+    ].join('  ');
+    console.log('[' + (i + 1) + '] ' + r.sha + '  ' + meta);
+    console.log('    Decision: ' + shown(r.question));
+    console.log('    Call:     ' + shown(r.recommendation));
+    console.log('    Rests on: ' + shown(r.key_assumption));
+    console.log('    node "' + self + '" outcome ' + r.sha
+      + ' <correct|partial|wrong|not-tested> "one line on what actually happened"');
+    console.log('');
+  });
+
+  console.log('correct      the advice held up.');
+  console.log('partial      broadly right, but it missed something material or only half worked.');
+  console.log('wrong        the advice did not hold.');
+  console.log('not-tested   nobody executed it, so it was never put to the test. The most common');
+  console.log('             real outcome, and a delivery signal rather than an accuracy one, so it');
+  console.log('             is kept out of the Brier and ECE maths.');
+  console.log('');
+  console.log('For a run against a documented case rather than a live decision, grade it against');
+  console.log('that case\'s published ground truth and start the note with "exercise:".');
+}
+
 function cmdLookback() {
   ensure();
   const q = rest.join(' ').trim();
@@ -370,6 +446,7 @@ switch (cmd) {
   case 'meta': cmdMeta(); break;
   case 'journal': cmdJournal(); break;
   case 'pending': cmdPending(); break;
+  case 'grade': cmdGrade(); break;
   case 'lookback': cmdLookback(); break;
   case 'path': console.log(JOURNAL); break;
   default:
@@ -381,6 +458,7 @@ switch (cmd) {
       '  node journal.js meta                calibration (hit-rate + Brier + ECE)',
       '  node journal.js journal [n]         show last n runs (default 10)',
       '  node journal.js pending [days]      ungraded runs, ripe after N days (default 30)',
+      '  node journal.js grade [days]        the same runs as pasteable outcome commands',
       '  node journal.js lookback <text>     comparable past runs (pre-flight)',
       '  node journal.js path                print the journal file path',
       '',
