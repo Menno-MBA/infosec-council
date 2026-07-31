@@ -206,7 +206,7 @@ End every advisor's turn with:
 STANCE: <go | conditional-go | no-go | defer | reframe>
 CONDITION: <required when the stance is conditional-go, defer or reframe: the one thing that must be true or happen to move to go. Omit the line for a plain go or no-go, and never write "none" or "n/a" on a conditional stance.>
 CONFIDENCE: <low | medium | high>
-PROBABILITY: <0-100>%  (estimate this recommendation survives a 12-month look-back)
+PROBABILITY: <0-100>%  (estimate that YOUR OWN position survives a 12-month look-back, not the council's eventual recommendation)
 ASSUMPTIONS: <load-bearing assumptions>
 WHAT WOULD CHANGE MY MIND: <evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>

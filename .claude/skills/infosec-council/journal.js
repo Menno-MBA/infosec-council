@@ -73,6 +73,29 @@ const rest = process.argv.slice(3);
 // neither bucket then shows the track record you think you are reading.
 const CONFIDENCE_VALUES = ['low', 'medium', 'high'];
 
+// `blind_spots` is logged as the list itself, each entry tagged with the round it first
+// surfaced in, rather than as a bare "how many came from Round 2" count. A count freezes
+// one judgement into every record where it can never be re-derived, audited or redefined
+// -- precisely what round2ValueOf refuses to do to the movement statistics, for the same
+// reason. Strictly validated: an untagged entry is an entry whose whole purpose is lost,
+// and the chairman has both rounds in front of it when it writes this.
+function validateBlindSpots(v) {
+  if (v == null) return null;
+  if (!Array.isArray(v)) return 'blind_spots must be an array of {text, round} objects';
+  for (const b of v) {
+    if (!b || typeof b !== 'object' || Array.isArray(b)) {
+      return 'every blind_spots entry must be an object like {"text":"...","round":1}';
+    }
+    if (typeof b.text !== 'string' || !b.text.trim()) {
+      return 'every blind_spots entry needs a non-empty "text"';
+    }
+    if (b.round !== 1 && b.round !== 2) {
+      return 'every blind_spots entry needs "round": 1 or 2, the round it FIRST surfaced in';
+    }
+  }
+  return null;
+}
+
 function cmdLog() {
   ensure();
   let raw = '';
@@ -101,6 +124,12 @@ function cmdLog() {
   const ts = nowIso();
   let sha = String(input.sha || '');
   if (!sha) sha = sha1hex(q + '|' + ts).slice(0, 8);     // salted: reruns get distinct shas
+  const bsErr = validateBlindSpots(input.blind_spots);
+  if (bsErr) {
+    die('log: ' + bsErr + '.\n'
+      + '  The round tag is what gives the Round-2 attribution a denominator; without it\n'
+      + '  "2 from Round 2" cannot be told apart from "2 of 2" or "2 of 9".');
+  }
   // Store the NORMALIZED value, not the raw one. Validating case-insensitively while
   // writing verbatim reopens the exact split this check exists to close: "High",
   // "high" and " high " all pass the guard and then land in three separate
@@ -258,12 +287,19 @@ function cmdMeta() {
     // which blind spots first surfaced in Round 2 -- a judgement by the same model
     // that ran both rounds, and one it has an interest in. Blending it into the
     // movement statistics would launder a self-report as a measurement.
-    const attributed = scored.filter(r => typeof r.blind_spots_from_r2 === 'number');
+    //
+    // Reported WITH its denominator. A bare "2 came from Round 2" is a different claim
+    // when the run found two blind spots than when it found nine, and the earlier
+    // version of this field could not tell those apart.
+    const tagged = scored.filter(r => Array.isArray(r.blind_spots) && r.blind_spots.length);
+    const total = tagged.reduce((a, r) => a + r.blind_spots.length, 0);
+    const fromR2 = tagged.reduce(
+      (a, r) => a + r.blind_spots.filter(b => b && b.round === 2).length, 0);
     out.blind_spots_attributed_to_round2 = {
-      runs_with_data: attributed.length,
-      mean: attributed.length
-        ? +(attributed.reduce((a, r) => a + r.blind_spots_from_r2, 0) / attributed.length).toFixed(3)
-        : null,
+      runs_with_data: tagged.length,
+      blind_spots_total: total,
+      from_round_2: fromR2,
+      share: total ? +(fromR2 / total).toFixed(3) : null,
       note: 'self-reported by the chairman, who ran both rounds; weigh it below the movement figures'
     };
     return out;
@@ -352,34 +388,49 @@ function cmdJournal() {
 // with no outcome recorded. The council's pre-flight calls this on every run, so
 // the ledger is visible rather than quietly accumulating. Default 30 days,
 // because most security decisions show their result inside a month.
-function cmdPending() {
-  ensure();
-  const days = parseInt(rest[0], 10) || 30;
+// One definition of "open" and "ripe" for both consumers. `pending` and `grade` each
+// had their own copy of this -- same parse, same cutoff, same filter, same sort -- and
+// each carried a comment asserting the semantics matched, with nothing enforcing it.
+// A divergence there would make the pre-flight ledger disagree with the very list it
+// tells the user to run.
+function openRuns(daysArg) {
+  const days = parseInt(daysArg, 10) || 30;
   const cutoff = Date.now() - days * 86400000;
-  const recs = readRecords();
-  const ripe = recs
+  const rows = readRecords()
     .filter(r => !(r.outcome && r.outcome.recorded))
     .map(r => {
       const t = Date.parse(r.ts || '');
       return {
-        sha: r.sha,
-        ts: r.ts,
-        age_days: isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000),
-        mode: r.mode,
-        confidence: r.confidence || 'n/a',
-        probability: (typeof r.probability === 'number') ? r.probability : null,
-        question: String(r.question || '').slice(0, 100),
+        rec: r,
+        age: isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000),
+        // An undated record counts as ripe. It cannot be shown to be recent, and the
+        // failure worth avoiding is a decision that is quietly never graded.
         ripe: isNaN(t) ? true : t < cutoff
       };
     })
-    .sort((a, b) => (b.age_days || 0) - (a.age_days || 0));
-  const out = {
+    .sort((a, b) => (b.age || 0) - (a.age || 0));
+  return { days, rows };
+}
+
+function cmdPending() {
+  ensure();
+  const { days, rows } = openRuns(rest[0]);
+  const pending = rows.map(row => ({
+    sha: row.rec.sha,
+    ts: row.rec.ts,
+    age_days: row.age,
+    mode: row.rec.mode,
+    confidence: row.rec.confidence || 'n/a',
+    probability: (typeof row.rec.probability === 'number') ? row.rec.probability : null,
+    question: String(row.rec.question || '').slice(0, 100),
+    ripe: row.ripe
+  }));
+  console.log(JSON.stringify({
     threshold_days: days,
-    pending_total: ripe.length,
-    ripe_total: ripe.filter(r => r.ripe).length,
-    pending: ripe
-  };
-  console.log(JSON.stringify(out, null, 2));
+    pending_total: pending.length,
+    ripe_total: pending.filter(r => r.ripe).length,
+    pending
+  }, null, 2));
 }
 
 // `pending` answers "how many are ungraded". That was never the obstacle: the pre-flight
@@ -390,28 +441,16 @@ function cmdPending() {
 // what counts as ripe, it does not filter records out of the list.
 function cmdGrade() {
   ensure();
-  const days = parseInt(rest[0], 10) || 30;
-  const cutoff = Date.now() - days * 86400000;
   const self = process.argv[1];
   const shown = function (v) { return (v == null || v === '') ? '(not recorded)' : String(v); };
 
-  const all = readRecords();
-  const open = all.filter(r => !(r.outcome && r.outcome.recorded));
-  if (!open.length) {
-    console.log(all.length
+  const { days, rows } = openRuns(rest[0]);
+  if (!rows.length) {
+    console.log(readRecords().length
       ? 'Nothing to grade: every logged run already has a recorded outcome.'
       : 'Nothing to grade: no runs have been logged yet.');
     return;
   }
-
-  const rows = open.map(r => {
-    const t = Date.parse(r.ts || '');
-    return {
-      rec: r,
-      age: isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000),
-      ripe: isNaN(t) ? true : t < cutoff
-    };
-  }).sort((a, b) => (b.age || 0) - (a.age || 0));
 
   const ripeCount = rows.filter(r => r.ripe).length;
   console.log(rows.length + ' decision' + (rows.length === 1 ? '' : 's')

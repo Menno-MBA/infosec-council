@@ -62,7 +62,7 @@ const FIXTURE = {
   risk_appetite: 'A risk-averse owner should pick A.',
   highest_leverage: 'Admin-lock summaries only.',
   members: [
-    { name: 'dpo', stance: 'conditional-go', confidence: 'high', probability: 70, summary: 'DPIA and DPA first.', assumptions: 'US vendor.', change_my_mind: 'EEA-only processing.' },
+    { name: 'dpo', stance: 'conditional-go', confidence: 'high', probability: 70, condition: 'A signed DPA naming the sub-processors.', summary: 'DPIA and DPA first.', assumptions: 'US vendor.', change_my_mind: 'EEA-only processing.' },
     { name: 'offensive-security', stance: 'no-go', confidence: 'medium', probability: 40, summary: 'Breach is invisible to you.', assumptions: 'Growth-stage SaaS.', change_my_mind: 'BYOK.' }
   ]
 };
@@ -94,6 +94,11 @@ assert(js.includes('Not independently verified'), 'unverified callout shown');
   assert(js.includes('Checked against a primary source this run'), 'verified callout shown');
 assert(js.includes('How the panel rated each other'), 'peer ranking section shown');
 assert(js.includes('Stance: conditional-go'), 'member stance shown');
+// A conditional stance is only as inspectable as its condition. Without this the
+// label-only outcome is a word the reader has to take on trust.
+assert(js.includes('Only if') && js.includes('A signed DPA naming the sub-processors.'),
+  "a conditional seat's condition renders, so label-only is auditable in the dossier");
+assert(!/Only if<\/dt><dd>\s*<\/dd>/.test(js), 'a seat with no condition renders no empty row');
 assert(/high &middot; 70%/.test(js), 'member probability shown');
 assert(js.includes('inherent <b>25/25</b>'), 'inherent exposure shown on the 5x5 scale (observed impact scored Almost certain)');
 assert(js.includes('residual <b>9/25</b>'), 'residual exposure shown as a distinct, lower score');
@@ -134,6 +139,45 @@ for (const [value, phrase] of CONVERGED_CASES) {
 const unknownConverged = render('node', [path.join(SKILL, 'report.js')], { converged: 'sort-of-agreed' });
 assert(!unknownConverged.includes('Panel outcome:') && !unknownConverged.includes('sort-of-agreed'),
   'an unknown converged value renders no panel-outcome line and never leaks the raw token');
+
+// The ChatGPT edition's generator. It carries the same converged map, the same member
+// card and the same obligations table as report.js, all maintained by hand, and until
+// now nothing ran it at all -- not a test, not a CI step. A dropped case there renders
+// a silently empty section, which reads as "nothing to report" rather than as a bug.
+const PY = ['python3', 'python', 'py'].find(c => {
+  try { return cp.spawnSync(c, ['-c', 'pass'], { encoding: 'utf8' }).status === 0; } catch (_) { return false; }
+});
+if (PY) {
+  console.log('report.py (ChatGPT edition):');
+  const KNOW = path.join(ROOT, 'chatgpt', 'knowledge');
+  // make_report writes the dossier and returns its PATH, so read the file. It also
+  // defaults out_dir to the cwd; pass the tmpdir so a test run never litters the
+  // shipped knowledge folder.
+  const renderPy = function (overrides) {
+    const runJson = path.join(TMP, 'run.json');
+    fs.writeFileSync(runJson, JSON.stringify(Object.assign({}, FIXTURE, overrides || {})));
+    const r = cp.spawnSync(PY, ['-c',
+      'import json,sys,report; sys.stdout.write(report.make_report(json.load(open(sys.argv[1])), sys.argv[2]))',
+      runJson, TMP], { cwd: KNOW, encoding: 'utf8' });
+    if (r.status !== 0) throw new Error('report.py failed: ' + (r.stderr || '').slice(0, 400));
+    const outPath = (r.stdout || '').trim();
+    if (!outPath || !fs.existsSync(outPath)) throw new Error('report.py wrote no file (returned "' + outPath + '")');
+    return fs.readFileSync(outPath, 'utf8');
+  };
+  try {
+    const py = renderPy();
+    assert(!/undefined|\[object|NaN/.test(py), 'report.py renders with no undefined/object/NaN leaks');
+    assert(py.includes('Only if') && py.includes('A signed DPA naming the sub-processors.'),
+      'report.py renders a seat condition');
+    assert(py.includes('<h2>Regulatory obligations</h2>'), 'report.py renders the obligations section');
+    for (const [value, phrase] of CONVERGED_CASES) {
+      assert(renderPy({ converged: value }).includes(phrase),
+        'report.py renders the "' + value + '" panel outcome');
+    }
+  } catch (e) { assert(false, 'report.py ran: ' + e.message); }
+} else {
+  console.log('report.py: skipped (no python interpreter on PATH)');
+}
 
 function has(cmd) { try { return cp.spawnSync(cmd, ['--version'], { encoding: 'utf8' }).status === 0 || cmd === 'bash'; } catch (_) { return false; } }
 

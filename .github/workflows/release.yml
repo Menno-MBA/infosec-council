@@ -36,6 +36,26 @@ jobs:
         run: node bin/cli.js build-desktop
       - name: Build the Claude Code plugin zip
         run: node bin/cli.js build-plugin
+      # integrity.js documents comparing the manifest's own hash against one published
+      # out of band. Nothing published it, so the anchor it told readers to rely on did
+      # not exist and the guard's real scope was "detects a corrupted checkout". This
+      # is that anchor: the hash lands in the release body, outside the repo the
+      # manifest lives in, so tampering with both takes two places instead of one.
+      - name: Anchor the integrity manifest out of band
+        run: |
+          {
+            echo "MANIFEST_HASH<<EOF"
+            echo "## Integrity"
+            echo ""
+            echo 'Verify the shipped scripts against the manifest with `node scripts/integrity.js --check`.'
+            echo "The manifest itself hashes to:"
+            echo ""
+            echo '```'
+            sha256sum scripts/integrity.sha256
+            echo '```'
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
       - name: Attach zips to the GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -43,3 +63,5 @@ jobs:
             dist/infosec-council-desktop.zip
             dist/infosec-council-plugin.zip
           generate_release_notes: true
+          body: ${{ env.MANIFEST_HASH }}
+          append_body: true

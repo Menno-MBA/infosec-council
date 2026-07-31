@@ -82,11 +82,35 @@ than by reading the code.
   added and the docs instruct people to use; and the README claimed the `family` id keeps reruns of
   a decision linked, which it does not (it hashes the verbatim question — `lookback` is what finds
   a comparable prior run).
-- **Known limitation.** `chatgpt/INSTRUCTIONS.md` is at 7981 of 8000 bytes. Fitting this release's
-  convergence corrections required cutting prose elsewhere, and the budget check now warns below 150
-  bytes of headroom. The next protocol change to that edition needs a structural answer — moving
-  detail into a knowledge file, which has no size limit — not another round of shaving, because a
-  clause cut to fit is a rule cut to fit.
+- **PROBABILITY now means the seat's own position**, not the council's eventual recommendation. It
+  was ambiguous in both directions — a `no-go` dissenter could read it either way and return 90 or
+  15 — which was harmless while the number was only tracked over time and stopped being harmless
+  when it became a gate. Because the spread test is scoped to the aligned seats, and those share a
+  stance, the ambiguity dissolves exactly where the gate operates.
+- **Blind spots are logged as a round-tagged list, not a count.** A bare "2 came from Round 2" had
+  no denominator: it could not be told apart from "2 of 2" or "2 of 9", so it could not answer the
+  question it was added for. It also froze one judgement into every record where it could never be
+  re-derived or audited — which is precisely what the movement statistics refuse to do, for the same
+  reason, forty lines above in the same file. The shape is validated at log time; an untagged entry
+  is rejected.
+- **A seat's condition renders in the dossier.** `label-only` was countable in the journal and
+  invisible in the report, so a reader could see that the panel agreed on a verdict and not on what
+  it demanded, but not on what each seat demanded.
+- **The ChatGPT edition is guarded on content, not only size.** A 19-byte file passed as "in sync";
+  ten policy needles now cover it. That edition also gained real headroom the honest way: the
+  dossier JSON field list moved to `chatgpt/knowledge/report-fields.md`, which has no size limit.
+  It is reference data, not protocol — and it was consuming an eighth of an 8000-byte budget in
+  which every protocol correction had to be paid for by cutting a rule somewhere else. 7808/8000,
+  with the routing order restored that an earlier round had dropped for want of bytes.
+- **`report.py` had no test and no CI step at all**; it is now rendered and asserted alongside
+  `report.js` and `report.sh`. The calibration maths that `scripts/test-journal.js` was created for
+  — Brier, ECE, the reliability curve, the `p=100` bin clamp, delivery rate, high-confidence misses,
+  and `not-tested` counting for delivery while staying out of accuracy — is now covered too, having
+  been missed on the first pass in favour of the new code.
+- Smaller: `pending` and `grade` share one definition of "open" and "ripe" instead of two copies each
+  asserting they matched; malformed JSONL is pinned in both directions (skipped on read, preserved
+  on rewrite); the release workflow publishes the integrity manifest's own hash, so the out-of-band
+  anchor `integrity.js` told readers to rely on now exists.
 
 ## v2.1.1 (2026-07-31)
 

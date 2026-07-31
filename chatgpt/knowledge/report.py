@@ -294,6 +294,7 @@ def make_report(run, out_dir="."):
             if mg("stance"): card += f'<p class="stance">Stance: {e(mg("stance"))}</p>'
             if mg("summary"): card += f'<p class="sum">{e(mg("summary"))}</p>'
             card += "<dl>"
+            if mg("condition"): card += f'<dt>Only if</dt><dd>{e(mg("condition"))}</dd>'
             if mg("assumptions"): card += f'<dt>What they assume</dt><dd>{e(mg("assumptions"))}</dd>'
             if mg("change_my_mind"): card += f'<dt>What would change their view</dt><dd>{e(mg("change_my_mind"))}</dd>'
             card += "</dl></article>"

@@ -189,7 +189,8 @@ probability / assumptions / what would change my mind / unknowns) so the verdict
 not just asserted. The **stance** (go / conditional-go / no-go / defer / reframe) makes the
 convergence and debate triggers mechanical; the **condition** is what a conditional stance
 actually requires, so that a shared label cannot pass as agreement; the **probability** (a number,
-not just low/med/high) is what the decision journal scores over time.
+not just low/med/high) is each seat's estimate that *its own* position survives a year, which is
+what the decision journal scores over time.
 
 **Boardroom mode** runs the panel as live [agent-teams](https://code.claude.com/docs/en/agent-teams)
 teammates who cross-examine each other directly instead of through the chairman. It needs the

@@ -115,6 +115,106 @@ console.log('backwards compatibility with pre-instrumentation records:');
 }
 
 // ---------------------------------------------------------------------------
+console.log('calibration maths (Brier, ECE, reliability curve, delivery):');
+// ---------------------------------------------------------------------------
+{
+  const graded = (sha, probability, result, over) => Object.assign(
+    legacyRecord(sha, { probability, confidence: 'high' }),
+    { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result, note: '' } }, over || {});
+
+  // Brier is mean squared error between the stated probability and the outcome, where
+  // correct = 1, partial = 0.5, wrong = 0. Worked by hand: (1-0.8)^2 = 0.04,
+  // (0.5-0.6)^2 = 0.01, (0-0.2)^2 = 0.04 -> 0.09/3 = 0.03.
+  const home = seed(freshHome(), [
+    graded('br000001', 80, 'correct'),
+    graded('br000002', 60, 'partial'),
+    graded('br000003', 20, 'wrong')
+  ]);
+  const meta = runJSON(home, ['meta']);
+  assert(meta.brier_overall && meta.brier_overall.n === 3, 'Brier counts every graded run');
+  assert(meta.brier_overall.brier === 0.03, 'Brier is the mean squared error, computed by hand as 0.03');
+}
+
+{
+  // `not-tested` must count for delivery and NOT for accuracy. It is the behaviour the
+  // ACTUAL table's seven-line comment exists to protect, and nothing pinned it.
+  const home = seed(freshHome(), [
+    Object.assign(legacyRecord('nt000001', { probability: 90, confidence: 'high' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'not-tested', note: '' } }),
+    Object.assign(legacyRecord('nt000002', { probability: 90, confidence: 'high' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'correct', note: '' } })
+  ]);
+  const meta = runJSON(home, ['meta']);
+  assert(meta.brier_overall.n === 1, 'a not-tested run is excluded from the Brier sample');
+  assert(meta.brier_overall.brier === 0.01, 'and does not distort the score (0.1^2 from the one graded run)');
+  assert(meta.ece_overall.n === 1, 'a not-tested run is excluded from ECE too');
+  assert(meta.delivery.outcomes_recorded === 2 && meta.delivery.tested === 1
+      && meta.delivery.not_tested === 1, 'but it does count as a recorded outcome for delivery');
+  assert(meta.delivery.delivery_rate === 0.5, 'delivery_rate is executed over recorded, not accuracy');
+  const hi = meta.calibration_by_confidence.find(c => c.confidence === 'high');
+  assert(hi.not_tested === 1 && hi.correct === 1, 'the per-confidence bucket reports it separately');
+}
+
+{
+  // The reliability curve bins probability into five bands of 0.2. p=100 is the edge
+  // case: without the Math.min(4, ...) clamp it indexes a sixth, non-existent bin.
+  const home = seed(freshHome(), [
+    Object.assign(legacyRecord('ec000001', { probability: 100, confidence: 'high' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'correct', note: '' } }),
+    Object.assign(legacyRecord('ec000002', { probability: 0, confidence: 'low' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: '' } })
+  ]);
+  const meta = runJSON(home, ['meta']);
+  assert(meta.ece_overall != null && meta.ece_overall.n === 2, 'probability 100 and 0 both land in a bin');
+  const bands = meta.ece_overall.reliability_curve.map(b => b.band);
+  assert(bands.includes('80-100%') && bands.includes('0-20%'),
+    'p=100 clamps into the top band rather than falling off the end');
+  assert(meta.ece_overall.ece === 0, 'perfectly calibrated predictions score an ECE of 0');
+}
+
+{
+  // A high-confidence call that did not hold is the single most instructive record in
+  // the journal, and the one the synthesis is told to learn from.
+  const home = seed(freshHome(), [
+    Object.assign(legacyRecord('hm000001', { probability: 90, confidence: 'high' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: 'the DPA had gaps' } }),
+    Object.assign(legacyRecord('hm000002', { probability: 55, confidence: 'low' }),
+      { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: '' } })
+  ]);
+  const meta = runJSON(home, ['meta']);
+  assert(meta.high_confidence_misses.length === 1, 'only high-confidence misses are surfaced');
+  assert(meta.high_confidence_misses[0].note === 'the DPA had gaps', 'the miss carries its note');
+  // Member appearances tolerate the old string-member shape as well as objects.
+  const appearances = Object.fromEntries(meta.member_appearances.map(m => [m.member, m.count]));
+  assert(appearances.ciso === 2 && appearances.dpo === 2, 'member appearances are counted across runs');
+}
+
+{
+  // readRecords swallows unparseable lines; cmdOutcome rewrites the whole file and must
+  // preserve them verbatim. A refactor that dropped them would silently destroy records.
+  const home = freshHome();
+  const good = JSON.stringify(legacyRecord('ok000001'));
+  fs.writeFileSync(path.join(home, 'journal.jsonl'), good + '\n{ this is not json\n');
+  const meta = runJSON(home, ['meta']);
+  assert(meta.total_runs === 1, 'a malformed line is skipped rather than crashing the read');
+  assert(run(home, ['outcome', 'ok000001', 'correct', 'fine']).status === 0, 'outcome still works alongside it');
+  const after = fs.readFileSync(path.join(home, 'journal.jsonl'), 'utf8');
+  assert(after.includes('{ this is not json'), 'and the unparseable line survives the rewrite untouched');
+}
+
+{
+  // Error paths that had no coverage at all.
+  const home = seed(freshHome(), [legacyRecord('ep000001')]);
+  assert(run(home, ['outcome', 'ep000001', 'sort-of']).status !== 0, 'outcome rejects an invalid result token');
+  assert(run(home, ['outcome', 'nosuchsha', 'correct']).status !== 0, 'outcome rejects an unknown sha');
+  assert(run(home, ['outcome']).status !== 0, 'outcome with no arguments fails with usage');
+  assert(run(home, ['log'], 'not json at all').status !== 0, 'log rejects non-JSON stdin');
+  assert(run(home, ['log'], JSON.stringify({ mode: 'deep' })).status !== 0, 'log requires a question');
+  assert(run(home, ['lookback']).status !== 0, 'lookback with no query fails rather than matching everything');
+  assert(run(home, ['path']).status === 0, 'path still resolves');
+}
+
+// ---------------------------------------------------------------------------
 console.log('round-2 value statistics:');
 // ---------------------------------------------------------------------------
 {
@@ -156,13 +256,14 @@ console.log('round-2 value statistics:');
     i === 0 ? member('seat0', 'go', 50, { stance_r1: 'go', probability_r1: 70 })
             : member('seat' + i, 'go', 70, { stance_r1: 'go', probability_r1: 70 }));
 
+  const bs = (...rounds) => rounds.map((round, i) => ({ text: 'finding ' + i, round }));
   const home = seed(freshHome(), [
-    r2Record('bbbbbbb1', still, { blind_spots_from_r2: 0 }),
-    r2Record('bbbbbbb2', moved, { blind_spots_from_r2: 2 }),
-    r2Record('bbbbbbb3', movedDown),                       // no blind_spots_from_r2 field
-    legacyRecord('bbbbbbb4'),                              // excluded: no r1 data
-    r2Record('bbbbbbb5', still, { blind_spots_from_r2: 1 }),
-    r2Record('bbbbbbb6', still, { blind_spots_from_r2: 1 })
+    r2Record('bbbbbbb1', still, { blind_spots: bs(1, 1) }),       // 2 found, 0 from R2
+    r2Record('bbbbbbb2', moved, { blind_spots: bs(1, 2, 2) }),    // 3 found, 2 from R2
+    r2Record('bbbbbbb3', movedDown),                              // no blind_spots at all
+    legacyRecord('bbbbbbb4'),                                     // excluded: no r1 data
+    r2Record('bbbbbbb5', still, { blind_spots: bs(2) }),          // 1 found, 1 from R2
+    r2Record('bbbbbbb6', still, { blind_spots: bs(1) })           // 1 found, 0 from R2
   ]);
   const rv = runJSON(home, ['meta']).round2_value;
 
@@ -185,15 +286,15 @@ console.log('round-2 value statistics:');
   assert(rv.seats_measured && rv.seats_measured.rate === 1,
     'full instrumentation reports a measurement rate of 1');
 
-  assert(rv.blind_spots_attributed_to_round2 != null, 'blind-spot attribution is reported');
-  assert(rv.blind_spots_attributed_to_round2.runs_with_data === 4,
-    'a record missing blind_spots_from_r2 is skipped, not counted as zero');
-  assert(Math.abs(rv.blind_spots_attributed_to_round2.mean - 1) < 1e-9,
-    'blind-spot mean is (0+2+1+1)/4, with the missing record excluded');
-  assert(!Number.isNaN(rv.blind_spots_attributed_to_round2.mean),
-    'a missing blind_spots_from_r2 never produces NaN');
-  assert(typeof rv.blind_spots_attributed_to_round2.note === 'string'
-      && /self-report/i.test(rv.blind_spots_attributed_to_round2.note),
+  const bsa = rv.blind_spots_attributed_to_round2;
+  assert(bsa != null, 'blind-spot attribution is reported');
+  assert(bsa.runs_with_data === 4, 'a record with no blind_spots list is skipped, not counted as zero');
+  // The denominator is the whole point: 3 from Round 2 out of 7 found is a claim you
+  // can weigh. The bare count it replaced could not distinguish "3 of 3" from "3 of 30".
+  assert(bsa.blind_spots_total === 7, 'the total blind spots found is reported as the denominator');
+  assert(bsa.from_round_2 === 3, 'only round-2-tagged entries count toward the attribution');
+  assert(bsa.share === +(3 / 7).toFixed(3), 'the share is from_round_2 over the total');
+  assert(typeof bsa.note === 'string' && /self-report/i.test(bsa.note),
     'the blind-spot figure is labelled as self-reported, unlike the arithmetic deltas');
 }
 
@@ -273,6 +374,38 @@ console.log('confidence vocabulary at log time:');
   assert(buckets.length === 1 && buckets[0] === 'high',
     'case and whitespace variants collapse into one bucket instead of splitting the meter');
   assert(meta.calibration_by_confidence[0].runs === 4, 'all four variants land in that one bucket');
+}
+
+// ---------------------------------------------------------------------------
+console.log('blind_spots shape validation at log time:');
+// ---------------------------------------------------------------------------
+{
+  const home = freshHome();
+  const withBS = (v) => JSON.stringify({ question: 'Q', mode: 'deep', confidence: 'medium', probability: 70, blind_spots: v });
+
+  assert(run(home, ['log'], withBS([{ text: 'a', round: 1 }, { text: 'b', round: 2 }])).status === 0,
+    'log accepts a well-formed blind_spots list');
+  assert(run(home, ['log'], withBS([])).status === 0, 'an empty blind_spots list is fine');
+  assert(run(home, ['log'], JSON.stringify({ question: 'Q', mode: 'deep' })).status === 0,
+    'blind_spots stays optional');
+
+  // The untagged shapes are what made the old bare count uninterpretable. Each must
+  // be refused rather than silently admitted with the attribution quietly lost.
+  const bad = [
+    [['just a string'], 'a bare string entry'],
+    [[{ text: 'a' }], 'an entry with no round'],
+    [[{ text: 'a', round: 3 }], 'a round outside 1 or 2'],
+    [[{ round: 1 }], 'an entry with no text'],
+    [[{ text: '   ', round: 1 }], 'an entry whose text is blank'],
+    ['not an array', 'a non-array value']
+  ];
+  for (const [value, label] of bad) {
+    const r = run(home, ['log'], withBS(value));
+    assert(r.status !== 0, 'log rejects ' + label);
+  }
+  const r3 = run(home, ['log'], withBS([{ text: 'a', round: 3 }]));
+  assert(/round/i.test(r3.err) && /denominator/i.test(r3.err),
+    'the rejection explains that the round tag is what gives the attribution a denominator');
 }
 
 // ---------------------------------------------------------------------------

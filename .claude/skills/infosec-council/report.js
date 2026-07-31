@@ -339,6 +339,11 @@ function membersBlock() {
     if (len(g(m, 'stance')) > 0) a += '<p class="stance">Stance: ' + e(m.stance) + '</p>';
     if (len(g(m, 'summary')) > 0) a += '<p class="sum">' + e(m.summary) + '</p>';
     a += '<dl>';
+    // The condition is what a conditional stance actually requires, and it is what the
+    // convergence test compares. Without it on the page a "label-only" outcome is a
+    // word the reader has to take on trust: they can see that the panel agreed on a
+    // verdict and not on what it demanded, but not on what each seat demanded.
+    if (len(g(m, 'condition')) > 0) a += '<dt>Only if</dt><dd>' + e(m.condition) + '</dd>';
     if (len(g(m, 'assumptions')) > 0) a += '<dt>What they assume</dt><dd>' + e(m.assumptions) + '</dd>';
     if (len(g(m, 'change_my_mind')) > 0) a += '<dt>What would change their view</dt><dd>' + e(m.change_my_mind) + '</dd>';
     a += '</dl></article>';

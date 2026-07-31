@@ -214,7 +214,7 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 
 1. **Label.** >= 6 of 7 on the same stance.
 2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree — **every pair of them**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. The test is a question with an answer: *would executing seat A's condition satisfy seat B, and B's satisfy A?* A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
-3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
+3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. This is well defined precisely because the test is scoped that way: each seat rates its own position, and these seats share one, so their numbers are estimates of the same thing. Across the whole panel they would not be, and the test would be arithmetic on incommensurable quantities. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
 
 Then route on the result. **Check in this order and take the first match** — the branches overlap by design, and reading top-down is what makes them deterministic.
 
@@ -236,7 +236,7 @@ Then route on the result. **Check in this order and take the first match** — t
 2. **Mode used**: and which members were consulted; note whether the panel converged after challenge, shared a label without sharing the substance behind it (`label-only`), stayed split, or was pushed through a forced debate.
 3. **Consensus**: where members agreed, and whether that agreement is trustworthy (genuine-after-challenge vs thin).
 4. **Live conflicts**: unresolved disagreements as tradeoffs, not mush.
-5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed. Count how many of these first appeared in Round 2 rather than Round 1 and log it as `blind_spots_from_r2`. This measures the cross-exam's unique contribution rather than mere churn, and it is your own attribution, so `meta` reports it apart from the seats' arithmetic movement rather than blended in. Count honestly, including zero.
+5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed. Log the list itself, each entry tagged with the round it **first** surfaced in (`{"text": "...", "round": 1}` or `2`). Anything from the forced debate or the closing check counts as round 2, since none of it existed before the cross-exam. That tag is what measures the cross-exam's unique contribution rather than mere churn, and logging the list rather than a count means the judgement stays inspectable and re-derivable instead of frozen into a number. It is still your own attribution, so `meta` reports it apart from the seats' arithmetic movement and with its denominator. Tag honestly, including a run where nothing came from Round 2.
 6. **Minority report**: the strongest dissent worth preserving even if outvoted, including the pre-mortem story if the forced debate ran.
 7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high), a PROBABILITY it survives a 12-month look-back, the key assumption it rests on, and any `UNVERIFIED` load-bearing fact it depends on.
 
@@ -306,7 +306,8 @@ echo '{
   "recommendation": "<your one-line call>",
   "key_assumption": "<the load-bearing assumption>",
   "converged": "<after-challenge|label-only|split|forced-debate>",
-  "blind_spots_from_r2": <how many of the synthesis blind spots first appeared in Round 2; omit in Quick>,
+  "blind_spots": [ {"text":"<the blind spot>","round":<1 or 2, the round it FIRST surfaced in>} ],   // omit in Quick
+
   "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","condition":"<the seat's CONDITION line verbatim, or omit for a plain go/no-go>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
@@ -314,7 +315,7 @@ echo '{
 
 **Grading a run against a documented case.** A run on an example brief (the UM 2019 ransomware case, the MKB invoice-fraud brief) will never come true in the world, but it can be graded now against that case's published ground truth, and it enters the same pool as a live decision. Start the outcome note with `exercise:` so the record shows which grades came from a case whose answers were already known. Be straight about what that pooling costs: the Brier score then mixes "we were right about a documented past event" with "our advice held up in practice", which are different claims. The prefix keeps the mix visible even though the maths does not separate it.
 
-Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. The `_r1` fields and `blind_spots_from_r2` are what let `meta` say whether the cross-exam moves anyone; leave them out of a Quick run, which has no Round 2 to measure, rather than writing them as unchanged. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
+Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. The `_r1` fields and the round-tagged `blind_spots` list are what let `meta` say whether the cross-exam moves anyone; leave them out of a Quick run, which has no Round 2 to measure, rather than writing them as unchanged. An untagged blind spot is rejected at log time, because the tag is what gives the attribution a denominator. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
 
 **HTML report.** Two generators sit beside the journal scripts and produce the identical branded dossier: `report.js` (Node, zero dependencies, **preferred**) and `report.sh` (bash, needs `jq`). **Use `report.js` by default** (no `jq`, and it base64-embeds the brand logos so header/footer always render). Only fall back to `report.sh` if Node is unavailable. **Never hand-roll your own report generator**; if one script errors, switch to the other. After synthesis, offer (or, if the user asked for a report, produce) the dossier. Build a rich JSON object with these fields and pipe it to the generator:
 ```
@@ -331,7 +332,7 @@ echo '{
   "ranking": [ {"position":"Expert A (dpo)","score":4.2,"note":"..."} ],
   "options": [ {"option":"A. ...","effort":"...","risk_reduction":"...","cost":"...","reversibility":"...","verdict":"..."} ],
   "risk_appetite": "...", "highest_leverage": "...",
-  "members": [ {"name":"dpo","stance":"...","confidence":"...","probability":<0-100>,"summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
+  "members": [ {"name":"dpo","stance":"...","condition":"<what this seat requires, for a conditional stance>","confidence":"...","probability":<0-100>,"summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
 }' | node "<skill_dir>/report.js"      # preferred; or: | bash "<skill_dir>/report.sh"
 ```
 On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" < input.json` rather than fighting shell quoting in a single `echo`.
@@ -361,7 +362,7 @@ Every member must end their response with:
 STANCE: <go | conditional-go | no-go | defer | reframe>
 CONDITION: <required when your stance is conditional-go, defer or reframe: the one thing that must be true or must happen for you to move to go. Omit this line entirely for a plain go or no-go. Never write "none" or "n/a" on a conditional stance: a placeholder reads as a named condition and passes a comparison it should have failed.>
 CONFIDENCE: <low | medium | high>
-PROBABILITY: <0-100>%  (your estimate that this recommendation would survive a 12-month look-back)
+PROBABILITY: <0-100>%  (your estimate that YOUR OWN position, as stated above, would survive a 12-month look-back. Not the council's eventual recommendation, which you have not seen and may disagree with.)
 ASSUMPTIONS: <the load-bearing assumptions behind my view>
 WHAT WOULD CHANGE MY MIND: <the evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>

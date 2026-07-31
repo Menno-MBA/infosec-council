@@ -22,3 +22,7 @@ incident-report-*.html
 
 # scratch / transfer folders (never commit)
 _to_delete/
+
+# Python bytecode (report.py is imported by the test suite and by ChatGPT Code Interpreter)
+__pycache__/
+*.pyc

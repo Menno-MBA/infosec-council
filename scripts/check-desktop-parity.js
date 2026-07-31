@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 /*
- * Desktop/council policy-parity guard.
+ * Edition policy-parity guard (council / desktop / ChatGPT).
+ *
+ * The file name says "desktop" for history; it now guards all three editions. The
+ * ChatGPT edition was added because its only check was a byte budget, so a gutted
+ * INSTRUCTIONS.md passed as "in sync" -- and that file sits at its size ceiling, so
+ * every pressure on it is to CUT, which is exactly when a rule goes missing.
  *
  * `desktop/SKILL.md` is a hand-maintained mirror of the council orchestrator, and the
  * two files legitimately differ: Desktop has no isolated sub-agents, no Boardroom mode,
@@ -32,6 +37,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const COUNCIL = path.join(ROOT, '.claude', 'skills', 'infosec-council', 'SKILL.md');
 const DESKTOP = path.join(ROOT, 'desktop', 'SKILL.md');
+const CHATGPT = path.join(ROOT, 'chatgpt', 'INSTRUCTIONS.md');
 
 // Each row: a short label plus a substring that must appear in BOTH files.
 // Keep the needles short and semantic; long verbatim spans make this brittle against
@@ -57,7 +63,10 @@ const SHARED_POLICY = [
   // deleted. Match a phrase that only occurs in the rule's own prose.
   ['label-only convergence outcome', 'split wearing one word'],
   ['an unnamed condition is not agreement', 'is not agreement evidence'],
-  ['probability spread bounds convergence', 'differ by at most 20 points'],
+  // Deliberately without the number. Coupling the guard to "20" made a threshold change
+  // a five-file edit in which the check protecting you is one of the files you must
+  // remember to edit. The rule is "a bounded spread gates convergence"; the value is a knob.
+  ['probability spread bounds convergence', 'differ by at most'],
 ];
 
 // Deliberately NOT shared, and asserted as such: each needle must be present in the
@@ -78,6 +87,24 @@ const NOT_SHARED = [
   ['round-2 delta capture', 'stance_r1'],
 ];
 
+// The third edition. Its only guard was a byte budget, so a gutted INSTRUCTIONS.md
+// passed as "in sync" -- and because that file sits at its size ceiling, the pressure
+// on it is always to CUT, which is exactly when a rule goes missing. Fewer needles than
+// the desktop set on purpose: this edition states the protocol far more tersely, so the
+// list holds only rules whose loss would change what the GPT decides.
+const CHATGPT_POLICY = [
+  ['label-only convergence outcome', 'label-only'],
+  ['unnamed condition is not agreement', 'is not agreement evidence'],
+  ['spread bounds convergence', 'spread is at most'],
+  ['condition test scoped to conditional stances', 'where any of those are conditional stances'],
+  ['probability is the seat\'s own position', 'your own position survives'],
+  ['obligation omission gate', 'GATE B'],
+  ['determination pass runs first', 'NOT TRIGGERED'],
+  ['anti-anchoring on house positions', 'defaults, not doctrine'],
+  ['forced debate needs a pre-mortem', 'pre-mortem'],
+  ['no false consensus', 'the conflict is the product'],
+];
+
 function main() {
   for (const f of [COUNCIL, DESKTOP]) {
     if (!fs.existsSync(f)) {
@@ -94,7 +121,7 @@ function main() {
   const council = norm(fs.readFileSync(COUNCIL, 'utf8'));
   const desktop = norm(fs.readFileSync(DESKTOP, 'utf8'));
 
-  console.log('desktop/council policy parity:');
+  console.log("council/desktop policy parity:");
   const failures = [];
   for (const [label, rawNeedle] of SHARED_POLICY) {
     const needle = norm(rawNeedle);
@@ -110,6 +137,22 @@ function main() {
       failures.push(label + ' -- present in ' + (inCouncil ? 'council' : 'desktop') +
         ', missing from ' + (inCouncil ? 'desktop/SKILL.md' : '.claude/skills/infosec-council/SKILL.md'));
     }
+  }
+
+  if (!fs.existsSync(CHATGPT)) {
+    failures.push('chatgpt/INSTRUCTIONS.md is missing');
+  } else {
+    const chatgpt = norm(fs.readFileSync(CHATGPT, 'utf8'));
+    console.log('\nchatgpt edition policy:');
+    for (const [label, rawNeedle] of CHATGPT_POLICY) {
+      if (chatgpt.includes(norm(rawNeedle))) {
+        console.log('  ok: ' + label);
+      } else {
+        failures.push('chatgpt: ' + label + ' -- missing from chatgpt/INSTRUCTIONS.md; ' +
+          'if it was cut to fit the 8000-byte budget, that budget cut a rule, not a redundancy');
+      }
+    }
+    console.log('');
   }
 
   for (const [label, rawNeedle] of NOT_SHARED) {
@@ -134,7 +177,7 @@ function main() {
     console.error('SHARED_POLICY if the wording intentionally changed.');
     process.exit(1);
   }
-  console.log('\ndesktop parity passed.');
+  console.log('\nedition parity passed.');
 }
 
 if (require.main === module) main();

@@ -265,6 +265,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
         + (if (.stance // "")|length>0 then "<p class=\"stance\">Stance: " + (.stance|e) + "</p>" else "" end)
         + (if (.summary // "")|length>0 then "<p class=\"sum\">" + (.summary|e) + "</p>" else "" end)
         + "<dl>"
+        + (if (.condition // "")|length>0 then "<dt>Only if</dt><dd>" + (.condition|e) + "</dd>" else "" end)
         + (if (.assumptions // "")|length>0 then "<dt>What they assume</dt><dd>" + (.assumptions|e) + "</dd>" else "" end)
         + (if (.change_my_mind // "")|length>0 then "<dt>What would change their view</dt><dd>" + (.change_my_mind|e) + "</dd>" else "" end)
         + "</dl></article>"
