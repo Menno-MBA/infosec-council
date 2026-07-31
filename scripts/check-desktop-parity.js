@@ -45,6 +45,8 @@ const SHARED_POLICY = [
   ['register is where to verify', 'external-websources.md'],
   ['outcome vocabulary includes not-tested', 'not-tested'],
   ['measured reliability beside asserted', 'measured reliability'],
+  ['closing check runs in every mode', 'dropped dissent'],
+  ['manufactured unanimity check', 'manufactured unanimity'],
 ];
 
 // Deliberately NOT checked for parity, with the reason, so a future maintainer does not

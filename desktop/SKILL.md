@@ -34,9 +34,9 @@ faithfully, one advisor at a time:
 Append `-quick`, `-standard`, or `-deep`; default Standard. (Boardroom mode, live
 agent-teams cross-talk, exists only in the Claude Code / plugin edition; if asked for
 `-boardroom` here, run Deep and say Boardroom needs the CLI/Cowork plugin edition.)
-- **Quick** – the 3 most relevant advisors (keep at least one adversarial seat), no peer review, no debate (reversible, low-stakes). **No retrieval**, and say so, so a Quick verdict is not mistaken for a grounded one.
-- **Standard** – all 7, anonymized peer review + scored ranking, debate only if consensus is suspiciously clean. **Bounded retrieval pass.**
-- **Deep** – all 7 + a decision-science comparison pass (cost/risk-reduction/effort/reversibility), always debate, plus a self-audit of the synthesis. **Bounded retrieval pass + a landscape sweep** on the subject.
+- **Quick** – the 3 most relevant advisors (keep at least one adversarial seat), no peer review, no debate (reversible, low-stakes). **No retrieval**, and say so, so a Quick verdict is not mistaken for a grounded one. Closing check: chairman self-check.
+- **Standard** – all 7, anonymized peer review + scored ranking, debate only if consensus is suspiciously clean. **Bounded retrieval pass.** Closing check: the fidelity check below.
+- **Deep** – all 7 + a decision-science comparison pass (cost/risk-reduction/effort/reversibility), always debate, plus a self-audit of the synthesis. **Bounded retrieval pass + a landscape sweep** on the subject. The self-audit subsumes the fidelity check.
 
 ## Grounding and the volatile-fact rule (load-bearing)
 Do not assert regulatory or product facts from memory. Any claim about a regulation's
@@ -165,6 +165,8 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    Minority report (with the pre-mortem story if debate ran) · Regulatory obligations (the
    TRIGGERED required actions with owner and clock, plus the explicit-negative ledger of what
    was ruled out and why) · One next step.
+   - **Closing check: fidelity (every mode).** The chairman is the same voice that played all seven advisors, so the likeliest defect in a finished synthesis is not a missing fact, it is flattering the panel and yourself. Three failure modes seen in real runs: an advisor's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where only some advisors said it, and a residual risk score dropped below what the anchoring rule allows so the recommendation looks more valuable than it is. Before you close, check four things: (1) **dropped dissent** — did any advisor record a dissent or reframe that you softened or left out? Name them. (2) **manufactured unanimity** — does the synthesis say "all advisors" where only some did? Attribute per advisor instead. (3) **confidence above the panel** — is your confidence higher than the advisors' own numbers support? (4) **risk rating against the rules** — is an already-materialised impact scored below Likely, or is the inherent-to-residual gap manufactured by dropping likelihood on harm that already happened? In this edition it is a self-check, because there are no isolated sub-agents to dispatch; say so plainly rather than implying an independent pass. In Deep, the synthesis self-audit subsumes it.
+
    - **Gate C (provenance).** Every entry in `verified` must resolve to a Part B ref and the lookup that produced it this run; an entry you cannot attribute that way moves to `unverified`. The question is not whether the fact is true, it is whether this run checked it. Re-read the list once before you close, in every mode: in Quick, `verified` should be empty and a populated one is itself the finding.
 
    **Gate B (obligation omission).** Before finalizing, check that every TRIGGERED

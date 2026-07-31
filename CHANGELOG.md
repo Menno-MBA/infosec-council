@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.1.1 (2026-07-31)
+
+The chairman's self-smoothing check no longer runs only in Deep.
+
+- **The closing check now runs in every mode.** Four checks that were previously buried inside the
+  Deep-only synthesis audit are lifted out and scaled: **dropped dissent**, **manufactured
+  unanimity**, **confidence above the panel's own distribution**, and **a risk rating that breaks
+  the anchoring rule**. Quick does them as a declared chairman self-check; Standard dispatches one
+  narrow reviewer against the seats' actual returns; Deep and Boardroom keep the full audit, which
+  subsumes them.
+- **Why:** all three failure modes were observed in a real Deep run on this repo. The audit caught a
+  DPO's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where only
+  three of seven seats said it, and a residual score dropped below what the anchoring rule allows so
+  the recommendation looked more valuable than it was. The chairman is the same model that ran the
+  panel, so this is the most likely defect in any finished synthesis. Leaving the only safeguard in
+  Deep meant every Standard run shipped an unexamined chairman.
+- Cost is roughly one agent against seven. The parity guard covers the new rules in both editions.
+
 ## v2.1.0 (2026-07-30)
 
 The suite stops reasoning purely from training data. All four skills gain a retrieval pass against a

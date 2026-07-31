@@ -35,12 +35,12 @@ These three form the core security triad and are deliberate counterweights: the 
 
 Pick a mode from the user's phrasing; default to Standard. The user can force one by appending a depth flag, `-quick`, `-standard`, `-deep`, or `-boardroom`, to their question.
 
-| Mode | Trigger | Members | Retrieval (Round 0c) | Peer review + ranking | Debate | Decision-science pass | Synthesis audit |
+| Mode | Trigger | Members | Retrieval (Round 0c) | Peer review + ranking | Debate | Decision-science pass | Closing check |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quick | `-quick` flag; low-stakes, reversible within a day | 3 most relevant (keep >= 1 adversarial seat) | None, and say so | No | No | No | No |
-| Standard | default | all members | Bounded pass | Yes | Only if consensus is suspiciously clean (see convergence rule) | No | No |
-| Deep | `-deep` flag; high-stakes, costly to reverse | all members | Bounded pass + landscape sweep | Yes | Always | Yes | Yes |
-| Boardroom | `-boardroom` flag; high-stakes AND you want live cross-talk | all members as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Yes | Yes |
+| Quick | `-quick` flag; low-stakes, reversible within a day | 3 most relevant (keep >= 1 adversarial seat) | None, and say so | No | No | No | Chairman self-check |
+| Standard | default | all members | Bounded pass | Yes | Only if consensus is suspiciously clean (see convergence rule) | No | Dispatched fidelity check |
+| Deep | `-deep` flag; high-stakes, costly to reverse | all members | Bounded pass + landscape sweep | Yes | Always | Yes | Full synthesis audit |
+| Boardroom | `-boardroom` flag; high-stakes AND you want live cross-talk | all members as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Yes | Full synthesis audit |
 
 - **Quick**: select the 3 members whose mandate is most relevant (e.g. a pure privacy question maps to compliance-analyst, dpo). Always keep at least one adversarial seat (offensive-security or risk-manager) so a 3-seat run is not all-defenders. State which 3 you picked and why. Quick runs **no retrieval**: set `<RETRIEVAL_STATE>` to `OFF (Quick mode)` so the seats do not search either, and say so in the output, so a Quick verdict is never mistaken for a grounded one. A Quick run that let three seats search would be making the claim false.
 - **Deep**: after cross-exam, add a decision-science pass. Lay the options in a comparison (cost / risk-reduction / effort / reversibility), do an explicit risk-appetite check, and surface the highest-leverage option. Then run the synthesis audit (see Round 3).
@@ -236,7 +236,24 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 
 **Gate A and Gate B (two closing gates).** Gate A is the consensus-too-clean trigger already run in Round 2: if the panel converged with no real friction on a material call, force the debate before you trust it. Gate B is new and structural: for every TRIGGERED obligation from the determination pass, the synthesis MUST contain a matching action with a named owner and a clock. If any is missing, REOPEN, and require the determination owner to either include it or justify the exclusion on the record. Consensus does not override a missing statutory or registered action, and a hard legal stop still stands even if every seat wanted to skip it. Gate B generalizes "force debate on suspicious consensus" to "force surfacing on silent omission."
 
-**Provenance audit (every mode).** Item (f) below runs on every run, not only Deep and Boardroom: re-read the `verified` list against the retrieval brief and confirm each entry names a Part B ref and a lookup from this run. It is a Gate C re-check and costs a single pass over one list. Run it even in Quick, where `verified` should be empty and a populated one is itself the finding.
+### Closing checks: fidelity and provenance (scaled by mode, never skipped)
+
+The chairman is the same model that ran the panel, so the most likely defect in a finished synthesis is not a missing fact, it is the chairman quietly flattering the panel and himself. Observed failure modes, all three seen in real runs: a seat's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where three seats out of seven actually said it, and a residual risk score dropped below what the anchoring rule allows so the recommendation looks more valuable than it is.
+
+**These four checks run in every mode.** They are cheap, and the failure they catch is not depth-specific.
+
+1. **Dropped dissent.** Did any seat record a dissent, a reframe, or a hard objection that the synthesis softened into a tradeoff, or left out? A registered dissent is an instrument, not one pole of a balance. Name the seat.
+2. **Manufactured unanimity.** Does the synthesis say "all seats" or "the panel agreed" where the returns show some seats, and the rest merely not contradicting? Attribute per seat, or write "N of 7 explicitly, none contradicted".
+3. **Confidence above the panel.** Is the chairman's confidence or probability higher than the seats' own distribution supports? List the seats' numbers and check yours sits inside or below them.
+4. **Risk rating against the rules.** Does the likelihood contradict an observed fact, that is, an already-materialised impact scored below Likely? Is the inherent-to-residual gap real, or manufactured by dropping likelihood on harm that has already occurred?
+
+**How to run them, by mode:**
+
+- **Quick.** Chairman self-check against the four questions above, and say in one line that it was a self-check. Weaker than an independent pass, because the same model is marking its own work; state that rather than implying otherwise. A dispatched reviewer is disproportionate for a 3-seat, low-stakes, reversible run.
+- **Standard.** Dispatch ONE fresh sub-agent (a general reviewer, not a persona) with a narrow brief: the four checks above plus the Gate B and Gate C misses, nothing else. Give it the seats' actual returns and the draft synthesis. It returns a short list or "nothing flagged". This is the cheapest independent check that exists, roughly one agent against seven, and it is what stands between a Standard run and an unexamined chairman.
+- **Deep and Boardroom.** The full synthesis audit below subsumes these four; do not run both.
+
+Fold the findings in before finalising. If nothing is flagged, say so in one line.
 
 **Synthesis audit (Deep and Boardroom only).** After you draft the synthesis, dispatch ONE fresh sub-agent (a general reviewer, not a persona) with a narrow brief: compare the draft synthesis against the members' actual Round-1/Round-2 outputs and flag (a) dissent that was dropped or softened, (b) any claim in the synthesis that no member actually made, (c) a chairman confidence or probability higher than the members' own distribution supports, and (d) a risk rating whose likelihood contradicts an observed fact (an already-materialized impact scored below Almost certain), or an inherent and residual score left identical where the recommendation clearly reduces exposure, and (e) a TRIGGERED obligation from the determination pass with no matching action (named owner and clock) in the synthesis, that is, a Gate B miss, and (f) a `verified` entry that does not name a Part B ref and a lookup from this run, that is, a Gate C miss. Because the chairman is the same model that ran the panel, this catches self-smoothing. Fold the audit's findings in before finalizing; if it flags nothing, say so in one line.
 

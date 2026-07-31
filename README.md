@@ -177,12 +177,12 @@ council. See [The team skills](#the-team-skills-red-blue-incident) for the seats
 
 Append a depth flag (`-quick`, `-standard`, `-deep`, or the experimental `-boardroom`) to your question, or let the council pick (defaults to Standard).
 
-| Mode | When | Members | Retrieval | Peer review + ranking | Debate |
-|---|---|---|---|---|---|
-| **Quick** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | None, and it says so | No | No |
-| **Standard** | Default | All 7 | Bounded pass | Yes | Only if consensus is suspiciously clean |
-| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Bounded pass + landscape sweep | Yes | Always |
-| **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always |
+| Mode | When | Members | Retrieval | Peer review + ranking | Debate | Closing check |
+|---|---|---|---|---|---|---|
+| **Quick** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | None, and it says so | No | No | Chairman self-check |
+| **Standard** | Default | All 7 | Bounded pass | Yes | Only if consensus is suspiciously clean | Dispatched fidelity check |
+| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Bounded pass + landscape sweep | Yes | Always | Full synthesis audit |
+| **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Full synthesis audit |
 
 Every member ends with a **required output block** (stance / confidence / probability /
 assumptions / what would change my mind / unknowns) so the verdict is calibrated, not just
