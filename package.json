@@ -17,6 +17,15 @@
     "compliance"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/Menno-MBA/infosec-council#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Menno-MBA/infosec-council.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Menno-MBA/infosec-council/issues"
+  },
+  "author": "Luméro (https://lumero.nl)",
   "type": "commonjs",
   "bin": {
     "infosec-council": "bin/cli.js"
