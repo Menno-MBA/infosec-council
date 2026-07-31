@@ -150,11 +150,22 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    each, note where the others are wrong and what they missed, and restate STANCE and
    PROBABILITY (they may change). Have each advisor score every other position on
    soundness (1 to 5) with a one-line reason; aggregate to a ranking you weigh in synthesis.
-   - **Convergence check.** If, after real challenge, the advisors converge (>= 6 of 7 on
-     the same stance) and nobody flipped just to agree, stop; note "converged after
-     challenge." If they agreed too easily (thin disagreement), run one forced-debate
-     round first. If they stay split, carry the split into synthesis; do not manufacture
-     agreement. Cap the deliberation at two exchanges (three in Deep).
+   - **Convergence check.** A shared stance label is necessary and not sufficient:
+     `conditional-go` absorbs any condition, so seven advisors can return the same word
+     while asking for seven different things. Convergence needs all three: (1) >= 6 of 7 on
+     the same stance; (2) where those are conditional stances (`conditional-go`, `defer`,
+     `reframe`), their named CONDITION lines materially agree — the test is *would
+     executing one advisor's condition satisfy the other?*, and a conditional stance with
+     no named condition **is not agreement evidence**, so treat it as not agreeing; and (3)
+     the highest and lowest PROBABILITY **differ by at most 20 points**, because identical
+     labels over a 45-to-90 spread is disagreement about how sure. All three holding, and
+     nobody flipping just to agree: stop, note "converged after challenge." Label holds but
+     condition or spread fails: that is a **label-only** split wearing one word — do not
+     stop early, run the forced debate at the divergence the label hid, and record
+     `converged: "label-only"` so it is countable rather than a judgement nobody can see
+     afterwards. Agreed too easily (thin disagreement): run one forced-debate round first.
+     Stay split: carry the split into synthesis; do not manufacture agreement. Cap the
+     deliberation at two exchanges (three in Deep).
    - **Forced debate** (when triggered): have the two most-opposed mandates argue the
      strongest case against the emerging consensus, and require a concrete pre-mortem
      artifact ("it is 12 months later and this failed, here is the story"), not generic contrarianism.
@@ -182,14 +193,17 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
 End every advisor's turn with:
 ```
 STANCE: <go | conditional-go | no-go | defer | reframe>
+CONDITION: <required when the stance is conditional-go, defer or reframe: the one thing that must be true or happen to move to go. Omit the line for a plain go or no-go.>
 CONFIDENCE: <low | medium | high>
 PROBABILITY: <0-100>%  (estimate this recommendation survives a 12-month look-back)
 ASSUMPTIONS: <load-bearing assumptions>
 WHAT WOULD CHANGE MY MIND: <evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>
 ```
-STANCE makes the convergence and debate checks concrete; PROBABILITY (a number) tracks
-far better than a bare word. Keep the word-label too, for the business reader.
+STANCE makes the convergence and debate checks concrete; CONDITION is what stops a shared
+label from passing as agreement, since without it seven advisors asking for seven different
+things all read as `conditional-go`; PROBABILITY (a number) tracks far better than a bare
+word. Keep the word-label too, for the business reader.
 
 ## Branded HTML report
 This skill bundles `report.js` (Node, preferred, zero-dependency) and `report.sh` (bash,

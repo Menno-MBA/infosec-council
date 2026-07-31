@@ -65,6 +65,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
     | if ($v|test("reckless|avoid|do not|don.t|not recommend|no-go")) then "vr" elif ($v|test("recommend|best|go\\b")) then "vg" else "va" end;
   def converged_label: (. // "" | ascii_downcase) as $c
     | if $c=="after-challenge" then "the panel converged after being challenged"
+      elif $c=="label-only" then "the panel agreed on the verdict but not on what it required, so that hidden split was debated rather than trusted"
       elif $c=="split" then "the panel stayed split, so the trade-offs below are real choices for you"
       elif $c=="forced-debate" then "consensus was stress-tested in a forced debate before it was trusted"
       else "" end;

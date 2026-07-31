@@ -206,8 +206,15 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 
 **Scored anonymous ranking.** In the same pass, each member scores every OTHER position (never its own) on soundness (1 = would not survive scrutiny, 5 = would survive hard scrutiny) with a one-line reason, and names the single position it thinks is most wrong. **Score the reasoning, not the writing:** judge how well the argument would hold up under scrutiny, not its length, fluency, or how confidently it is asserted; length, eloquence, and self-assurance are exactly the verbosity and confidence biases an LLM judge falls for, and they are not evidence. Aggregate the scores into a per-position mean, but read it as a soft signal, not a verdict: report the spread alongside the mean, treat positions within about half a point of each other as tied, and if one scorer is a clear outlier against the other five, prefer the median so a single adversarial or eccentric score cannot sink an otherwise sound position. That ranking is a credibility signal you weigh in synthesis (higher-ranked reasoning gets more benefit of the doubt) and render in the report. Do not let ranking override a hard legal/regulatory stopper, and never let a high peer score launder a position that rests on an `UNVERIFIED` load-bearing fact.
 
-**Convergence detection and early stopping.** After the cross-exam pass, read the STANCE distribution:
-- **Genuine convergence -> stop early.** If, after real challenge, the seats have converged (>= 6 of 7 on the same stance) AND that convergence survived the cross-exam (members explicitly weighed and rejected the alternatives; nobody flipped merely to join the majority; no unresolved hard-stop), treat it as settled. Do not run further exchanges; go to synthesis and note "converged after challenge." Extra rounds past genuine convergence mostly amplify conformity.
+**Convergence detection and early stopping.** A shared STANCE label is necessary for convergence and not sufficient. `conditional-go` absorbs any condition, so seven seats can return the same word while asking for seven different things, and a stance count would read that as consensus. Test all three:
+
+1. **Label.** >= 6 of 7 on the same stance.
+2. **Condition.** Where any of those seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree. The test is a question with an answer: *would executing seat A's condition satisfy seat B?* A seat that returned a conditional stance without naming its condition is not agreement evidence; treat it as not agreeing. Reading silence as assent is the same defect one level down.
+3. **Spread.** The highest and lowest PROBABILITY across the panel differ by at most 20 points. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement.
+
+Then read the result:
+- **All three hold -> genuine convergence, stop early.** If that convergence also survived the cross-exam (members explicitly weighed and rejected the alternatives; nobody flipped merely to join the majority; no unresolved hard-stop), treat it as settled. Do not run further exchanges; go to synthesis and note "converged after challenge." Extra rounds past genuine convergence mostly amplify conformity.
+- **Label holds, condition or spread fails -> `label-only`.** A split wearing one word, and the failure this test exists to catch. Do NOT early-stop: run the forced debate exactly as for suspiciously-clean consensus, aimed at the divergence the label hid. Record `converged: "label-only"` so the failure mode is countable across runs instead of a judgement made once that nobody can see afterwards.
 - **Suspiciously clean consensus -> forced debate.** If the seats agreed *without much friction* (Standard: >= 6 of 7 aligned already in Round 1 with thin disagreement; Deep and Boardroom: always), do NOT trust it yet. Run one focused debate round (below).
 - **Persistent divergence -> no early stop.** If stances stay split, that is live conflict. Carry it into synthesis as a tradeoff; never manufacture agreement and never early-stop over the top of it.
 
@@ -289,7 +296,7 @@ echo '{
   "probability": <0-100>,
   "recommendation": "<your one-line call>",
   "key_assumption": "<the load-bearing assumption>",
-  "converged": "<after-challenge|split|forced-debate>",
+  "converged": "<after-challenge|label-only|split|forced-debate>",
   "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","confidence":"<low|medium|high>","probability":<0-100>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
@@ -302,7 +309,7 @@ echo '{
   "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
   "verified": ["<load-bearing fact this run actually retrieved, with its source>"],
   "unverified": ["<any load-bearing fact you could not verify>"],
-  "converged": "<after-challenge|split|forced-debate>",
+  "converged": "<after-challenge|label-only|split|forced-debate>",
   "risks": ["..."], "consensus": "...", "conflicts": ["..."], "blind_spots": ["..."],
   "risk_score": {"inherent":{"impact":"negligible|minor|moderate|major|severe","likelihood":"rare|unlikely|possible|likely|almost certain","rationale":"..."},"residual":{"impact":"negligible|minor|moderate|major|severe","likelihood":"rare|unlikely|possible|likely|almost certain","rationale":"..."}},
   "obligations": {"triggered":[{"label":"GDPR breach notification to the DPA","action":"Notify the supervisory authority; open the breach register at awareness.","determination":"DPO","execution":"DPO","clock":"72h from awareness","recipient":"Autoriteit Persoonsgegevens (AP)","ref":"GDPR Art.33"}],"ruled_out":[{"label":"NIS2 Art.23 early warning (24h)","reason":"entity not in NIS2/Cbw scope at the decision date"}]},
@@ -338,13 +345,14 @@ The script writes `council-report-<timestamp>-<sha>.html` and prints the path. T
 Every member must end their response with:
 ```
 STANCE: <go | conditional-go | no-go | defer | reframe>
+CONDITION: <required when your stance is conditional-go, defer or reframe: the one thing that must be true or must happen for you to move to go. Omit this line entirely for a plain go or no-go.>
 CONFIDENCE: <low | medium | high>
 PROBABILITY: <0-100>%  (your estimate that this recommendation would survive a 12-month look-back)
 ASSUMPTIONS: <the load-bearing assumptions behind my view>
 WHAT WOULD CHANGE MY MIND: <the evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>
 ```
-STANCE and PROBABILITY are not optional: STANCE makes the convergence and debate triggers mechanical rather than a judgment call, and PROBABILITY (a number, not just a word) is far better calibrated to track over time than a bare low/med/high. Keep the word-label too, for the business reader.
+STANCE, CONDITION and PROBABILITY are not optional. STANCE makes the convergence and debate triggers mechanical rather than a judgment call. CONDITION is what stops a shared label from passing as agreement: without it, seven seats asking for seven different things all read as `conditional-go`, and the convergence test has nothing to compare. PROBABILITY (a number, not just a word) is far better calibrated to track over time than a bare low/med/high; keep the word-label too, for the business reader.
 
 ## Rules
 - Never collapse disagreement into false consensus. Conflict is the product.

@@ -47,6 +47,9 @@ const SHARED_POLICY = [
   ['measured reliability beside asserted', 'measured reliability'],
   ['closing check runs in every mode', 'dropped dissent'],
   ['manufactured unanimity check', 'manufactured unanimity'],
+  ['label-only convergence outcome', 'label-only'],
+  ['an unnamed condition is not agreement', 'is not agreement evidence'],
+  ['probability spread bounds convergence', 'differ by at most 20 points'],
 ];
 
 // Deliberately NOT checked for parity, with the reason, so a future maintainer does not

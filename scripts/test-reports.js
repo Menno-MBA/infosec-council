@@ -73,9 +73,10 @@ function assert(cond, msg) {
   else { console.error('  FAIL: ' + msg); failed++; }
 }
 
-function render(cmd, args) {
+function render(cmd, args, overrides) {
   const env = Object.assign({}, process.env, { COUNCIL_REPORT_DIR: TMP });
-  const r = cp.spawnSync(cmd, args, { input: JSON.stringify(FIXTURE), env, encoding: 'utf8' });
+  const payload = overrides ? Object.assign({}, FIXTURE, overrides) : FIXTURE;
+  const r = cp.spawnSync(cmd, args, { input: JSON.stringify(payload), env, encoding: 'utf8' });
   if (r.status !== 0) throw new Error((cmd + ' failed: ' + (r.stderr || r.stdout)));
   const line = (r.stdout || '').trim().split(/\r?\n/).pop();
   const m = line.match(/(\S+\.html)/);
@@ -105,6 +106,33 @@ assert(/<td><span class="st req">Required<\/span><\/td>/.test(js), 'a triggered 
 assert(js.includes('72h from awareness'), 'triggered obligation shows its determination owner and clock');
 assert(js.includes('Considered and ruled out this deliberation'), 'explicit-negative ledger renders');
 assert(js.includes('entity not in NIS2/Cbw scope at the decision date'), 'a ruled-out obligation shows its one-line reason');
+
+// Panel-outcome vocabulary. `label-only` was added when convergence stopped being a
+// stance count: it marks a panel that shared a verdict word while its seats meant
+// different things. Each of the four must render as its own plain-English phrase --
+// a value that fell through the map would silently render as no panel-outcome line
+// at all, which reads as "nothing to report" rather than as a missing case.
+const CONVERGED_CASES = [
+  ['after-challenge', 'converged after being challenged'],
+  ['label-only', 'agreed on the verdict but not on what it required'],
+  ['split', 'stayed split'],
+  ['forced-debate', 'stress-tested in a forced debate']
+];
+const convergedPhrases = new Set();
+for (const [value, phrase] of CONVERGED_CASES) {
+  const out = render('node', [path.join(SKILL, 'report.js')], { converged: value });
+  assert(out.includes('Panel outcome:') && out.includes(phrase),
+    'converged "' + value + '" renders its own phrase');
+  convergedPhrases.add(phrase);
+}
+assert(convergedPhrases.size === CONVERGED_CASES.length,
+  'the four panel outcomes render distinctly, none collapsing onto another');
+
+// An unrecognised value must degrade to no panel-outcome line rather than leaking the
+// raw token into a business-facing dossier.
+const unknownConverged = render('node', [path.join(SKILL, 'report.js')], { converged: 'sort-of-agreed' });
+assert(!unknownConverged.includes('Panel outcome:') && !unknownConverged.includes('sort-of-agreed'),
+  'an unknown converged value renders no panel-outcome line and never leaks the raw token');
 
 function has(cmd) { try { return cp.spawnSync(cmd, ['--version'], { encoding: 'utf8' }).status === 0 || cmd === 'bash'; } catch (_) { return false; } }
 

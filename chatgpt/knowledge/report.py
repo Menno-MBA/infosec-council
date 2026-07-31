@@ -40,6 +40,7 @@ def vclass(v):
 def converged_label(v):
     return {
         "after-challenge": "the panel converged after being challenged",
+        "label-only": "the panel agreed on the verdict but not on what it required, so that hidden split was debated rather than trusted",
         "split": "the panel stayed split, so the trade-offs below are real choices for you",
         "forced-debate": "consensus was stress-tested in a forced debate before it was trusted",
     }.get((v or "").strip().lower(), "")
