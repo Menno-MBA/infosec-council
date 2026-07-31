@@ -40,6 +40,23 @@ maintained register of authoritative sources, scaled by depth mode.
   analysed as a string, never visited. `SECURITY.md` gains two threat-model rows, a retrieval
   honest-limits section, and a corrected claim: the scripts still make no network calls, the skills
   now do. A test fixture ships so the data-never-instruction rule can be tested rather than asserted.
+- **The calibration loop is closed.** The journal had 8 runs and 0 recorded outcomes, so every
+  confidence figure the council printed was unfalsifiable. The cause was the vocabulary, not
+  laziness: `correct|partial|wrong` had no slot for the most common real result, which is that
+  nobody executed the recommendation, so it was never put to the test. Adds **`not-tested`** as a
+  fourth outcome, deliberately excluded from the Brier and ECE maths and surfaced instead as a
+  **`delivery_rate`**, because a high not-tested count is an execution problem in the organisation
+  and must not be read off the same number as panel accuracy. Adds **`journal.js pending [days]`**,
+  the ungraded runs old enough to have a result. Round 0 now reports that ledger every run, uses the
+  `lookback` command rather than eyeballing the file, and asks for a comparable prior run's outcome
+  before deliberating, since that result is the highest-value input available; it never blocks a live
+  incident for bookkeeping. Round 3 states measured reliability beside asserted confidence, or says
+  plainly that too few outcomes are graded to claim one. The `family` hash comment is corrected: it
+  is an exact-question fingerprint and does not link reruns, which `lookback` does by similarity.
+- **A desktop parity guard.** `scripts/check-desktop-parity.js` asserts that the hand-maintained
+  `desktop/SKILL.md` states the same retrieval and outcome policy as the council orchestrator. It
+  found three real divergences on its first run. Deliberate exclusions (the pending ledger, which
+  needs a journal that survives between sessions) are recorded in the script with their reason.
 - **Editions.** The register ships in the Claude Code / plugin and Claude.ai/Desktop editions and is
   preserved across upgrades the way a customized `frameworks.md` is (`.prev` backup, `--reset-config`
   to reset). **The ChatGPT edition is unchanged** — no new knowledge file, no instruction rewrite —
