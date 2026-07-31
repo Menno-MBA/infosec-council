@@ -60,6 +60,11 @@ const SHARED_POLICY = [
 const NOT_SHARED = [
   ['pending ledger', 'journal.js pending'],
   ['ungraded prior run prompt', 'still pending'],
+  // Round-2 instrumentation (stance_r1 / probability_r1 / blind_spots_from_r2) exists
+  // to be aggregated by `journal.js meta` across many runs. With no journal there is
+  // nothing to aggregate, so recording it in the Desktop edition would cost prompt
+  // budget for a measurement nobody can ever read.
+  ['round-2 delta capture', 'stance_r1'],
 ];
 
 function main() {

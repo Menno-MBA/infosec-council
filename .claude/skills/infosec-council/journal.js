@@ -172,6 +172,64 @@ function cmdMeta() {
     return { n: scored.length, ece: +ece.toFixed(3), reliability_curve: curve };
   }
 
+  // Round-2 value. The anonymized cross-exam is the protocol's most expensive round
+  // -- seven briefs, seven cross-exams, forty-two peer scores -- and nothing recorded
+  // whether it moved anyone, so "does Round 2 earn its cost" could not be answered
+  // from the journal at all. A run carries the data when at least one seat logged its
+  // pre-cross-exam position (`stance_r1` / `probability_r1`).
+  //
+  // The aggregate is computed here, never stored on the record. Freezing one
+  // definition of "moved" into every record would make the metric unrevisable.
+  const ROUND2_MIN_RUNS = 5;
+  function round2ValueOf(list) {
+    // Quick runs have no Round 2 to measure. Excluded explicitly as well as by the
+    // r1-data test below: counted as runs where nothing moved, they would drag the
+    // mean toward "the cross-exam changes nothing" with no cross-exam ever run.
+    const scored = list.filter(r => r.mode !== 'quick' && (r.members || []).some(
+      m => m && (typeof m.stance_r1 === 'string' || typeof m.probability_r1 === 'number')));
+
+    const out = { runs_with_data: scored.length, threshold: ROUND2_MIN_RUNS };
+    if (scored.length < ROUND2_MIN_RUNS) {
+      out.note = 'too few runs carry pre-cross-exam positions to say anything yet ('
+        + scored.length + ' of ' + ROUND2_MIN_RUNS + '); reporting a mean over this many '
+        + 'would read as a finding it is not';
+      return out;
+    }
+
+    let flipRuns = 0, flipSeats = 0, deltaSum = 0;
+    for (const r of scored) {
+      const members = r.members || [];
+      const flips = members.filter(m => m && typeof m.stance_r1 === 'string' && m.stance_r1 !== m.stance).length;
+      if (flips > 0) flipRuns++;
+      flipSeats += flips;
+      // Absolute, so a seat losing confidence does not cancel a seat gaining it --
+      // two seats moving 30 points in opposite directions is movement, not stillness.
+      const withBoth = members.filter(m => m && typeof m.probability_r1 === 'number' && typeof m.probability === 'number');
+      if (members.length) {
+        deltaSum += withBoth.reduce((a, m) => a + Math.abs(m.probability - m.probability_r1), 0) / members.length;
+      }
+    }
+    out.runs_with_a_stance_flip = flipRuns;
+    out.share_of_runs_with_a_stance_flip = +(flipRuns / scored.length).toFixed(3);
+    out.mean_seats_with_stance_flip = +(flipSeats / scored.length).toFixed(3);
+    out.mean_abs_probability_delta = +(deltaSum / scored.length).toFixed(3);
+
+    // Kept in its own block, deliberately. The two figures above are arithmetic on
+    // what the seats actually returned. This one is the chairman's own attribution of
+    // which blind spots first surfaced in Round 2 -- a judgement by the same model
+    // that ran both rounds, and one it has an interest in. Blending it into the
+    // movement statistics would launder a self-report as a measurement.
+    const attributed = scored.filter(r => typeof r.blind_spots_from_r2 === 'number');
+    out.blind_spots_attributed_to_round2 = {
+      runs_with_data: attributed.length,
+      mean: attributed.length
+        ? +(attributed.reduce((a, r) => a + r.blind_spots_from_r2, 0) / attributed.length).toFixed(3)
+        : null,
+      note: 'self-reported by the chairman, who ran both rounds; weigh it below the movement figures'
+    };
+    return out;
+  }
+
   const byConf = {};
   for (const r of recs) {
     const c = r.confidence || 'unknown';
@@ -226,6 +284,7 @@ function cmdMeta() {
     delivery,
     brier_overall: brierOf(recs),
     ece_overall: eceOf(recs),
+    round2_value: round2ValueOf(recs),
     calibration_by_confidence: calibration,
     high_confidence_misses: highMisses,
     member_appearances

@@ -1,5 +1,5 @@
 742009ef7a488b03a4a9acffd88ee716c5804511499678ec5df3599c337f7dcf  .claude/skills/infosec-blueteam/report.js
-11fd51eb34e1af1a6f4dfe71490e589dcdfa52f7e86ec46991c35fff9d18a084  .claude/skills/infosec-council/journal.js
+cb58881bb02b34b83c4f9f8036c9aaa823405ab54ed2e82256ec19b3966c2278  .claude/skills/infosec-council/journal.js
 3f2806d6208f1c014f5cab0b4b42b60516d92544f7711d743513b6ed13851503  .claude/skills/infosec-council/journal.sh
 e98a5f9b3f3555bb45e44df8586b4736198d01f1bbbdaf775270b511f242256d  .claude/skills/infosec-council/report.js
 3e0534276a69aa976a893a7162b1f29254ee75548853e8ee0a2ba15f54a704b6  .claude/skills/infosec-council/report.sh
@@ -8,11 +8,12 @@ df46755ed7759349cd576f49b47abd5e3a160dce371d3f257f37bfb90f986f86  .claude/skills
 1336d57211e7e53c8cf2799a49a61201ddd2e3f7cf454b7d1a338f9764a2c386  bin/cli.js
 129950fd44b7b2542a9c57a4132df7190be11eb52781e7b54c19e55f2c72d1d7  chatgpt/knowledge/report.py
 fa2d3f0a1de084d2e5a3da4882cd563a8913614243610d32c4a2e7d735ac4ec6  scripts/build-desktop-skill.sh
-c099889c5b8b20a4037e802cefa804d9ba8a1ab857f6ab6b4b8b1c64f96d3abc  scripts/check-desktop-parity.js
+6ee731e203370c202773f2f9d1ebbc1b546e98e7b148f2bdd540d579521c6857  scripts/check-desktop-parity.js
 5e35da6ff68318813da4cf6f0a5dd12bbb6f4c507ae811e37fbcc23fb1ad215e  scripts/check-versions.js
 f9a704861ae2a4ff944e415548c1347c12fe70b004211fe1f567899cb4811d5b  scripts/install-cli.sh
 8f6c949233ced57d440aa519ca4cca27a407078b6de7b71d301764bc5176ebf9  scripts/integrity.js
 8b1e8863aab8941734b45a88dfac22dbc47d2d5462800983d9ccf2d4e0d12d45  scripts/sync-chatgpt.js
+8dde4078a16dfe0064888edfa6ada7bb213d8571a3c3a07ee3a714c2164fa5bd  scripts/test-journal.js
 566265c0c07f7a07a8f0649117aaf525c21768ceba380cc87d3625487b15a682  scripts/test-reports.js
 # --- shipped config (advisory: local tuning is expected) ---
 7dc8c6ce12708e6e8e454e3927c9317a31fe74744ce12ed4e506c26e0177f722  .claude/skills/infosec-council/external-websources.md

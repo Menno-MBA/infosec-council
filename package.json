@@ -37,7 +37,7 @@
     "check:versions": "node scripts/check-versions.js",
     "integrity": "node scripts/integrity.js --check",
     "integrity:write": "node scripts/integrity.js --write",
-    "test": "node scripts/check-versions.js && node scripts/check-desktop-parity.js && node scripts/integrity.js --check && node scripts/sync-chatgpt.js --check && node scripts/test-reports.js",
+    "test": "node scripts/check-versions.js && node scripts/check-desktop-parity.js && node scripts/integrity.js --check && node scripts/sync-chatgpt.js --check && node scripts/test-reports.js && node scripts/test-journal.js",
     "check:desktop": "node scripts/check-desktop-parity.js",
     "check:chatgpt": "node scripts/sync-chatgpt.js --check"
   }

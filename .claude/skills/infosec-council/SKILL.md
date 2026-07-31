@@ -202,7 +202,9 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 
 **Mediate, do not dump.** Do not paste six full Round-1 answers into each member. Compress Round 1 into a per-member anonymized brief with three parts: (a) the claims from other seats that conflict with this member's position, (b) the claims no one has yet challenged, and (c) each other position's STANCE and PROBABILITY, labelled "Expert A..G" with identities hidden. Mediated summaries let members deliberate without anchoring on a specific voice, and anonymization is not cosmetic: it measurably reduces the tendency to defer to a named peer. Keep the author labels stripped throughout, and **rotate the order** in which the positions are listed from one member's brief to the next (do not always lead with Expert A), so no position gains an advantage from a fixed slot; order/position bias is a known LLM-judge failure mode and rotating the presentation neutralizes it. Compress each position to a comparable length so a longer write-up does not read as a stronger one.
 
-**Cross-examine.** Ask each member: "Here are the other positions (sources hidden). Where are they wrong, what blind spot did they miss, and does any of it change your position? Restate your STANCE and PROBABILITY (they may change)."
+**Cross-examine.** Ask each member: "Here are the other positions (sources hidden). Where are they wrong, what blind spot did they miss, and does any of it change your position? Restate your STANCE, CONDITION and PROBABILITY (they may change)."
+
+**Keep the before-picture.** Hold each seat's Round-1 STANCE and PROBABILITY alongside its restated pair, and log both (`stance_r1`, `probability_r1` per member). This round is the protocol's most expensive one, and until now nothing recorded whether it moved anybody, so its value rested on argument rather than evidence. Costs two fields; `journal.js meta` turns them into a measured answer over enough runs.
 
 **Scored anonymous ranking.** In the same pass, each member scores every OTHER position (never its own) on soundness (1 = would not survive scrutiny, 5 = would survive hard scrutiny) with a one-line reason, and names the single position it thinks is most wrong. **Score the reasoning, not the writing:** judge how well the argument would hold up under scrutiny, not its length, fluency, or how confidently it is asserted; length, eloquence, and self-assurance are exactly the verbosity and confidence biases an LLM judge falls for, and they are not evidence. Aggregate the scores into a per-position mean, but read it as a soft signal, not a verdict: report the spread alongside the mean, treat positions within about half a point of each other as tied, and if one scorer is a clear outlier against the other five, prefer the median so a single adversarial or eccentric score cannot sink an otherwise sound position. That ranking is a credibility signal you weigh in synthesis (higher-ranked reasoning gets more benefit of the doubt) and render in the report. Do not let ranking override a hard legal/regulatory stopper, and never let a high peer score launder a position that rests on an `UNVERIFIED` load-bearing fact.
 
@@ -228,7 +230,7 @@ Then read the result:
 2. **Mode used**: and which members were consulted; note whether the panel converged after challenge, was split, or was pushed through a forced debate.
 3. **Consensus**: where members agreed, and whether that agreement is trustworthy (genuine-after-challenge vs thin).
 4. **Live conflicts**: unresolved disagreements as tradeoffs, not mush.
-5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed.
+5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed. Count how many of these first appeared in Round 2 rather than Round 1 and log it as `blind_spots_from_r2`. This measures the cross-exam's unique contribution rather than mere churn, and it is your own attribution, so `meta` reports it apart from the seats' arithmetic movement rather than blended in. Count honestly, including zero.
 6. **Minority report**: the strongest dissent worth preserving even if outvoted, including the pre-mortem story if the forced debate ran.
 7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high), a PROBABILITY it survives a 12-month look-back, the key assumption it rests on, and any `UNVERIFIED` load-bearing fact it depends on.
 
@@ -297,10 +299,11 @@ echo '{
   "recommendation": "<your one-line call>",
   "key_assumption": "<the load-bearing assumption>",
   "converged": "<after-challenge|label-only|split|forced-debate>",
-  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","confidence":"<low|medium|high>","probability":<0-100>}, ... ]
+  "blind_spots_from_r2": <how many of the synthesis blind spots first appeared in Round 2; omit in Quick>,
+  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
-Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
+Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. The `_r1` fields and `blind_spots_from_r2` are what let `meta` say whether the cross-exam moves anyone; leave them out of a Quick run, which has no Round 2 to measure, rather than writing them as unchanged. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
 
 **HTML report.** Two generators sit beside the journal scripts and produce the identical branded dossier: `report.js` (Node, zero dependencies, **preferred**) and `report.sh` (bash, needs `jq`). **Use `report.js` by default** (no `jq`, and it base64-embeds the brand logos so header/footer always render). Only fall back to `report.sh` if Node is unavailable. **Never hand-roll your own report generator**; if one script errors, switch to the other. After synthesis, offer (or, if the user asked for a report, produce) the dossier. Build a rich JSON object with these fields and pipe it to the generator:
 ```
