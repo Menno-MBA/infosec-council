@@ -148,7 +148,7 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    positions as "Expert A..G" (hide which is which). Feed each advisor a short anonymized
    brief of the conflicting claims, not the full transcripts, to avoid anchoring. For
    each, note where the others are wrong and what they missed, and restate STANCE,
-   CONDITION and PROBABILITY (they may change) — the convergence check below compares
+   CONDITION and PROBABILITY (they may change), because the convergence check below compares
    conditions, so a condition softened under cross-examination must be restated or it is
    tested stale. Have each advisor score every other position on
    soundness (1 to 5) with a one-line reason; aggregate to a ranking you weigh in synthesis.
@@ -156,7 +156,7 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
      `conditional-go` absorbs any condition, so seven advisors can return the same word
      while asking for seven different things. Convergence needs all three: (1) >= 6 of 7 on
      the same stance; (2) where those are conditional stances (`conditional-go`, `defer`,
-     `reframe`), every pair of their named CONDITION lines materially agrees — the test is
+     `reframe`), every pair of their named CONDITION lines materially agrees. The test is
      *would executing one advisor's condition satisfy the other, and theirs satisfy this
      one?*, and a conditional stance with no named condition (or a "none"/"n/a"
      placeholder) **is not agreement evidence**, so treat it as not agreeing; and (3)
@@ -166,9 +166,9 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
      forgives one dissenter, so measuring across the panel would let that same advisor
      fail test 3 and mislabel an ordinary 6-of-7 run.
    - **Route in this order, first match wins.** (a) In Deep, always run the forced debate,
-     then record whichever outcome the three tests gave. (b) Label fails: **split** — carry
-     it into synthesis, never manufacture agreement. (c) Label holds but condition or
-     spread fails: that is a **label-only** split wearing one word — do not stop early, run
+     then record whichever outcome the three tests gave. (b) Label fails: **split**, so carry
+     it into synthesis and never manufacture agreement. (c) Label holds but condition or
+     spread fails: that is a **label-only** split wearing one word, so do not stop early. Run
      the forced debate at the divergence the label hid, and record
      `converged: "label-only"` so it is countable rather than a judgement nobody can see
      afterwards. (d) All three hold but the agreement came without friction: run one
@@ -187,7 +187,7 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    Minority report (with the pre-mortem story if debate ran) · Regulatory obligations (the
    TRIGGERED required actions with owner and clock, plus the explicit-negative ledger of what
    was ruled out and why) · One next step.
-   - **Closing check: fidelity (every mode).** The chairman is the same voice that played all seven advisors, so the likeliest defect in a finished synthesis is not a missing fact, it is flattering the panel and yourself. Three failure modes seen in real runs: an advisor's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where only some advisors said it, and a residual risk score dropped below what the anchoring rule allows so the recommendation looks more valuable than it is. Before you close, check four things: (1) **dropped dissent** — did any advisor record a dissent or reframe that you softened or left out? Name them. (2) **manufactured unanimity** — does the synthesis say "all advisors" where only some did? Attribute per advisor instead. (3) **confidence above the panel** — is your confidence higher than the advisors' own numbers support? (4) **risk rating against the rules** — is an already-materialised impact scored below Likely, or is the inherent-to-residual gap manufactured by dropping likelihood on harm that already happened? In this edition it is a self-check, because there are no isolated sub-agents to dispatch; say so plainly rather than implying an independent pass. In Deep, the synthesis self-audit subsumes it.
+   - **Closing check: fidelity (every mode).** The chairman is the same voice that played all seven advisors, so the likeliest defect in a finished synthesis is not a missing fact, it is flattering the panel and yourself. Three failure modes seen in real runs: an advisor's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where only some advisors said it, and a residual risk score dropped below what the anchoring rule allows so the recommendation looks more valuable than it is. Before you close, check four things: (1) **dropped dissent**, did any advisor record a dissent or reframe that you softened or left out? Name them. (2) **manufactured unanimity**, does the synthesis say "all advisors" where only some did? Attribute per advisor instead. (3) **confidence above the panel**, is your confidence higher than the advisors' own numbers support? (4) **risk rating against the rules**, is an already-materialised impact scored below Likely, or is the inherent-to-residual gap manufactured by dropping likelihood on harm that already happened? In this edition it is a self-check, because there are no isolated sub-agents to dispatch; say so plainly rather than implying an independent pass. In Deep, the synthesis self-audit subsumes it.
 
    - **Gate C (provenance).** Every entry in `verified` must resolve to a Part B ref and the lookup that produced it this run; an entry you cannot attribute that way moves to `unverified`. The question is not whether the fact is true, it is whether this run checked it. Re-read the list once before you close, in every mode: in Quick, `verified` should be empty and a populated one is itself the finding.
 

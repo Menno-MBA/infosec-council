@@ -324,8 +324,8 @@ function logSourcesBlock() {
     + '<table class="t"><thead><tr><th>Source</th><th class="mono">Central</th><th class="mono">Retention</th><th>Reviewed by</th><th>Status</th><th class="mono">CIS</th><th>Notes</th></tr></thead><tbody>';
   h += list.map(function (s) {
     const ret = g(s, 'retention_days');
-    const retTxt = (ret === 0 || ret === '0') ? 'none' : (len(ret) ? e(ret) + 'd' : '—');
-    return '<tr><td>' + e(g(s, 'name')) + '</td><td class="mono">' + e(g(s, 'centralization', '—')) + '</td><td class="mono">' + retTxt + '</td><td>' + e(g(s, 'reviewed_by', '—')) + '</td><td>' + logStatusPill(g(s, 'status')) + '</td><td class="mono">' + e(plainTags(s.cis_safeguards) || '—') + '</td><td>' + e(g(s, 'notes')) + '</td></tr>';
+    const retTxt = (ret === 0 || ret === '0') ? 'none' : (len(ret) ? e(ret) + 'd' : '–');
+    return '<tr><td>' + e(g(s, 'name')) + '</td><td class="mono">' + e(g(s, 'centralization', '–')) + '</td><td class="mono">' + retTxt + '</td><td>' + e(g(s, 'reviewed_by', '–')) + '</td><td>' + logStatusPill(g(s, 'status')) + '</td><td class="mono">' + e(plainTags(s.cis_safeguards) || '–') + '</td><td>' + e(g(s, 'notes')) + '</td></tr>';
   }).join('');
   return h + '</tbody></table></section>';
 }
@@ -370,7 +370,7 @@ function detectionsBlock() {
     if (g(tr, 'severity') || g(tr, 'route_to') || g(tr, 'first_action')) {
       logic += '<br><span class="lead" style="margin:0"><b>Triage:</b> ' + e(g(tr, 'severity')) + (len(g(tr, 'route_to')) ? ' &rarr; ' + e(tr.route_to) : '') + (len(g(tr, 'first_action')) ? '; ' + e(tr.first_action) : '') + '</span>';
     }
-    return '<tr><td><b>' + e(g(x, 'name')) + '</b>' + status + '</td><td class="mono">' + attckTags(x.attack_technique) + '</td><td class="mono">' + e(plainTags(x.d3fend) || '—') + '</td><td class="mono">' + e(g(x, 'cis_safeguard', '—')) + '</td><td>' + e(g(x, 'log_source')) + '</td><td>' + logic + '</td><td>' + levelChip(g(x, 'level')) + '</td><td>' + nativePill(g(x, 'fires_natively')) + '</td></tr>';
+    return '<tr><td><b>' + e(g(x, 'name')) + '</b>' + status + '</td><td class="mono">' + attckTags(x.attack_technique) + '</td><td class="mono">' + e(plainTags(x.d3fend) || '–') + '</td><td class="mono">' + e(g(x, 'cis_safeguard', '–')) + '</td><td>' + e(g(x, 'log_source')) + '</td><td>' + logic + '</td><td>' + levelChip(g(x, 'level')) + '</td><td>' + nativePill(g(x, 'fires_natively')) + '</td></tr>';
   }).join('');
   return h + '</tbody></table></section>';
 }
@@ -407,10 +407,10 @@ function backlogBlock() {
     h += '<table class="t"><thead><tr><th class="mono">#</th><th>Control</th><th class="mono">ATT&amp;CK</th><th class="mono">D3FEND</th><th class="mono">CIS</th><th>Closes</th><th>Effort</th><th>Impact</th><th>Residual gap</th></tr></thead><tbody>';
     h += list.map(function (x) {
       const cis = x.cis || {};
-      const cisCell = e(g(cis, 'control', '—')) + '<br>' + igBadge(g(cis, 'ig'));
-      const resid = len(g(x, 'residual_gap')) ? '<span class="lead" style="margin:0">' + e(x.residual_gap) + '</span>' : '—';
+      const cisCell = e(g(cis, 'control', '–')) + '<br>' + igBadge(g(cis, 'ig'));
+      const resid = len(g(x, 'residual_gap')) ? '<span class="lead" style="margin:0">' + e(x.residual_gap) + '</span>' : '–';
       const note = len(g(x, 'sme_note')) ? '<br><span class="lead" style="margin:0"><b>SME:</b> ' + e(x.sme_note) + '</span>' : '';
-      return '<tr><td class="mono">' + e(g(x, 'rank')) + '</td><td><b>' + e(g(x, 'control')) + '</b>' + note + '</td><td class="mono">' + attckTags(x.attack_techniques) + '</td><td class="mono">' + e(plainTags(x.d3fend) || '—') + '</td><td class="mono">' + cisCell + '</td><td>' + e(g(x, 'attacker_step_closed')) + '</td><td>' + effImpPill(g(x, 'effort')) + '</td><td>' + effImpPill(g(x, 'impact')) + '</td><td>' + resid + '</td></tr>';
+      return '<tr><td class="mono">' + e(g(x, 'rank')) + '</td><td><b>' + e(g(x, 'control')) + '</b>' + note + '</td><td class="mono">' + attckTags(x.attack_techniques) + '</td><td class="mono">' + e(plainTags(x.d3fend) || '–') + '</td><td class="mono">' + cisCell + '</td><td>' + e(g(x, 'attacker_step_closed')) + '</td><td>' + effImpPill(g(x, 'effort')) + '</td><td>' + effImpPill(g(x, 'impact')) + '</td><td>' + resid + '</td></tr>';
     }).join('');
     h += '</tbody></table>';
   }
@@ -434,7 +434,7 @@ function purpleBlock() {
     const status = String(g(s, 'status')).toLowerCase();
     let owner = e(g(s, 'ownerOrNextStep'));
     if (status === 'gap' && !len(g(s, 'ownerOrNextStep'))) owner = '<span class="st warn">needs owner</span>';
-    const ba = e(g(s, 'before', '—')) + ' &rarr; ' + e(g(s, 'after', '—'));
+    const ba = e(g(s, 'before', '–')) + ' &rarr; ' + e(g(s, 'after', '–'));
     return '<tr><td>' + e(g(s, 'step')) + '</td><td class="mono">' + attckTags(s.attack_techniques) + '</td><td>' + ragPill(g(s, 'status')) + '</td><td>' + e(g(s, 'controlOrDetectionRef')) + '</td><td class="mono">' + ba + '</td><td>' + owner + '</td></tr>';
   }).join('');
   h += '</tbody></table>';

@@ -87,7 +87,7 @@ The council's value is precise, current advice, so it must not assert stale regu
 
 **Where to verify is a register, not a guess.** `external-websources.md` (this skill's directory) holds the authoritative source per subject, what each source is and is **not** good for, and the retrieval policy (budgets, the operator off switch, the staleness interval). Resolve sources from it rather than from memory. If it is missing, fall back to the volatile-fact rule above and say the register was unavailable.
 
-**A fact counts as verified only if this run actually retrieved it.** Not "the source exists", not "I know this" — retrieved, this run. Facts the budget did not reach, and facts from a source you chose not to check, are `UNVERIFIED` like any other. A confident verdict built on a half-spent budget is the failure this rule exists to prevent.
+**A fact counts as verified only if this run actually retrieved it.** Not "the source exists", not "I know this". Retrieved, this run. Facts the budget did not reach, and facts from a source you chose not to check, are `UNVERIFIED` like any other. A confident verdict built on a half-spent budget is the failure this rule exists to prevent.
 
 ## Shared baseline (single source of truth)
 
@@ -120,13 +120,13 @@ The council's value is precise, current advice, so it must not assert stale regu
 
 5. **Pending ledger.** Run `journal.js pending`. Report the ripe-but-ungraded runs in one line before Round 1, e.g. "3 past decisions are still ungraded, the oldest from 12 March." Keep it to one line; this is a visible reminder, not a ceremony. A confidence number nobody ever checks is decoration, and the only reason it stays unchecked is that nothing ever asks.
 
-   **Sharpen when it goes stale.** If three or more runs are ripe, or the oldest ripe run is past 60 days, say the count and the oldest date and point at `grade`, which renders them as pasteable commands: "5 decisions ripe for grading, the oldest 84 days old; run `grade` for the commands." Still one line. Still **never blocking** — a nagging mechanism that interrupts gets suppressed, and the first thing suppressed during an incident is the one you most needed later. Say it once and move to Round 1.
+   **Sharpen when it goes stale.** If three or more runs are ripe, or the oldest ripe run is past 60 days, say the count and the oldest date and point at `grade`, which renders them as pasteable commands: "5 decisions ripe for grading, the oldest 84 days old; run `grade` for the commands." Still one line. Still **never blocking**, because a nagging mechanism that interrupts gets suppressed, and the first thing suppressed during an incident is the one you most needed later. Say it once and move to Round 1.
 
 6. **Ungraded prior run: ask before deliberating.** If step 4 found a comparable prior run that is **still pending**, ask the user for its outcome now, before Round 1. That result is the single highest-value input available to this run, and asking later wastes the deliberation. Offer the four values and their plain meanings:
-   - `correct` — the advice held up.
-   - `partial` — broadly right, but it missed something material or only half worked.
-   - `wrong` — the advice did not hold.
-   - `not-tested` — **nobody executed it, so it was never put to the test.** This is the most common real outcome and the one people otherwise stay silent about, because the other three do not fit. It is not a failure of the panel; it is a delivery signal, and it is excluded from the calibration maths for exactly that reason.
+   - `correct`: the advice held up.
+   - `partial`: broadly right, but it missed something material or only half worked.
+   - `wrong`: the advice did not hold.
+   - `not-tested`: **nobody executed it, so it was never put to the test.** This is the most common real outcome and the one people otherwise stay silent about, because the other three do not fit. It is not a failure of the panel; it is a delivery signal, and it is excluded from the calibration maths for exactly that reason.
 
    Ask once. If the user does not know yet, or does not want to answer, proceed without it and say so in the synthesis. **Never block the council on this**, and never hold up a live incident to collect bookkeeping.
 
@@ -172,7 +172,7 @@ you know which regimes are live, and before Round 1, so the findings can be inje
 5. **Or downgrade, visibly.** When retrieval is off or unavailable, say so once, plainly, and
    route every volatile load-bearing fact to `UNVERIFIED`. Never answer from memory as though
    the pass had run. Make it survive into the artifact, not just the chat: put the state as the
-   **first `unverified` entry**, naming which of the four it is — `RETRIEVAL OFF (operator
+   **first `unverified` entry**, naming which of the four it is: `RETRIEVAL OFF (operator
    switch)`, `RETRIEVAL OFF (Quick mode)`, `RETRIEVAL UNAVAILABLE (no web tooling)`, or
    `RETRIEVAL PARTIAL (checked: <refs>; not reached: <refs>)`. A dossier is read months later
    by someone who was not in the room; without this line an off run, a failed run and a
@@ -213,10 +213,10 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 **Convergence detection and early stopping.** A shared STANCE label is necessary for convergence and not sufficient. `conditional-go` absorbs any condition, so seven seats can return the same word while asking for seven different things, and a stance count would read that as consensus. Test all three:
 
 1. **Label.** >= 6 of 7 on the same stance.
-2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree — **every pair of them**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. The test is a question with an answer: *would executing seat A's condition satisfy seat B, and B's satisfy A?* A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
+2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree, **every pair of them**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. The test is a question with an answer: *would executing seat A's condition satisfy seat B, and B's satisfy A?* A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
 3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. This is well defined precisely because the test is scoped that way: each seat rates its own position, and these seats share one, so their numbers are estimates of the same thing. Across the whole panel they would not be, and the test would be arithmetic on incommensurable quantities. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
 
-Then route on the result. **Check in this order and take the first match** — the branches overlap by design, and reading top-down is what makes them deterministic.
+Then route on the result. **Check in this order and take the first match.** The branches overlap by design, and reading top-down is what makes them deterministic.
 
 1. **Deep and Boardroom debate regardless.** These modes always run the forced debate; the depth table is not negotiable and no test result excuses it. Run it, then record the outcome the three tests actually gave (`after-challenge`, `label-only` or `split`) rather than flattening every Deep run to `forced-debate`.
 2. **Label fails -> `split`.** Stances stayed divided. That is live conflict: carry it into synthesis as a tradeoff, never manufacture agreement and never early-stop over the top of it.
@@ -224,11 +224,11 @@ Then route on the result. **Check in this order and take the first match** — t
 4. **All three hold but the agreement came without friction -> forced debate.** In Standard, that means >= 6 of 7 were already aligned in Round 1 with thin disagreement. Do not trust it yet; run one focused debate round and record `forced-debate`.
 5. **All three hold and the agreement survived challenge -> stop early.** Members explicitly weighed and rejected the alternatives, nobody flipped merely to join the majority, no unresolved hard-stop. Go to synthesis and note "converged after challenge." Extra rounds past genuine convergence mostly amplify conformity.
 
-**Test 1 forgives the dissenting seat; you do not.** Where 6 of 7 align, the seventh's position, and its CONDITION if it named one, still goes to the minority report and to the dropped-dissent closing check. Convergence is permission to stop deliberating, never permission to drop the seat that disagreed — and a lone seat naming a blocking condition is exactly the finding a stance count would have buried.
+**Test 1 forgives the dissenting seat; you do not.** Where 6 of 7 align, the seventh's position, and its CONDITION if it named one, still goes to the minority report and to the dropped-dissent closing check. Convergence is permission to stop deliberating, never permission to drop the seat that disagreed, and a lone seat naming a blocking condition is exactly the finding a stance count would have buried.
 
 **Forced debate round.** Assign the two members with the most opposed mandates to argue the strongest case against the emerging consensus. The dissenter must produce a concrete **pre-mortem artifact**, not generic contrarianism: "It is 12 months later and this decision failed. Here is the specific story, the trigger, and what we missed." Dynamic dissent aimed at the actual recommendation is what moves a decision; a canned objection is not.
 
-**Round cap.** Standard runs Round 1, the cross-exam, and — when a gate above fires — at most one forced debate. Deep and Boardroom get one further exchange beyond that. The cap bounds *repetition*, not the debate: no second cross-exam, no second debate. A triggered forced debate is never skipped for want of a round, because the whole point of the gates is that the consensus was not yet worth trusting. More rounds past that trade tokens for compounding sycophancy, not accuracy, so stop at the cap even if not fully converged and report the residual split honestly.
+**Round cap.** Standard runs Round 1, the cross-exam, and, when a gate above fires, at most one forced debate. Deep and Boardroom get one further exchange beyond that. The cap bounds *repetition*, not the debate: no second cross-exam, no second debate. A triggered forced debate is never skipped for want of a round, because the whole point of the gates is that the consensus was not yet worth trusting. More rounds past that trade tokens for compounding sycophancy, not accuracy, so stop at the cap even if not fully converged and report the residual split honestly.
 
 ### Round 3. Chairman synthesis (you write this)
 0. **Frame check**: did any member challenge the premise? If a materially superior alternative surfaced, lead with it. Do not bury a "right answer to the wrong question" finding inside the recommendation.

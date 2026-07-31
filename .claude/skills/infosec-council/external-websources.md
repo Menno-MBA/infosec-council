@@ -196,11 +196,11 @@ heat map, and the scorecard that joins them.
 Rows tagged **[jurisdiction]** are Dutch defaults. Localizing means walking all of
 this, because national duties reach more seats than the two obvious rows:
 
-1. `dpa-national` — the national supervisory authority and its breach portal.
-2. `nis2-supervisor` — the national NIS2 supervisor.
-3. `nis2-csirt` — the national CSIRT, its entity register, and its notification portal.
+1. `dpa-national`: the national supervisory authority and its breach portal.
+2. `nis2-supervisor`: the national NIS2 supervisor.
+3. `nis2-csirt`: the national CSIRT, its entity register, and its notification portal.
 4. National CERT advisories under `vendor-cti` / `cert-eu`, if a national feed applies.
-5. `sanctions` — confirm the applicable list for your jurisdiction.
+5. `sanctions`: confirm the applicable list for your jurisdiction.
 6. The matching Part C entries for `infosec-incidentteam` and `infosec-council`.
 7. `frameworks.md` Part A's **Jurisdiction** knob and the in-scope regimes table.
    That file stays authoritative on scope; this one only says where to look.

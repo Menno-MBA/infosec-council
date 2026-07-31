@@ -1,10 +1,10 @@
-742009ef7a488b03a4a9acffd88ee716c5804511499678ec5df3599c337f7dcf  .claude/skills/infosec-blueteam/report.js
+8fcbc4eb51ecf49f05e11dd905bfe5828c7197869340e3ab3ee61eebab4f027d  .claude/skills/infosec-blueteam/report.js
 15829a1d9b480f705f2d30fa225b82583a86c02f25ea4b55252eca9e765a8a1d  .claude/skills/infosec-council/journal.js
 860d4b9bdfedf6fb7b4c600c175211523106ae024f8e37cbad0708d847a8c4dd  .claude/skills/infosec-council/journal.sh
 6d35d190d412cbb2fc893fdcbb973b6e92bc99d8956e374a4504e913520d056d  .claude/skills/infosec-council/report.js
 a5bc3bba741dd082675b988375b6dfc769364aecdaaa57ada0248b5a5c448966  .claude/skills/infosec-council/report.sh
 df46755ed7759349cd576f49b47abd5e3a160dce371d3f257f37bfb90f986f86  .claude/skills/infosec-incidentteam/report.js
-8af6a6a17fbe8f291372b31d8aa5ca09babce7b3ba7e0b30a68bcbd976458451  .claude/skills/infosec-redteam/report.js
+1f4d9cf93cec4c72440f416a68799ebb7a335ceb414df56fa70e61218c34b726  .claude/skills/infosec-redteam/report.js
 1336d57211e7e53c8cf2799a49a61201ddd2e3f7cf454b7d1a338f9764a2c386  bin/cli.js
 a54330234859175fdaadfb5566a3e8b7c3ca950f7b1aea88d19b4a91278abdf0  chatgpt/knowledge/report.py
 fa2d3f0a1de084d2e5a3da4882cd563a8913614243610d32c4a2e7d735ac4ec6  scripts/build-desktop-skill.sh
@@ -16,5 +16,5 @@ f9a704861ae2a4ff944e415548c1347c12fe70b004211fe1f567899cb4811d5b  scripts/instal
 4f6705049851a6ea7b671210bc31bc805bd6cdf9dfc8befe35284246ec524c4e  scripts/test-journal.js
 662502c247b69758dc503b65cd1d938a1c54112a092734f3c9d4ae536f56a93b  scripts/test-reports.js
 # --- shipped config (advisory: local tuning is expected) ---
-9a6d3e6499855c0161861d4c8492dedc29ad8c1961c6f7248a20fed21637796d  .claude/skills/infosec-council/external-websources.md
+28165bdd98ae23837625727c4a044937c7b40fb4d7dd91422deadcc895548552  .claude/skills/infosec-council/external-websources.md
 070ba5b244b940864c13400b0d12f22401f5a87c9f4cb6de320ac52f1d62994a  .claude/skills/infosec-council/frameworks.md

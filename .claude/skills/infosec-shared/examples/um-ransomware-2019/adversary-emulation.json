@@ -87,13 +87,13 @@
     { "step_no": 9, "tactic": "Impact", "technique_id": "T1486", "technique_name": "Data Encrypted for Impact", "procedure_detail": "Deploy Clop (marker file) to domain-joined servers incl. reachable backups; T1490 inhibit recovery", "target_asset": "267 servers + backups", "atomic_test_ref": "T1486", "expected_observable": "Mass file-rename; encryption marker on backup plane", "range_only": true }
   ],
   "scorecard": [
-    { "step_no": 1, "expected_log_source": "Mail gateway + web proxy / DNS", "control_expected": "Phishing/link detonation", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "Logs exist on-box; nobody reviews; no alerting" },
+    { "step_no": 1, "expected_log_source": "Mail gateway + web proxy / DNS", "control_expected": "Phishing/link detonation", "detection_category": "telemetry", "time_to_detect": "–", "analyst_note": "Logs exist on-box; nobody reviews; no alerting" },
     { "step_no": 2, "expected_log_source": "EDR process tree (Office child)", "control_expected": "EDR behavioural rule", "detection_category": "technique", "time_to_detect": "minutes", "analyst_note": "If EDR present with tamper protection, Office-spawns-script fires" },
-    { "step_no": 3, "expected_log_source": "Firewall / DNS beacon periodicity", "control_expected": "Beacon analytic", "detection_category": "none", "time_to_detect": "—", "analyst_note": "14-day firewall retention too short for periodicity hunt" },
-    { "step_no": 4, "expected_log_source": "IDS / Windows service creation", "control_expected": "MS17-010 signature", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "No central IDS; server event logs unaggregated" },
-    { "step_no": 5, "expected_log_source": "DC / LDAP query logs", "control_expected": "AD recon analytic", "detection_category": "none", "time_to_detect": "—", "analyst_note": "LDAP query logging not enabled" },
+    { "step_no": 3, "expected_log_source": "Firewall / DNS beacon periodicity", "control_expected": "Beacon analytic", "detection_category": "none", "time_to_detect": "–", "analyst_note": "14-day firewall retention too short for periodicity hunt" },
+    { "step_no": 4, "expected_log_source": "IDS / Windows service creation", "control_expected": "MS17-010 signature", "detection_category": "telemetry", "time_to_detect": "–", "analyst_note": "No central IDS; server event logs unaggregated" },
+    { "step_no": 5, "expected_log_source": "DC / LDAP query logs", "control_expected": "AD recon analytic", "detection_category": "none", "time_to_detect": "–", "analyst_note": "LDAP query logging not enabled" },
     { "step_no": 6, "expected_log_source": "Sysmon EID 10 (LSASS access)", "control_expected": "Credential-dump rule", "detection_category": "tactic", "time_to_detect": "hours", "analyst_note": "Only if Sysmon deployed to Tier-0; partial coverage" },
-    { "step_no": 7, "expected_log_source": "DC EDR / named-pipe analytics", "control_expected": "C2 on Tier-0 rule", "detection_category": "telemetry", "time_to_detect": "—", "analyst_note": "DCs often lack EDR in SME estates" },
+    { "step_no": 7, "expected_log_source": "DC EDR / named-pipe analytics", "control_expected": "C2 on Tier-0 rule", "detection_category": "telemetry", "time_to_detect": "–", "analyst_note": "DCs often lack EDR in SME estates" },
     { "step_no": 8, "expected_log_source": "EDR tamper / 7040,1116 events", "control_expected": "Mass AV-disable correlation", "detection_category": "technique", "time_to_detect": "minutes", "analyst_note": "Fleet-wide disable is loud IF anything watches it" },
     { "step_no": 9, "expected_log_source": "File-server audit / backup alerts", "control_expected": "Mass-rename / ransomware canary", "detection_category": "general", "time_to_detect": "at impact", "analyst_note": "Detected only when files are already encrypting" }
   ],
@@ -153,7 +153,7 @@
     "Range mirrors the flat single-domain topology under test."
   ],
   "unverified": [
-    "Exact EDR/Sysmon coverage of the real estate (assumed thin) — confirm before reading the scorecard as the production result.",
+    "Exact EDR/Sysmon coverage of the real estate (assumed thin), confirm before reading the scorecard as the production result.",
     "Whether firewall/DNS retention in production exceeds the 14 days assumed here."
   ]
 }

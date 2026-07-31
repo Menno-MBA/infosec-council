@@ -216,8 +216,8 @@ function scopeBlock() {
     h += '<table class="t"><thead><tr><th>In scope</th><th>Out of scope</th></tr></thead><tbody>';
     for (let i = 0; i < n; i++) {
       const a = inS[i], b = outS[i];
-      const av = a ? (a.asset != null ? a.asset + (a.notes ? ' — ' + a.notes : '') : String(a)) : '';
-      const bv = b ? (b.asset != null ? b.asset + (b.reason ? ' — ' + b.reason : '') : String(b)) : '';
+      const av = a ? (a.asset != null ? a.asset + (a.notes ? ', ' + a.notes : '') : String(a)) : '';
+      const bv = b ? (b.asset != null ? b.asset + (b.reason ? ', ' + b.reason : '') : String(b)) : '';
       h += '<tr><td>' + e(av) + '</td><td>' + e(bv) + '</td></tr>';
     }
     h += '</tbody></table>';
@@ -268,7 +268,7 @@ function scorecardBlock() {
   let h = '<section class="block"><h2>Detection opportunities: blue-team scorecard</h2><p class="lead">Per step, the telemetry that should have caught it and whether it did. Categories follow the ATT&amp;CK Evaluations taxonomy (None &rarr; Telemetry &rarr; General &rarr; Tactic &rarr; Technique).</p>'
     + '<table class="t"><thead><tr><th>#</th><th>Expected log source / control</th><th>Detection</th><th class="mono">TTD</th><th>Analyst note</th></tr></thead><tbody>';
   h += sc.map(function (s, i) {
-    return '<tr><td class="mono">' + (g(s, 'step_no') || (i + 1)) + '</td><td>' + e(g(s, 'expected_log_source')) + (len(g(s, 'control_expected')) ? '<br><span class="lead">' + e(s.control_expected) + '</span>' : '') + '</td><td>' + catChip(g(s, 'detection_category')) + '</td><td class="mono">' + e(g(s, 'time_to_detect', '—')) + '</td><td>' + e(g(s, 'analyst_note')) + '</td></tr>';
+    return '<tr><td class="mono">' + (g(s, 'step_no') || (i + 1)) + '</td><td>' + e(g(s, 'expected_log_source')) + (len(g(s, 'control_expected')) ? '<br><span class="lead">' + e(s.control_expected) + '</span>' : '') + '</td><td>' + catChip(g(s, 'detection_category')) + '</td><td class="mono">' + e(g(s, 'time_to_detect', '–')) + '</td><td>' + e(g(s, 'analyst_note')) + '</td></tr>';
   }).join('');
   h += '</tbody></table>';
   if (sum && (sum.pct_technique_or_tactic != null || sum.detected_pct != null)) {
@@ -311,7 +311,7 @@ function safetyBlock() {
   h += '<span class="badge ' + (s.roe_held ? 'green' : 'red') + '">RoE ' + (s.roe_held ? 'held' : 'BREACHED') + '</span>';
   h += '<span class="badge ' + (s.production_harm ? 'red' : 'green') + '">' + (s.production_harm ? 'PRODUCTION HARM' : 'No production harm') + '</span>';
   h += '</div>';
-  if (arr(s.deconfliction_events).length) h += '<h3>Deconfliction events</h3>' + ulOf(arr(s.deconfliction_events).map(function (d) { return typeof d === 'string' ? d : (g(d, 'time') + ' — ' + g(d, 'description') + (d.resolution ? ' (' + d.resolution + ')' : '')); }));
+  if (arr(s.deconfliction_events).length) h += '<h3>Deconfliction events</h3>' + ulOf(arr(s.deconfliction_events).map(function (d) { return typeof d === 'string' ? d : (g(d, 'time') + ', ' + g(d, 'description') + (d.resolution ? ' (' + d.resolution + ')' : '')); }));
   if (arr(s.aborts).length) h += '<h3>Aborts</h3>' + ulOf(arr(s.aborts).map(function (d) { return typeof d === 'string' ? d : (g(d, 'reason') + (d.step_no ? ' at step ' + d.step_no : '')); }));
   if (len(g(s, 'evidence_handling'))) h += '<p><strong>Evidence handling.</strong> ' + e(s.evidence_handling) + '</p>';
   if (s.safety_lead_signoff) h += '<div class="callout"><strong>Safety-lead sign-off:</strong> ' + e(g(s.safety_lead_signoff, 'name')) + (s.safety_lead_signoff.date ? ' (' + e(s.safety_lead_signoff.date) + ')' : '') + '</div>';
