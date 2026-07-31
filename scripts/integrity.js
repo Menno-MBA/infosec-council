@@ -30,6 +30,19 @@ const COVERED_DIRS = ['bin', 'scripts', '.claude/skills', 'chatgpt'];
 const EXTS = new Set(['.js', '.sh', '.py']);
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist']);
 
+// Shipped-but-tunable config: we ship these, the operator is expected to tune them
+// (control baseline, in-scope regimes, retrieval policy, jurisdiction rows). Drift is
+// therefore normal and must NOT fail the build -- but external-websources.md is the
+// first config file whose contents cause outbound traffic and whose Part A is quoted
+// into prompts, so `verify` should still be able to say it changed. Reported as an
+// advisory line, never a hard failure. context.md is excluded: it is pure user config
+// and shipped blank, so drift there carries no signal.
+const CONFIG_FILES = [
+  '.claude/skills/infosec-council/frameworks.md',
+  '.claude/skills/infosec-council/external-websources.md',
+];
+const CONFIG_MARKER = '# --- shipped config (advisory: local tuning is expected) ---';
+
 function walk(dir, acc) {
   let entries;
   try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) { return acc; }
@@ -58,23 +71,41 @@ function computeAll(root) {
     .sort(function (a, b) { return a.rel < b.rel ? -1 : a.rel > b.rel ? 1 : 0; });
 }
 
-function render(list) {
-  return list.map(function (r) { return r.hash + '  ' + r.rel; }).join('\n') + '\n';
+// Config entries the shipped tree carries, hashed for advisory drift only.
+function computeConfig(root) {
+  root = root || ROOT;
+  return CONFIG_FILES
+    .filter(function (rel) { return fs.existsSync(path.join(root, rel)); })
+    .map(function (rel) { return { rel: rel, hash: sha256(path.join(root, rel)) }; })
+    .sort(function (a, b) { return a.rel < b.rel ? -1 : a.rel > b.rel ? 1 : 0; });
 }
 
+function render(list, configList) {
+  let out = list.map(function (r) { return r.hash + '  ' + r.rel; }).join('\n') + '\n';
+  if (configList && configList.length) {
+    out += CONFIG_MARKER + '\n';
+    out += configList.map(function (r) { return r.hash + '  ' + r.rel; }).join('\n') + '\n';
+  }
+  return out;
+}
+
+// Splits on CONFIG_MARKER so config hashes never enter the pass/fail set.
 function parseManifest(text) {
-  const map = {};
+  const map = {}, configMap = {};
+  let inConfig = false;
   text.split(/\r?\n/).forEach(function (line) {
+    if (line.trim() === CONFIG_MARKER) { inConfig = true; return; }
     const m = line.match(/^([0-9a-f]{64})\s+(.+)$/);
-    if (m) map[m[2]] = m[1];
+    if (m) (inConfig ? configMap : map)[m[2]] = m[1];
   });
-  return map;
+  return { map: map, configMap: configMap };
 }
 
 function writeManifest(root) {
   const list = computeAll(root);
-  fs.writeFileSync(MANIFEST, render(list));
-  return list.length;
+  const configList = computeConfig(root);
+  fs.writeFileSync(MANIFEST, render(list, configList));
+  return { executables: list.length, config: configList.length };
 }
 
 // Compare current files against the committed manifest.
@@ -82,7 +113,8 @@ function writeManifest(root) {
 function check(root) {
   root = root || ROOT;
   if (!fs.existsSync(MANIFEST)) return { ok: false, error: 'no manifest at ' + MANIFEST + ' (run --write)' };
-  const expected = parseManifest(fs.readFileSync(MANIFEST, 'utf8'));
+  const parsed = parseManifest(fs.readFileSync(MANIFEST, 'utf8'));
+  const expected = parsed.map;
   const current = computeAll(root);
   const currentMap = {};
   current.forEach(function (r) { currentMap[r.rel] = r.hash; });
@@ -92,9 +124,18 @@ function check(root) {
     else if (currentMap[rel] !== expected[rel]) mismatches.push(rel);
   });
   current.forEach(function (r) { if (expected[r.rel] == null) untracked.push(r.rel); });
+
+  // Advisory only: config drift never affects `ok`.
+  const configDrift = [];
+  computeConfig(root).forEach(function (r) {
+    const want = parsed.configMap[r.rel];
+    if (want != null && want !== r.hash) configDrift.push(r.rel);
+  });
+
   return {
     ok: mismatches.length === 0 && missing.length === 0 && untracked.length === 0,
-    checked: current.length, mismatches: mismatches, missing: missing, untracked: untracked
+    checked: current.length, mismatches: mismatches, missing: missing, untracked: untracked,
+    configDrift: configDrift
   };
 }
 
@@ -104,11 +145,21 @@ if (require.main === module) {
   const mode = process.argv.includes('--write') ? 'write' : 'check';
   if (mode === 'write') {
     const n = writeManifest(ROOT);
-    console.log('integrity: wrote ' + n + ' SHA-256 entries to ' + path.relative(ROOT, MANIFEST));
+    console.log('integrity: wrote ' + n.executables + ' executable + ' + n.config + ' config SHA-256 entries to ' + path.relative(ROOT, MANIFEST));
   } else {
     const r = check(ROOT);
     if (r.error) { console.error('integrity: ' + r.error); process.exit(1); }
-    if (r.ok) { console.log('integrity: OK, all ' + r.checked + ' executable files match the manifest.'); process.exit(0); }
+    const advisory = function () {
+      (r.configDrift || []).forEach(function (f) {
+        console.log('  locally modified config: ' + f + '  (expected if you tuned it; re-read it before you trust a run)');
+      });
+    };
+    if (r.ok) {
+      console.log('integrity: OK, all ' + r.checked + ' executable files match the manifest.');
+      advisory();
+      process.exit(0);
+    }
+    advisory();
     console.error('integrity: MANIFEST MISMATCH');
     r.mismatches.forEach(function (f) { console.error('  altered:   ' + f); });
     r.missing.forEach(function (f) { console.error('  missing:   ' + f); });

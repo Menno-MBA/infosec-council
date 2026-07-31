@@ -4,6 +4,7 @@
   "ref": "AEP-UM-TA505",
   "version": "1.0",
   "date": "2026-07-22",
+  "attack_version": "v19",
   "tlp": "AMBER+STRICT",
   "exec": {
     "narrative_paras": [
@@ -82,7 +83,7 @@
     { "step_no": 5, "tactic": "Discovery", "technique_id": "T1087", "technique_name": "Account Discovery", "procedure_detail": "PowerSploit, PingCastle, AdFind map AD and privileged accounts", "target_asset": "Active Directory", "atomic_test_ref": "T1087.002", "expected_observable": "LDAP recon bursts; PingCastle signatures" },
     { "step_no": 6, "tactic": "Credential Access", "technique_id": "T1003.001", "technique_name": "LSASS Memory", "procedure_detail": "Mimikatz dumps credentials; reaches full Domain Admin", "target_asset": "Servers / DCs", "atomic_test_ref": "T1003.001", "expected_observable": "LSASS access; Sysmon EID 10" },
     { "step_no": 7, "tactic": "Command and Control", "technique_id": "T1071", "technique_name": "Cobalt Strike on DCs", "procedure_detail": "Cobalt Strike planted on domain controllers as the control layer", "target_asset": "Domain controllers", "atomic_test_ref": "T1071", "expected_observable": "Named-pipe / beacon patterns on Tier-0" },
-    { "step_no": 8, "tactic": "Defense Evasion", "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "procedure_detail": "Using stolen admin, disable McAfee / Defender fleet-wide before firing", "target_asset": "Servers", "atomic_test_ref": "T1562.001", "expected_observable": "Mass AV-disable / service-stop events across hosts" },
+    { "step_no": 8, "tactic": "Defense Impairment", "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "procedure_detail": "Using stolen admin, disable McAfee / Defender fleet-wide before firing", "target_asset": "Servers", "atomic_test_ref": "T1562.001", "expected_observable": "Mass AV-disable / service-stop events across hosts" },
     { "step_no": 9, "tactic": "Impact", "technique_id": "T1486", "technique_name": "Data Encrypted for Impact", "procedure_detail": "Deploy Clop (marker file) to domain-joined servers incl. reachable backups; T1490 inhibit recovery", "target_asset": "267 servers + backups", "atomic_test_ref": "T1486", "expected_observable": "Mass file-rename; encryption marker on backup plane", "range_only": true }
   ],
   "scorecard": [

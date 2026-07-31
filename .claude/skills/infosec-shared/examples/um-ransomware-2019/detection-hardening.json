@@ -3,7 +3,7 @@
   "subtitle": "An assume-breach detection and hardening plan for a flat, single-domain Windows estate (~1,600 servers, ~7,300 workstations) with no central SIEM. Defends against the documented 2019 TA505/Clop chain and scores coverage against the paired adversary-emulation plan.",
   "ref": "DHP-UM-TA505",
   "scope": "Flat single-domain Windows estate; MDR + native consoles, no central SIEM",
-  "attack_version": "v18",
+  "attack_version": "v19",
   "version": "1.0",
   "next_review": "2026-10-22",
   "tlp": "AMBER+STRICT",
@@ -29,7 +29,7 @@
     { "technique_id": "T1210", "technique_name": "Exploitation of Remote Services", "tactic": "Lateral Movement", "source": "Red AEP step 4 (MS17-010)", "priority": "pre-ransomware" },
     { "technique_id": "T1087", "technique_name": "Account Discovery", "tactic": "Discovery", "source": "Red AEP step 5 (PingCastle/AdFind)", "priority": "pre-ransomware" },
     { "technique_id": "T1003.001", "technique_name": "LSASS Memory", "tactic": "Credential Access", "source": "Red AEP step 6 (Mimikatz)", "priority": "pre-ransomware" },
-    { "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "tactic": "Defense Evasion", "source": "Red AEP step 8 (mass AV disable)", "priority": "pre-ransomware" },
+    { "technique_id": "T1562.001", "technique_name": "Disable or Modify Tools", "tactic": "Defense Impairment", "source": "Red AEP step 8 (mass AV disable)", "priority": "pre-ransomware" },
     { "technique_id": "T1486", "technique_name": "Data Encrypted for Impact", "tactic": "Impact", "source": "Red AEP step 9 (Clop)", "priority": "impact" }
   ],
   "log_sources": [
@@ -57,7 +57,7 @@
       { "techniqueID": "T1210", "tactic": "Lateral Movement", "state": "hardened", "comment": "MS17-010 patched + SMBv1 disabled; residual on legacy hosts" },
       { "techniqueID": "T1087", "tactic": "Discovery", "state": "hunted", "comment": "Assume-breach LDAP-recon hunt; no native detection" },
       { "techniqueID": "T1003.001", "tactic": "Credential Access", "state": "hunted", "comment": "Sysmon EID 10 hunt on Tier-0 pilot; partial coverage" },
-      { "techniqueID": "T1562.001", "tactic": "Defense Evasion", "state": "detected", "comment": "MDR tamper-protection + mass-disable correlation" },
+      { "techniqueID": "T1562.001", "tactic": "Defense Impairment", "state": "detected", "comment": "MDR tamper-protection + mass-disable correlation" },
       { "techniqueID": "T1486", "tactic": "Impact", "state": "logged-unwatched", "comment": "File-server audit exists; canary not built; fires at impact only" }
     ]
   },

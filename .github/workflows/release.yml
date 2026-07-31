@@ -33,6 +33,8 @@ jobs:
         run: node scripts/integrity.js --check
       - name: Check the ChatGPT knowledge folder is in sync with canonical sources
         run: node scripts/sync-chatgpt.js --check
+      - name: Check the desktop edition states the same retrieval policy as the council
+        run: node scripts/check-desktop-parity.js
       - name: Report generator tests (golden file + report.js/report.sh parity + incident report)
         run: node scripts/test-reports.js
       - name: Build the desktop skill zip

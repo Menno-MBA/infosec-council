@@ -60,9 +60,10 @@ ${C.b("Commands")}
 ${C.b("Install options")}
   --global, -g       Install into ~/.claude (available in every project)
                      default: ./.claude (this project only)
-  --force, -f        Overwrite an existing install (keeps your context.md and
-                     backs up a customized frameworks.md to frameworks.md.prev)
-  --reset-config     With --force, also overwrite your context.md and frameworks.md
+  --force, -f        Overwrite an existing install (keeps your context.md and backs
+                     up a customized frameworks.md / external-websources.md to .prev)
+  --reset-config     With --force, also overwrite your context.md, frameworks.md,
+                     and external-websources.md
                      with the shipped templates (you lose local tuning)
 
 ${C.b("Examples")}
@@ -121,9 +122,13 @@ function install() {
   // hybrid (we ship register updates, the user tunes the Part A knobs). Losing
   // either on `--force` was a real data-loss bug, so guard against it unless the
   // user explicitly asks for --reset-config.
+  // external-websources.md is the same hybrid shape as frameworks.md: we ship
+  // register updates, the user tunes Part A and the [jurisdiction] rows.
   const notes = [];
   let keepContext = null;
   let prevFrameworks = null;
+  let prevSources = null;
+  const carriedPrev = {};
   if (fs.existsSync(skillDest) && !RESET) {
     const ctxOld = path.join(skillDest, "context.md");
     if (fs.existsSync(ctxOld)) keepContext = fs.readFileSync(ctxOld);
@@ -132,13 +137,29 @@ function install() {
     if (fs.existsSync(fwOld) && fs.existsSync(fwNew) && !fs.readFileSync(fwOld).equals(fs.readFileSync(fwNew))) {
       prevFrameworks = fs.readFileSync(fwOld);
     }
+    const srcOld = path.join(skillDest, "external-websources.md");
+    const srcNew = path.join(skillSrc, "external-websources.md");
+    if (fs.existsSync(srcOld) && fs.existsSync(srcNew) && !fs.readFileSync(srcOld).equals(fs.readFileSync(srcNew))) {
+      prevSources = fs.readFileSync(srcOld);
+    }
+    // A second --force would otherwise delete the .prev files the first one wrote:
+    // by then the installed copy equals the shipped one, so nothing new is preserved,
+    // but rmSync still takes the folder. Carry any existing .prev forward so running
+    // --force twice is no worse than running it once.
+    for (const f of fs.readdirSync(skillDest)) {
+      if (f.endsWith(".prev")) carriedPrev[f] = fs.readFileSync(path.join(skillDest, f));
+    }
   }
 
   // skill: replace the whole folder
   if (fs.existsSync(skillDest)) fs.rmSync(skillDest, { recursive: true, force: true });
   copyDir(skillSrc, skillDest);
 
-  // restore preserved config
+  // restore preserved config. Carried .prev files land first so a freshly computed
+  // one from this run overwrites the older copy rather than the other way round.
+  for (const f of Object.keys(carriedPrev)) {
+    fs.writeFileSync(path.join(skillDest, f), carriedPrev[f]);
+  }
   if (keepContext != null) {
     fs.writeFileSync(path.join(skillDest, "context.md"), keepContext);
     notes.push("kept your existing context.md (your house positions were not touched)");
@@ -146,6 +167,24 @@ function install() {
   if (prevFrameworks != null) {
     fs.writeFileSync(path.join(skillDest, "frameworks.md.prev"), prevFrameworks);
     notes.push("shipped an updated frameworks.md; your previous copy is saved as frameworks.md.prev, re-apply any tuned knobs (control baseline, in-scope regimes)");
+  }
+  if (prevSources != null) {
+    fs.writeFileSync(path.join(skillDest, "external-websources.md.prev"), prevSources);
+    notes.push("shipped an updated external-websources.md; your previous copy is saved as external-websources.md.prev, re-apply any tuned retrieval policy (Part A) and jurisdiction rows");
+    // Retrieval is an egress switch, not a preference: carry `off` forward rather than
+    // letting an upgrade silently re-enable outbound lookups the operator disabled.
+    const RETRIEVAL_ROW = /^(\|\s*\*\*Retrieval\*\*\s*\|\s*)\*\*(on|off)\*\*(\s*\|)/im;
+    const prevMatch = prevSources.toString("utf8").match(RETRIEVAL_ROW);
+    if (prevMatch && prevMatch[2].toLowerCase() === "off") {
+      const liveFile = path.join(skillDest, "external-websources.md");
+      const live = fs.readFileSync(liveFile, "utf8");
+      if (RETRIEVAL_ROW.test(live)) {
+        fs.writeFileSync(liveFile, live.replace(RETRIEVAL_ROW, "$1**off**$3"));
+        notes.push("kept your Retrieval: off setting (an upgrade must not silently re-enable outbound lookups)");
+      } else {
+        notes.push("WARNING: you had Retrieval: off, but that row could not be found in the new external-websources.md; set it again by hand before your next run");
+      }
+    }
   }
 
   // team skills: the operational red/blue/incident playbooks ship alongside the
@@ -178,7 +217,7 @@ function install() {
   if (sharedInstalled) console.log(`${C.green("✓")} Installed ${C.b("shared exercise fixtures")} (infosec-shared)`);
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
-  if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md and frameworks.md were reset to the shipped templates.`);
+  if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md, frameworks.md and external-websources.md were reset to the shipped templates.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
   console.log(`  ${C.dim("ask the infosec-council: <your decision> -deep")}\n`);
 }
@@ -270,6 +309,7 @@ function buildDesktop() {
   const skillDir = path.join(PKG_ROOT, ".claude", "skills", SKILL_NAME);
   fs.copyFileSync(path.join(PKG_ROOT, "desktop", "SKILL.md"), path.join(build, "SKILL.md"));
   fs.copyFileSync(path.join(skillDir, "frameworks.md"), path.join(build, "frameworks.md"));
+  fs.copyFileSync(path.join(skillDir, "external-websources.md"), path.join(build, "external-websources.md"));
   fs.copyFileSync(path.join(skillDir, "context.md"), path.join(build, "context.md"));
   fs.copyFileSync(path.join(skillDir, "report.js"), path.join(build, "report.js"));
   fs.copyFileSync(path.join(skillDir, "report.sh"), path.join(build, "report.sh"));

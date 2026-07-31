@@ -31,6 +31,7 @@ const FIXTURE = {
   executive_summary: 'The case is real but conditional. Do the prerequisites first.',
   key_assumption: 'A named owner holds the conditions.',
   next_step: 'Request the vendor DPA this week.',
+  verified: ['NIS2/Cbw in force 2026-08-15 (rdi.nl, checked this run)', 'ATT&CK v19 tactic set (attack.mitre.org)'],
   unverified: ['adequacy decision still valid on the deploy date'],
   converged: 'forced-debate',
   risks: ['Vendor-side breach you cannot see'],
@@ -89,6 +90,7 @@ assert(/class="vc vg">Recommended/.test(js), '"Recommended" renders green (vg)')
 assert(js.includes('68% it survives a 12-month review'), 'recommendation probability shown');
 assert(js.includes('forced debate'), 'converged outcome shown');
 assert(js.includes('Not independently verified'), 'unverified callout shown');
+  assert(js.includes('Checked against a primary source this run'), 'verified callout shown');
 assert(js.includes('How the panel rated each other'), 'peer ranking section shown');
 assert(js.includes('Stance: conditional-go'), 'member stance shown');
 assert(/high &middot; 70%/.test(js), 'member probability shown');

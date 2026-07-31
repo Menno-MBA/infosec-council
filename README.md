@@ -177,12 +177,12 @@ council. See [The team skills](#the-team-skills-red-blue-incident) for the seats
 
 Append a depth flag (`-quick`, `-standard`, `-deep`, or the experimental `-boardroom`) to your question, or let the council pick (defaults to Standard).
 
-| Mode | When | Members | Peer review + ranking | Debate |
-|---|---|---|---|---|
-| **Quick** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | No | No |
-| **Standard** | Default | All 7 | Yes | Only if consensus is suspiciously clean |
-| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Yes | Always |
-| **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Yes (live) | Always |
+| Mode | When | Members | Retrieval | Peer review + ranking | Debate |
+|---|---|---|---|---|---|
+| **Quick** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | None, and it says so | No | No |
+| **Standard** | Default | All 7 | Bounded pass | Yes | Only if consensus is suspiciously clean |
+| **Deep** | High-stakes, costly to reverse | All 7 + decision-science pass + synthesis audit | Bounded pass + landscape sweep | Yes | Always |
+| **Boardroom** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always |
 
 Every member ends with a **required output block** (stance / confidence / probability /
 assumptions / what would change my mind / unknowns) so the verdict is calibrated, not just
@@ -205,10 +205,14 @@ and this failed, here is the story"); if it stays split, the split is reported a
 rather than smoothed away. Deliberation is capped at two exchanges (three in Deep and Boardroom),
 because more rounds trade tokens for conformity, not accuracy.
 
-**Grounding.** Any seat that leans on a regulation's status, a deadline, a standard version, or a
-vendor fact that could have moved must verify it against a primary source or mark it `UNVERIFIED`;
-the chairman lists any unverified load-bearing fact next to the confidence, so you can see what the
-verdict is standing on.
+**Grounding.** Before the panel deliberates, the council runs a **retrieval pass** against
+`external-websources.md`, a maintained register of authoritative sources, and injects what it found
+into every seat. Any seat that leans on a regulation's status, a deadline, a standard version, or a
+vendor fact that could have moved must verify it or mark it `UNVERIFIED`; the chairman lists any
+unverified load-bearing fact next to the confidence, so you can see what the verdict is standing on.
+A fact counts as verified only if the run actually retrieved it, so a Quick run (which retrieves
+nothing) says so rather than passing memory off as grounding. Where retrieval is switched off or web
+access is unavailable, the run degrades **visibly** instead of quietly falling back to training data.
 
 ## The expert panel
 
@@ -249,6 +253,7 @@ The editions differ in one decisive way: Claude Code has real sub-agents, while 
 | Advisors | 7 isolated sub-agents, dispatched in parallel | 7 personas role-played in **one** context | 7 personas role-played in **one** context |
 | Persistent journal | yes (`~/.infosec-council/journal.jsonl`) | no – sandbox resets per session (export the HTML report instead) | no (export the HTML report) |
 | HTML report | yes | yes (runs in the code-execution sandbox) | yes (via Code Interpreter) |
+| Grounding / retrieval | register-backed retrieval pass (`external-websources.md`) | register-backed retrieval pass | volatile-fact rule only – the register does not ship here |
 | Best for | the full, isolated multi-agent experience | quick access in the app, sharing via uploaded skill | anyone who lives in ChatGPT; zero setup |
 
 ### Path A – Claude Code (CLI)
@@ -453,11 +458,12 @@ To use it, fill in Parts A to C with your organization's house positions; the co
 
 ### Grounding: the output is only as good as what you feed it
 
-The council reasons over what it is grounded in, so the quality of the verdict tracks the quality of the inputs. Three layers of grounding matter, in order of impact:
+The council reasons over what it is grounded in, so the quality of the verdict tracks the quality of the inputs. Four layers of grounding matter, in order of impact:
 
 1. **The question** – concrete situation, constraints, and what decision you actually face. A vague prompt yields a generic answer; a specific one ("we run Microsoft 365 Business Premium, 40 staff, no in-house IT, considering Copilot") lets the seats reason about *your* reality.
 2. **Strategic context** (`context.md`) – your organization's house positions, risk-appetite boundaries, architecture preferences, and prior decisions. Without it the council assumes a generic EU SME; with it the advice is calibrated to how you actually operate.
 3. **Framework detail** (`frameworks.md`) – the in-scope regimes, the control baseline, and the canonical standard versions/levels the seats cite. The fuller and more accurate this catalog, the more precise the compliance and control reasoning.
+4. **Where to verify** (`external-websources.md`) – the register of authoritative external sources, what each one is and is **not** good for, and the retrieval policy. This is what turns "verify volatile facts" from an instruction into something that actually happens: without it the seats reason from training data and quietly assert stale versions, deadlines, and tactic names.
 
 Treat the result as a point-in-time read, calibrated to the context you supplied. Thin grounding gives a sound but generic answer; rich grounding gives advice specific enough to act on. Re-run it when the question, the facts, or the rules change.
 
@@ -470,6 +476,11 @@ Treat the result as a point-in-time read, calibrated to the context you supplied
 - **Re-tune biases**: the council's value depends on members genuinely disagreeing.
   If two members always agree, sharpen their conflicting mandates.
 - **Swap regulatory anchors** to your jurisdiction/sector (e.g. HIPAA, DORA, FedRAMP).
+- **Localize the sources**: `external-websources.md` tags its Dutch rows `[jurisdiction]`; Part D
+  carries the checklist (supervisory authority, NIS2 supervisor, national CSIRT and its portals,
+  CERT feed, sanctions list, the matching Part C sets, and `frameworks.md`'s Jurisdiction knob).
+- **Turn retrieval off** for a confidential engagement: set `Retrieval: off` in Part A. The run then
+  degrades visibly rather than silently answering from memory.
 
 ## Roadmap
 
@@ -586,6 +597,7 @@ infosec-council/
 │       └── infosec-council/                  #   the decision council (7-seat deliberation)
 │           ├── SKILL.md                       #   orchestrator (dispatches sub-agents) + skill router
 │           ├── frameworks.md                  #   ← single source of truth: baselines/regime scope/versions/5x5 risk (shared by all 4 skills)
+│           ├── external-websources.md         #   ← where to verify: source register + retrieval policy (shared by all 4 skills)
 │           ├── context.md                     #   strategic house-context (fill-in template)
 │           ├── journal.js                     #   decision journal (Node, no deps; default; Brier score + lookback)
 │           ├── journal.sh                     #   decision journal (bash + jq; alternative)
@@ -612,6 +624,9 @@ infosec-council/
 │   ├── build-desktop-skill.sh                 #   assemble the uploadable desktop ZIP
 │   ├── sync-chatgpt.js                        #   regenerate chatgpt/knowledge from canonical sources (CI-checked)
 │   ├── check-versions.js                      #   guard: all three manifests agree + tag == version (CI-checked)
+│   ├── check-desktop-parity.js                #   guard: desktop edition states the same retrieval policy as the council
+│   ├── fixtures/
+│   │   └── retrieval-injection-fixture.md     #   test vector for the data-never-instruction rule (not shipped to users)
 │   └── test-reports.js                        #   regression tests for the council + incident report generators
 └── dist/                                      # build output (gitignored)
     └── infosec-council-desktop.zip

@@ -368,6 +368,7 @@ let out = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
   + '<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>'
   + (len(convergedLabel(g(run, 'converged'))) > 0 ? '<p class="note">Panel outcome: ' + convergedLabel(run.converged) + '.</p>' : '')
   + (len(g(run, 'key_assumption')) > 0 ? '<p class="assume"><strong>This advice depends on:</strong> ' + e(run.key_assumption) + '</p>' : '')
+  + (Array.isArray(run.verified) && run.verified.length > 0 ? '<p class="assume"><strong>Checked against a primary source this run:</strong> ' + e(run.verified.join('; ')) + '</p>' : '')
   + (Array.isArray(run.unverified) && run.unverified.length > 0 ? '<p class="assume"><strong>Not independently verified (check before relying):</strong> ' + e(run.unverified.join('; ')) + '</p>' : '')
   + (len(g(run, 'next_step')) > 0 ? '<p class="assume"><strong>Do this next:</strong> ' + e(run.next_step) + '</p>' : '')
   + '</div>'
