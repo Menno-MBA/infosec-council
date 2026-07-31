@@ -112,6 +112,38 @@ than by reading the code.
   on rewrite); the release workflow publishes the integrity manifest's own hash, so the out-of-band
   anchor `integrity.js` told readers to rely on now exists.
 
+### Regulatory register
+
+- **CER / Wwke joins the scope table as a designation-gated regime.** Directive (EU) 2022/2557 was
+  adopted the same day as NIS2 as a deliberate pair — NIS2 for cyber resilience, CER for physical
+  resilience across largely the same sectors — so a register carrying one and not the other had a
+  hole. The Dutch instance is the Wet weerbaarheid kritieke entiteiten, in force 15 Aug 2026
+  alongside the Cbw. The default is **No, unless formally designated**, which is the substantive
+  point rather than a hedge: scope is ministerial designation, roughly 500 entities in the
+  Netherlands, and reading the sector list and concluding you are in scope is the error the row
+  exists to prevent. Three obligation rows, and their clock is deliberately not NIS2's — 24h then a
+  detailed report at one month, no 72h stage, and the recipient is the sector's competent authority
+  rather than the CSIRT. Two couplings are recorded because they bite even at NOT TRIGGERED: a
+  designated entity is automatically a NIS2 *essential* entity regardless of size (NIS2 Art. 3(1)(f)),
+  and in the Netherlands digital infrastructure is carved out of the Wwke's notification duties
+  (Wwke Art. 23) because the Cbw already covers them. Verified 2026-07-31 against rijksoverheid.nl,
+  rdi.nl and EUR-Lex; the register's global "last verified" date stays where it was, because only
+  these rows were checked.
+- **Not added: the Wbni.** It transposes NIS1 and is the law the Cbw replaces on 15 Aug 2026, so a
+  row for it would expire within a fortnight. That is maintenance cost, not coverage.
+
+### Documentation
+
+- **The README is a front page again.** It had grown to 795 lines and mixed "what is this, can I try
+  it" with the release process, the repository tree, the obligation-registry schema and the roadmap.
+  It is now 217 lines; the rest moved into seven guides under `docs/`, indexed by `docs/README.md`.
+  `CONTRIBUTING.md` moved to the root where GitHub surfaces it, and absorbed the release process.
+  Nothing was dropped — and the parts that had gone stale (a repository tree predating half the
+  scripts, an obligation table without CER, a licence scope corrected in v2.1.1 that the README
+  still described the old way) were fixed while moving rather than carried over.
+- `package.json` gains `repository`, `homepage`, `bugs` and `author`. Without `repository`, npm
+  cannot rewrite relative links, so every link into `docs/` would 404 on the package page.
+
 ## v2.1.1 (2026-07-31)
 
 The chairman's self-smoothing check no longer runs only in Deep.
