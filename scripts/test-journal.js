@@ -39,8 +39,11 @@ function assert(cond, msg) {
 }
 
 // Each case gets its own COUNCIL_HOME so one test's records cannot leak into another.
+const HOMES = [];
 function freshHome() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'council-journal-test-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'council-journal-test-'));
+  HOMES.push(dir);
+  return dir;
 }
 function seed(home, records) {
   fs.writeFileSync(path.join(home, 'journal.jsonl'),
@@ -477,6 +480,11 @@ console.log('grade: turning the pending count into pasteable actions:');
 }
 
 // ---------------------------------------------------------------------------
+// Each case gets its own journal directory, so a full run leaves a dozen behind.
+// Cleaned unconditionally: a failing run's temp dirs are no more useful than a
+// passing one's, since every fixture is reconstructable from this file.
+for (const dir of HOMES) fs.rmSync(dir, { recursive: true, force: true });
+
 if (failed) {
   console.error('\n' + failed + ' journal test(s) failed.');
   process.exit(1);
