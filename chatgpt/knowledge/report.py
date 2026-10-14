@@ -216,23 +216,46 @@ def make_report(run, out_dir="."):
     if g('subtitle'):
         parts.append(f'<p class="subtitle">{e(g("subtitle"))}</p>')
     parts.append('<p class="intro">A panel of security advisors reviewed this decision. This dossier gives you the recommendation and a short executive summary first, then the full analysis underneath: the risks, where the advisors agreed and disagreed, and each advisor in their own words.</p>')
-    parts.append(f'<div class="meta"><span><b>Depth</b>&nbsp;&nbsp;{e((g("mode") or "").upper())}</span><span><b>Reference</b>&nbsp;&nbsp;{sha}</span>' + (f'<span>{e(g("ts"))}</span>' if g("ts") else "") + "</div>")
+    qt = g("question_type")
+    qt_span = f'<span><b>Question</b>&nbsp;&nbsp;{e({"decision": "Decision", "choice": "Option choice", "plan": "Action plan"}.get(qt, qt))}</span>' if qt else ""
+    parts.append(f'<div class="meta"><span><b>Depth</b>&nbsp;&nbsp;{e((g("mode") or "").upper())}</span>{qt_span}<span><b>Reference</b>&nbsp;&nbsp;{sha}</span>' + (f'<span>{e(g("ts"))}</span>' if g("ts") else "") + "</div>")
+    # The percentage means different things either side of v3.0.0; say which.
+    dq = g("probability_basis") == "decision-quality"
 
     # verdict
     parts.append('<div class="verdict"><h2>What we recommend</h2><p class="lead">The bottom-line advice, and how strongly the panel backs it.</p>')
     parts.append(f'<p class="rec">{e(g("recommendation"))}</p>')
     prob = g("probability")
-    prob_pill = f'<span class="pill prob">{prob}% it survives a 12-month review</span>' if isinstance(prob, (int, float)) else ""
+    prob_txt = "% a reviewer would still choose this in a year" if dq else "% it survives a 12-month review"
+    prob_pill = f'<span class="pill prob">{prob}{prob_txt}</span>' if isinstance(prob, (int, float)) else ""
     parts.append(f'<p><span class="pill {conf_class(g("confidence"))}">Confidence: {e(g("confidence"))}</span>{prob_pill}</p>')
-    parts.append('<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>')
+    if dq:
+        parts.append('<p class="note">Confidence is a band of the percentage (Low under 55, Medium 55 to 74, High 75 and above). The percentage is how likely the panel thinks a reviewer, a year from now, would still choose this course over the alternatives, whether or not an incident happens anyway.</p>')
+    else:
+        parts.append('<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>')
     cl = converged_label(g("converged"))
     if cl: parts.append(f'<p class="note">Panel outcome: {cl}.</p>')
     if g("key_assumption"): parts.append(f'<p class="assume"><strong>This advice depends on:</strong> {e(g("key_assumption"))}</p>')
+    alts = g("alternatives")
+    if isinstance(alts, list) and alts:
+        parts.append(f'<p class="assume"><strong>Chosen over:</strong> {e("; ".join(alts))}</p>')
+    ver = g("verified")
+    if isinstance(ver, list) and ver:
+        parts.append(f'<p class="assume"><strong>Checked against a primary source this run:</strong> {e("; ".join(ver))}</p>')
     unv = g("unverified")
     if isinstance(unv, list) and unv:
         parts.append(f'<p class="assume"><strong>Not independently verified (check before relying):</strong> {e("; ".join(unv))}</p>')
     if g("next_step"): parts.append(f'<p class="assume"><strong>Do this next:</strong> {e(g("next_step"))}</p>')
     parts.append("</div>")
+    plan = g("action_plan")
+    if isinstance(plan, list) and plan:
+        prow = "".join(f'<tr><td>{i + 1}</td><td>{e(a.get("action"))}</td><td>{e(a.get("owner"))}</td><td>{e(a.get("due"))}</td></tr>' for i, a in enumerate(plan))
+        parts.append('<section class="block"><h2>Action plan</h2><p class="lead">At most five actions, each with an owner and a date. An owner shown as unassigned is a duty nobody in the organization holds yet.</p>'
+                     '<table class="opts"><thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Due</th></tr></thead><tbody>' + prow + '</tbody></table></section>')
+    secs = g("secondaries")
+    if isinstance(secs, list) and secs:
+        parts.append('<section class="block"><h2>Related questions</h2><p class="lead">Smaller questions that came with this decision, answered in one line each. They were not debated or scored like the main question.</p><ul>'
+                     + "".join(f'<li><b>{e(s.get("question"))}</b>: {e(s.get("call"))}</li>' for s in secs) + '</ul></section>')
     parts.append(risk_block(g("risk_score")))
     parts.append(obligations_block(g("obligations")))
 
@@ -292,8 +315,11 @@ def make_report(run, out_dir="."):
             mprob_txt = f' &middot; {mprob}%' if isinstance(mprob, (int, float)) else ""
             card += f'</div><span class="pill {conf_class(mg("confidence"))}">{e(mg("confidence") or "n/a")}{mprob_txt}</span></header>'
             if mg("stance"): card += f'<p class="stance">Stance: {e(mg("stance"))}</p>'
+            if mg("choice"): card += f'<p class="stance">Choice: {e(mg("choice"))}</p>'
             if mg("summary"): card += f'<p class="sum">{e(mg("summary"))}</p>'
             card += "<dl>"
+            if mg("first"): card += f'<dt>First</dt><dd>{e(mg("first"))}</dd>'
+            if mg("not_now"): card += f'<dt>Not now</dt><dd>{e(mg("not_now"))}</dd>'
             if mg("condition"): card += f'<dt>Only if</dt><dd>{e(mg("condition"))}</dd>'
             if mg("assumptions"): card += f'<dt>What they assume</dt><dd>{e(mg("assumptions"))}</dd>'
             if mg("change_my_mind"): card += f'<dt>What would change their view</dt><dd>{e(mg("change_my_mind"))}</dd>'

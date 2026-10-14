@@ -52,7 +52,8 @@ ${C.b("infosec-council")} – a Claude council of seven security experts.
 
 ${C.b("Commands")}
   install            Install the council for Claude Code (default)
-  verify             Check the shipped scripts against their SHA-256 manifest
+  verify             Check the shipped scripts against their SHA-256 manifest, and
+                     warn about stale council personas that would shadow these
   build-desktop      Build the uploadable Claude.ai/Desktop skill zip
   build-plugin       Build a standalone Claude Code plugin (dir + zip)
   help               Show this message
@@ -218,8 +219,10 @@ function install() {
   console.log(`${C.green("✓")} infosec-council ${C.b("v" + VERSION)} installed${GLOBAL ? " globally" : ""}.`);
   for (const n of notes) console.log(`  ${C.yellow("•")} ${n}`);
   if (RESET) console.log(`  ${C.yellow("•")} --reset-config: context.md, frameworks.md and external-websources.md were reset to the shipped templates.`);
+  console.log(`  ${C.yellow("•")} v3 council seats run with web tools only (WebSearch, WebFetch). Pre-approve both in`);
+  console.log(`    your Claude Code permissions, or background seats can stall on an approval prompt.`);
   console.log(`\n  ${GLOBAL ? "Open Claude Code anywhere" : "Run " + C.b("claude") + " in this folder"} and try:`);
-  console.log(`  ${C.dim("ask the infosec-council: <your decision> -deep")}\n`);
+  console.log(`  ${C.dim("ask the infosec-council: <your decision>")}\n`);
 }
 
 // --- minimal, dependency-free .zip writer (deflate) -----------------------
@@ -375,6 +378,26 @@ function buildPlugin() {
 // manifest ships in-repo, so this detects accidental corruption and casual
 // tampering; for a hard supply-chain guarantee compare the manifest hash out
 // of band or rely on npm provenance (see SECURITY.md).
+// v3 seats run with `tools: WebSearch, WebFetch`, which is what keeps one seat from
+// reading the journal, an earlier dossier, or another seat's output. A project or user
+// agents/ folder outranks a plugin's agents, so a v2 copy left there silently restores
+// every tool to that seat. Look in both places and name what would shadow the shipped one.
+function stalePersonaCopies() {
+  const own = path.resolve(PKG_ROOT, ".claude", "agents");
+  const dirs = [path.join(process.cwd(), ".claude", "agents"), path.join(os.homedir(), ".claude", "agents")]
+    .map((d) => path.resolve(d)).filter((d, i, a) => a.indexOf(d) === i && d !== own);
+  const out = [];
+  for (const d of dirs) {
+    for (const f of COUNCIL_PERSONAS) {
+      const file = path.join(d, f);
+      if (!fs.existsSync(file)) continue;
+      const fm = fs.readFileSync(file, "utf8").match(/^---\r?\n([\s\S]*?)\r?\n---/);
+      if (!fm || !/^tools:\s*WebSearch, WebFetch\s*$/m.test(fm[1])) out.push(file);
+    }
+  }
+  return out;
+}
+
 function verifyIntegrity() {
   let integrity;
   try { integrity = require(path.join(PKG_ROOT, "scripts", "integrity.js")); }
@@ -387,12 +410,17 @@ function verifyIntegrity() {
   const configDrift = r.configDrift || [];
   const reportConfigDrift = () => configDrift.forEach((f) =>
     console.log(`  ${C.yellow("•")} locally modified config: ${f} ${C.dim("(expected if you tuned it; re-read it before you trust a run)")}`));
+  const stale = stalePersonaCopies();
+  const reportStale = () => stale.forEach((f) =>
+    console.log(`  ${C.yellow("•")} stale council persona without the v3 tool list: ${f}\n    ${C.dim("it takes precedence over the plugin's copy and gives that seat every tool; re-run the installer with --force, or delete it")}`));
   if (r.ok) {
     console.log(`${C.green("✓")} Integrity OK: all ${C.b(String(r.checked))} executable files match the recorded SHA-256 manifest.`);
     reportConfigDrift();
+    reportStale();
     return;
   }
   reportConfigDrift();
+  reportStale();
   console.error(`${C.yellow("!")} Integrity check FAILED, the package scripts do not match their manifest:`);
   r.mismatches.forEach((f) => console.error(`  ${C.yellow("altered")}    ${f}`));
   r.missing.forEach((f) => console.error(`  ${C.yellow("missing")}    ${f}`));

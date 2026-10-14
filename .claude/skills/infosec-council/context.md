@@ -7,8 +7,8 @@ strategic decisions it has already taken. Where `frameworks.md` holds the
 holds the **strategic** configuration (what this organization has decided and prefers).
 
 The orchestrator (SKILL.md) loads this file and injects it into every member's prompt
-before deliberation, alongside `frameworks.md`. Fill in Parts A to C by hand; the
-council appends observations to Part D over time.
+before deliberation, alongside `frameworks.md`. Fill in Parts A to D by hand; the
+council appends observations to Part E over time.
 
 ---
 
@@ -61,13 +61,35 @@ council does not relitigate settled ground, unless a seat shows the basis has ch
 | _YYYY-MM_ | _e.g. standardized on <IdP>, <EDR>, <cloud>_ | _..._ | _..._ |
 | _add as needed_ | | |
 
+## Part D. Role map (who actually holds each duty here)
+
+The seven seats are lenses, not staff. Most SMEs have no in-house DPO, SOC, or CISO, so
+an action routed to "the DPO" can be an action routed to nobody. Name who carries each
+duty in this organization: a person's role (not their name), an external provider, or
+`nobody`. The chairman routes every owner in the action plan and the obligations ledger
+through this table; a `nobody` row is reported as a risk, not filled in with a guess.
+Leave a row as the placeholder and it reads as `unassigned (<duty>)`.
+
+| Duty | Held by here | Notes |
+|---|---|---|
+| Security program, delivery and capacity | _e.g. managing director, with the MSP_ | |
+| Risk acceptance (signs off residual risk) | _e.g. managing director_ | |
+| Platform configuration and hardening | _e.g. MSP_ | |
+| Detection, response and recovery | _e.g. MDR provider; MSP out of hours_ | |
+| Compliance evidence and certification | _e.g. office manager, or nobody_ | |
+| GDPR breach notification and data-protection advice | _e.g. external DPO service_ | |
+| NIS2/Cbw notification (notifier) | _e.g. managing director, or "not in scope"_ | |
+| Finance process controls (payment changes, callback verification) | _e.g. finance lead_ | |
+| Supplier and contract management | _e.g. operations lead_ | |
+| Backups and tested restore | _e.g. MSP_ | |
+
 ---
 
-## Part D. Organization context (auto-appended)
+## Part E. Organization context (auto-appended)
 
 Durable organizational facts the council learns over time (size, sector, data types,
 key constraints), so future runs start better-informed. Treat these as observations,
-not commitments; promote anything strategic into Parts A to C by hand. The council adds
+not commitments; promote anything strategic into Parts A to D by hand. The council adds
 dated bullets between the markers below; do not remove the markers.
 
 <!-- COUNCIL:AUTO-CONTEXT:BEGIN -->

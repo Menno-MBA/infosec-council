@@ -99,11 +99,19 @@ off the same number.
 ### Actually grading them
 
 Knowing the count was never what stopped anyone; composing the command was. `council grade`
-prints each ungraded run with its question, the call, the assumption it rested on, and a
-ready-to-paste command.
+prints each ungraded run with its question, the call, the alternatives it was chosen over, the
+assumption it rested on, and a ready-to-paste command.
+
+The question to answer is the one the number was about: *knowing what you know now, would you
+still choose this course over the listed alternatives?* An incident that would have happened
+under every option does not make a call `wrong`; choosing the worse option does, even if the
+year stayed quiet. Runs logged before v3.0.0 keep their old question ("did the advice hold up?"),
+because their number meant something else. Only you grade; the council never records an outcome
+on its own advice.
 
 A run against a documented example case can be graded **now**, against that case's published
-ground truth. Start the note with `exercise:` so the record shows it. Those grades share one
+ground truth; the maintainer's `scripts/grading-worksheet.js` sets each such run beside its
+case. Start the note with `exercise:` so the record shows it. Those grades share one
 pool with live decisions, so the Brier score mixes "we were right about a documented past
 event" with "our advice held up in practice". The prefix keeps that visible where the maths
 does not separate it.
@@ -118,6 +126,10 @@ from.
 
 Beside those sits the **delivery rate**: how often a recommendation was actually executed,
 which is a governance metric rather than an accuracy one.
+
+Calibration is computed **per probability basis**. Records from v3.0.0 onward are stamped
+`probability_basis: "decision-quality"`; older records carried an outcome-contaminated number
+("right and nothing bad happened") and are reported apart under `legacy_basis`, never pooled.
 
 The chairman states the measured reliability beside the asserted one in every synthesis, and
 says plainly when too few outcomes are graded to claim anything.

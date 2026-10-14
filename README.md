@@ -31,9 +31,15 @@ team, a lot of things running on other people's servers.
 
 ## What you get
 
-**A verdict you can act on.** A recommendation, a confidence level, the key risks in plain
-language, and one concrete next step. Plus a *minority report*: the strongest objection, kept
-in even when it lost the argument.
+**A verdict you can act on.** A recommendation, the options it was chosen over, the key risks
+in plain language, and an action plan of at most five steps, each with an owner and a date.
+Owners come from a role map of who actually does what in your company, so a duty nobody holds
+shows up as a risk instead of being handed to a DPO you do not have. Plus a *minority report*:
+the strongest objection, kept in even when it lost the argument.
+
+**A probability that means something.** The percentage answers one question: with a year of
+hindsight, would you still choose this course over the alternatives, whether or not something
+bad happens anyway? It rates the choice, not luck, so it can be checked later.
 
 **The legal clocks, surfaced automatically.** Before it starts arguing, the council checks
 every registered statutory duty, such as a GDPR breach notification or a NIS2 report, and
@@ -41,8 +47,9 @@ returns each one as *this applies, here is who owns it and by when* or *this doe
 That second half is the useful one: it is a written record of what was considered and ruled
 out.
 
-**A track record.** Every run is logged. Months later you tell it how the decision actually
-went, and it scores itself, including how often nobody got round to doing what it recommended.
+**A track record.** Every run is logged. Months later you tell it whether you would still make
+the same call, and it scores itself, including how often nobody got round to doing what it
+recommended.
 Over time you find out whether its confidence is worth anything. A one-shot answer can never
 tell you that.
 
@@ -93,7 +100,7 @@ Type this in any of the three editions:
 ```
 ask the infosec-council: we want to let the team use a new AI note-taker that joins our
 customer calls and stores transcripts. ~25 staff, B2B SaaS, SOC 2 in progress. Should we,
-and under what conditions? -deep
+and under what conditions?
 ```
 
 **It handles live trouble too, not just plans:**
@@ -101,7 +108,7 @@ and under what conditions? -deep
 ```
 ask the infosec-council: a phishing email led to a compromised Microsoft 365 account with
 new mailbox forwarding rules. What is the blast radius, the response, and our GDPR and NIS2
-notification duties? -deep
+notification duties?
 ```
 
 The more you tell it, the sharper the answer: your size, your sector, what data you hold, what
@@ -113,9 +120,12 @@ Add one of these to the end of your question. The default is Standard.
 
 | Flag | Use it when | What happens |
 |---|---|---|
-| `-quick` | Low stakes, easy to undo | 3 advisors, fast |
-| `-standard` | Most of the time | All 7, peer review, debate if they agree too easily |
+| `-quick` | Low stakes, easy to undo | Offensive Security plus 2 advisors, fast |
+| `-standard` | Most of the time | All 7, cross-examination, debate if they agree too easily |
 | `-deep` | Expensive to get wrong | All 7, always debates, options compared, output audited |
+
+Add `-type=decision`, `-type=choice`, `-type=plan` or `-type=bundle` to say what kind of answer
+you want; otherwise the council classifies the question and tells you what it picked.
 
 → [How it works](docs/how-it-works.md): the panel, the protocol, and how the room converges.
 
@@ -146,7 +156,7 @@ Three files hold everything tunable, and an upgrade never overwrites them:
 - **`frameworks.md`** holds which rules apply to you, which security baseline you hold yourself to,
   and the statutory duties the council checks before every run.
 - **`context.md`** holds your house positions: what you have already decided, what is out of
-  appetite regardless of the business case.
+  appetite regardless of the business case, and the role map of who holds each duty.
 - **`external-websources.md`** says where the council goes to check a fact rather than remembering
   one.
 
@@ -161,7 +171,9 @@ they should not mishandle input, and you should be able to tell whether the copy
 altered.
 
 Every value that reaches a report is escaped; there is no `eval`, no `child_process` and no
-runtime dependencies. Every executable ships with a SHA-256 entry you can check:
+runtime dependencies. The seven council seats run with web search and fetch only, so a seat
+that reads untrusted web content cannot open your files or run commands; `verify` also warns
+when an old persona copy would quietly restore their full tool set. Every executable ships with a SHA-256 entry you can check:
 
 ```bash
 npx infosec-council verify

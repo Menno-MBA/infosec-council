@@ -79,6 +79,13 @@ function legacyRecord(sha, over) {
     outcome: { recorded: false }
   }, over || {});
 }
+// A record as v3 writes it: decision-quality basis, with the alternatives it was chosen over.
+function v3Record(sha, over) {
+  return Object.assign(legacyRecord(sha), {
+    probability_basis: 'decision-quality', protocol: '3.0.0', question_type: 'decision',
+    alternatives: ['Do nothing']
+  }, over || {});
+}
 // A record carrying the Round-2 instrumentation.
 function r2Record(sha, members, over) {
   return Object.assign(legacyRecord(sha), { members }, over || {});
@@ -101,9 +108,11 @@ console.log('backwards compatibility with pre-instrumentation records:');
   assert(meta.total_runs === 3, 'meta counts every legacy record');
   assert(meta.with_outcome === 1 && meta.pending === 2, 'meta separates graded from pending legacy records');
 
-  const buckets = meta.calibration_by_confidence.map(c => c.confidence).sort();
+  const buckets = meta.legacy_basis.calibration_by_confidence.map(c => c.confidence).sort();
   assert(buckets.includes('medium-high'),
     'an out-of-vocabulary confidence already on disk still reports as its own bucket');
+  assert(meta.legacy_basis.runs === 3 && meta.brier_overall === null,
+    'legacy records are scored under legacy_basis and never pooled into the current basis');
 
   const listed = run(home, ['journal', '10']);
   assert(listed.status === 0 && (listed.out.match(/"sha"/g) || []).length === 3,
@@ -122,7 +131,7 @@ console.log('calibration maths (Brier, ECE, reliability curve, delivery):');
 // ---------------------------------------------------------------------------
 {
   const graded = (sha, probability, result, over) => Object.assign(
-    legacyRecord(sha, { probability, confidence: 'high' }),
+    v3Record(sha, { probability, confidence: 'high' }),
     { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result, note: '' } }, over || {});
 
   // Brier is mean squared error between the stated probability and the outcome, where
@@ -142,9 +151,9 @@ console.log('calibration maths (Brier, ECE, reliability curve, delivery):');
   // `not-tested` must count for delivery and NOT for accuracy. It is the behaviour the
   // ACTUAL table's seven-line comment exists to protect, and nothing pinned it.
   const home = seed(freshHome(), [
-    Object.assign(legacyRecord('nt000001', { probability: 90, confidence: 'high' }),
+    Object.assign(v3Record('nt000001', { probability: 90, confidence: 'high' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'not-tested', note: '' } }),
-    Object.assign(legacyRecord('nt000002', { probability: 90, confidence: 'high' }),
+    Object.assign(v3Record('nt000002', { probability: 90, confidence: 'high' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'correct', note: '' } })
   ]);
   const meta = runJSON(home, ['meta']);
@@ -162,9 +171,9 @@ console.log('calibration maths (Brier, ECE, reliability curve, delivery):');
   // The reliability curve bins probability into five bands of 0.2. p=100 is the edge
   // case: without the Math.min(4, ...) clamp it indexes a sixth, non-existent bin.
   const home = seed(freshHome(), [
-    Object.assign(legacyRecord('ec000001', { probability: 100, confidence: 'high' }),
+    Object.assign(v3Record('ec000001', { probability: 100, confidence: 'high' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'correct', note: '' } }),
-    Object.assign(legacyRecord('ec000002', { probability: 0, confidence: 'low' }),
+    Object.assign(v3Record('ec000002', { probability: 0, confidence: 'low' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: '' } })
   ]);
   const meta = runJSON(home, ['meta']);
@@ -179,9 +188,9 @@ console.log('calibration maths (Brier, ECE, reliability curve, delivery):');
   // A high-confidence call that did not hold is the single most instructive record in
   // the journal, and the one the synthesis is told to learn from.
   const home = seed(freshHome(), [
-    Object.assign(legacyRecord('hm000001', { probability: 90, confidence: 'high' }),
+    Object.assign(v3Record('hm000001', { probability: 90, confidence: 'high' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: 'the DPA had gaps' } }),
-    Object.assign(legacyRecord('hm000002', { probability: 55, confidence: 'low' }),
+    Object.assign(v3Record('hm000002', { probability: 55, confidence: 'low' }),
       { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result: 'wrong', note: '' } })
   ]);
   const meta = runJSON(home, ['meta']);
@@ -340,12 +349,12 @@ console.log('round-2 value statistics:');
 console.log('confidence vocabulary at log time:');
 // ---------------------------------------------------------------------------
 {
-  const base = { question: 'Should we do X?', mode: 'deep', probability: 70 };
+  const base = { question: 'Should we do X?', mode: 'deep', alternatives: ['Wait a quarter'] };
   const home = freshHome();
 
-  for (const value of ['low', 'medium', 'high']) {
-    const r = run(home, ['log'], JSON.stringify(Object.assign({}, base, { confidence: value })));
-    assert(r.status === 0, 'log accepts confidence "' + value + '"');
+  for (const [value, p] of [['low', 40], ['medium', 60], ['high', 80]]) {
+    const r = run(home, ['log'], JSON.stringify(Object.assign({}, base, { confidence: value, probability: p })));
+    assert(r.status === 0, 'log accepts confidence "' + value + '" inside its band');
   }
 
   // The live journal contains a run logged as `medium-high`. meta buckets calibration
@@ -359,7 +368,7 @@ console.log('confidence vocabulary at log time:');
 
   // Absent confidence was always allowed; validating new writes must not turn an
   // optional field into a required one.
-  const none = run(home, ['log'], JSON.stringify(base));
+  const none = run(home, ['log'], JSON.stringify(Object.assign({}, base, { probability: 70 })));
   assert(none.status === 0, 'log still accepts a record with no confidence at all');
 }
 
@@ -369,7 +378,7 @@ console.log('confidence vocabulary at log time:');
   // "high" separately. The value must be normalised on the way in, not just compared.
   const home = freshHome();
   for (const v of ['High', ' high ', 'HIGH', 'high']) {
-    const r = run(home, ['log'], JSON.stringify({ question: 'Q ' + v, mode: 'deep', confidence: v, probability: 80 }));
+    const r = run(home, ['log'], JSON.stringify({ question: 'Q ' + v, mode: 'deep', confidence: v, probability: 80, alternatives: ['Wait'] }));
     assert(r.status === 0, 'log accepts confidence "' + v + '"');
   }
   const meta = runJSON(home, ['meta']);
@@ -384,12 +393,12 @@ console.log('blind_spots shape validation at log time:');
 // ---------------------------------------------------------------------------
 {
   const home = freshHome();
-  const withBS = (v) => JSON.stringify({ question: 'Q', mode: 'deep', confidence: 'medium', probability: 70, blind_spots: v });
+  const withBS = (v) => JSON.stringify({ question: 'Q', mode: 'deep', confidence: 'medium', probability: 70, alternatives: ['Wait'], blind_spots: v });
 
   assert(run(home, ['log'], withBS([{ text: 'a', round: 1 }, { text: 'b', round: 2 }])).status === 0,
     'log accepts a well-formed blind_spots list');
   assert(run(home, ['log'], withBS([])).status === 0, 'an empty blind_spots list is fine');
-  assert(run(home, ['log'], JSON.stringify({ question: 'Q', mode: 'deep' })).status === 0,
+  assert(run(home, ['log'], JSON.stringify({ question: 'Q', mode: 'deep', alternatives: ['Wait'] })).status === 0,
     'blind_spots stays optional');
 
   // The untagged shapes are what made the old bare count uninterpretable. Each must
@@ -477,6 +486,168 @@ console.log('grade: turning the pending count into pasteable actions:');
   const pend60 = runJSON(home, ['pending', '60']);
   assert(pend30.ripe_total === 1 && pend60.ripe_total === 0,
     'pending agrees with grade on what is ripe at each threshold');
+}
+
+// ---------------------------------------------------------------------------
+console.log('v3: probability basis, confidence bands, alternatives:');
+// ---------------------------------------------------------------------------
+{
+  const home = freshHome();
+  const ok = { question: 'Should we adopt X?', mode: 'standard', probability: 62, alternatives: ['Wait a quarter'] };
+  const r = run(home, ['log'], JSON.stringify(ok));
+  assert(r.status === 0, 'a v3 record with alternatives logs');
+  const rec = JSON.parse(fs.readFileSync(path.join(home, 'journal.jsonl'), 'utf8').trim());
+  assert(rec.probability_basis === 'decision-quality' && rec.protocol === '3.0.0',
+    'log stamps the probability basis and protocol version');
+  assert(rec.confidence === 'medium', 'a missing confidence word is derived from the number (62 -> medium)');
+  assert(rec.question_type === 'decision', 'question_type defaults to decision');
+
+  // Band edges, because an off-by-one here silently re-buckets every 55 and 75.
+  for (const [p, want] of [[54, 'low'], [55, 'medium'], [74, 'medium'], [75, 'high']]) {
+    const rr = run(home, ['log'], JSON.stringify(Object.assign({}, ok, { probability: p, confidence: want })));
+    assert(rr.status === 0, 'probability ' + p + ' is band ' + want);
+  }
+  // The v2 failure: "high" at 65%.
+  const drift = run(home, ['log'], JSON.stringify(Object.assign({}, ok, { probability: 65, confidence: 'high' })));
+  assert(drift.status !== 0 && /medium/.test(drift.err), 'log rejects a word that contradicts its number, naming the right band');
+  const seatDrift = run(home, ['log'], JSON.stringify(Object.assign({}, ok, {
+    members: [{ name: 'ciso', stance: 'go', probability: 40, confidence: 'high' }] })));
+  assert(seatDrift.status !== 0 && /ciso/.test(seatDrift.err), 'the band rule applies to seats too');
+
+  assert(run(home, ['log'], JSON.stringify({ question: 'Q', probability: 60 })).status !== 0,
+    'alternatives are required on a new record');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { alternatives: [] }))).status !== 0,
+    'an empty alternatives list is refused');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { probability_basis: 'no-incident' }))).status !== 0,
+    'a record declaring a foreign probability basis is refused');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { question_type: 'bundle' }))).status !== 0,
+    'a bundle is logged as its primary type, not as "bundle"');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { question_type: 'plan' }))).status === 0,
+    'plan is a valid question type');
+  for (const bad of ['70', 140, -1]) {
+    assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { probability: bad }))).status !== 0,
+      'a probability of ' + JSON.stringify(bad) + ' is refused, not silently dropped from calibration');
+  }
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { members: [{ name: 'dpo', stance: 'go', probability: 'high' }] }))).status !== 0,
+    'a seat probability that is not a number is refused');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { members: [{ name: 'dpo', stance: 'missing' }] }))).status === 0,
+    'a missing seat needs no probability');
+}
+
+{
+  const home = freshHome();
+  const ok = { question: 'Plan?', mode: 'standard', probability: 70, alternatives: ['Wait'] };
+  const item = (i) => ({ action: 'Do ' + i, owner: 'MD', due: '2026-11-0' + i });
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { action_plan: [1, 2, 3, 4, 5].map(item) }))).status === 0,
+    'an action plan of five owned, dated items logs');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { action_plan: [1, 2, 3, 4, 5, 6].map(item) }))).status !== 0,
+    'a sixth action-plan item is refused');
+  const noOwner = run(home, ['log'], JSON.stringify(Object.assign({}, ok, { action_plan: [{ action: 'x', due: 'soon' }] })));
+  assert(noOwner.status !== 0 && /unassigned/.test(noOwner.err), 'an ownerless item is refused, pointing at "unassigned (<duty>)"');
+  const sec = (q) => ({ question: q, call: 'yes' });
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { secondaries: [sec('a'), sec('b')] }))).status === 0,
+    'two secondary questions log');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, ok, { secondaries: [sec('a'), sec('b'), sec('c')] }))).status !== 0,
+    'a third secondary question is refused');
+}
+
+{
+  // meta keeps the two bases apart.
+  const g = (rec, result) => Object.assign(rec, { outcome: { recorded: true, ts: '2026-02-01T00:00:00Z', result, note: '' } });
+  const home = seed(freshHome(), [
+    g(v3Record('dq000001', { probability: 80, confidence: 'high' }), 'correct'),
+    g(legacyRecord('lg000001', { probability: 80, confidence: 'high' }), 'wrong')
+  ]);
+  const meta = runJSON(home, ['meta']);
+  assert(meta.brier_overall.n === 1 && meta.brier_overall.brier === 0.04, 'brier_overall covers the current basis only');
+  assert(meta.legacy_basis.brier.n === 1 && meta.legacy_basis.brier.brier === 0.64, 'legacy records are scored apart');
+  const listed = run(home, ['journal']).out;
+  assert(/"basis":"decision-quality"/.test(listed) && /"basis":"legacy"/.test(listed), 'journal shows each record\'s basis');
+  const grade = run(home, ['outcome', 'dq000001', 'correct']).status === 0 && run(seed(freshHome(), [v3Record('dq000002')]), ['grade']).out;
+  assert(/would you still choose this course/.test(grade) && /Do nothing/.test(grade),
+    'grade asks the hindsight question and lists the alternatives on a v3 record');
+  assert(/legacy record/.test(run(seed(freshHome(), [legacyRecord('lg000002')]), ['grade']).out),
+    'grade keeps the old question on a legacy record, labelled');
+}
+
+// ---------------------------------------------------------------------------
+console.log('v3: convergence from the Round-2 acceptance matrix:');
+// ---------------------------------------------------------------------------
+{
+  const { convergence } = require(JOURNAL_JS);
+  const names = ['ciso', 'security-architect', 'offensive-security', 'security-operations',
+    'compliance-analyst', 'dpo', 'risk-manager'];
+  const seats = (fn) => names.map((n, i) => Object.assign({ name: n }, fn(n, i)));
+  const all = (v) => Object.fromEntries(names.map(a => [a, Object.fromEntries(names.filter(b => b !== a).map(b => [b, v]))]));
+
+  const cg = seats(() => ({ stance: 'conditional-go', condition: 'MFA on every admin account first', probability: 70 }));
+  let c = convergence({ members: cg, acceptance: all(true) });
+  assert(c.label && c.condition && c.spread && c.outcome === 'converged', 'seven conditional seats accepting each other converge');
+
+  // One refusal anywhere among the aligned conditional seats is a label-only split.
+  const oneNo = all(true); oneNo.dpo.ciso = false;
+  c = convergence({ members: cg, acceptance: oneNo });
+  assert(c.outcome === 'label-only' && !c.condition, 'a single rejected condition makes it label-only');
+  assert(c.detail.some(d => /dpo does not accept ciso/.test(d)), 'and the detail names who rejected whom');
+
+  // A condition rewritten in Round 2 loses its acceptances.
+  const changed = cg.map(m => m.name === 'risk-manager' ? Object.assign({}, m, { condition_changed_r2: true }) : m);
+  c = convergence({ members: changed, acceptance: all(true) });
+  assert(c.outcome === 'label-only', 'a condition changed in Round 2 loses the acceptances it had');
+
+  // Placeholder conditions are not agreement evidence.
+  const ph = cg.map(m => m.name === 'ciso' ? Object.assign({}, m, { condition: 'n/a' }) : m);
+  assert(convergence({ members: ph, acceptance: all(true) }).outcome === 'label-only', 'an "n/a" condition is not agreement');
+
+  // The dissenter is forgiven by test 1, and only the aligned seats are spread-tested.
+  const sixOne = cg.map(m => m.name === 'offensive-security' ? { name: m.name, stance: 'no-go', probability: 20 } : m);
+  c = convergence({ members: sixOne, acceptance: all(true) });
+  assert(c.label && c.outcome === 'converged' && !c.aligned.includes('offensive-security'),
+    '6 of 7 converges and the dissenter is outside the spread test');
+
+  // A missing seat stays in the denominator and never agrees.
+  const missing = sixOne.map(m => m.name === 'dpo' ? { name: 'dpo', stance: 'missing' } : m);
+  assert(convergence({ members: missing, acceptance: all(true) }).outcome === 'split',
+    'with one dissenter and one missing seat, 5 of 7 is a split');
+
+  // Spread among the aligned seats.
+  const wide = cg.map((m, i) => Object.assign({}, m, { probability: i === 0 ? 45 : 70 }));
+  assert(convergence({ members: wide, acceptance: all(true) }).outcome === 'label-only', 'a 25-point spread is label-only');
+
+  // Plans: test 1 reads the matrix.
+  const plan = seats((n) => ({ first: 'Turn on callback verification for payment changes', not_now: 'SIEM', probability: 68 }));
+  assert(convergence({ members: plan, acceptance: all(true), question_type: 'plan' }).outcome === 'converged',
+    'a plan converges when every seat accepts the others\' first action');
+  const planNo = all(false);
+  assert(convergence({ members: plan, acceptance: planNo, question_type: 'plan' }).outcome === 'split',
+    'a plan with no acceptances is split, whatever the wording of the first actions');
+
+  // Choices compare the option picked.
+  const choice = seats((n, i) => ({ choice: i < 6 ? 'B' : 'A', probability: 66 }));
+  assert(convergence({ members: choice, acceptance: {}, question_type: 'choice' }).outcome === 'converged',
+    'six seats choosing the same option without conditions converge');
+
+  // Spelling is not disagreement.
+  const spelled = seats((n, i) => ({ choice: ['A', 'Option A', 'a ', 'A.', 'option a', 'A', 'B'][i], probability: 66 }));
+  assert(convergence({ members: spelled, acceptance: {}, question_type: 'choice' }).outcome === 'converged',
+    '"A", "Option A" and "a " are one choice, not three blocs');
+  const caps = cg.map(m => Object.assign({}, m, { stance: 'Conditional-Go' }));
+  assert(convergence({ members: caps, acceptance: oneNo }).outcome === 'label-only',
+    'a capitalised conditional stance still gets the condition test');
+
+  // log enforces it.
+  const home = freshHome();
+  const rec = { question: 'Q', mode: 'standard', probability: 70, alternatives: ['Wait'], members: cg, acceptance: oneNo };
+  const bad = run(home, ['log'], JSON.stringify(Object.assign({}, rec, { converged: 'after-challenge' })));
+  assert(bad.status !== 0 && /label-only/.test(bad.err), 'log rejects a converged value the matrix contradicts');
+  assert(run(home, ['log'], JSON.stringify(Object.assign({}, rec, { converged: 'label-only' }))).status === 0,
+    'and accepts the value the matrix gives');
+  assert(run(home, ['log'], JSON.stringify(rec)).status === 0, 'an omitted converged value is filled from the matrix');
+  const last = fs.readFileSync(path.join(home, 'journal.jsonl'), 'utf8').trim().split('\n').pop();
+  assert(JSON.parse(last).converged === 'label-only' && JSON.parse(last).convergence_tests.condition === false,
+    'the filled value and the test results are stored on the record');
+  const cli = cp.spawnSync('node', [JOURNAL_JS, 'converge'], { input: JSON.stringify({ members: cg, acceptance: all(true) }), encoding: 'utf8' });
+  assert(cli.status === 0 && JSON.parse(cli.stdout).outcome === 'converged', 'journal.js converge prints the tests');
 }
 
 // ---------------------------------------------------------------------------

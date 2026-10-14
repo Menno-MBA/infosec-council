@@ -67,6 +67,16 @@ const SHARED_POLICY = [
   // a five-file edit in which the check protecting you is one of the files you must
   // remember to edit. The rule is "a bounded spread gates convergence"; the value is a knob.
   ['probability spread bounds convergence', 'differ by at most'],
+  // v3. PROBABILITY rates the choice, not the absence of an incident; every probed v2
+  // seat read "survives a 12-month look-back" as "and nothing bad happens".
+  ['probability is decision quality', 'whether or not an incident happens anyway'],
+  ['question types are declared or classified', '-type=<decision|choice|plan|bundle>'],
+  ['cross-acceptance feeds convergence', 'cross-acceptance'],
+  ['a missing seat never agrees', 'counts in the panel and never as agreeing'],
+  ['action plan is capped', 'at most five items'],
+  ['owners route through the role map', 'unassigned (<duty>)'],
+  ['NIS2 scope is a per-run entity test', 'entity test'],
+  ['determination pass owns the clocks', 'determination pass owns the clocks'],
 ];
 
 // Deliberately NOT shared, and asserted as such: each needle must be present in the
@@ -85,6 +95,9 @@ const NOT_SHARED = [
   // nothing to aggregate, so recording it in the Desktop edition would cost prompt
   // budget for a measurement nobody can ever read.
   ['round-2 delta capture', 'stance_r1'],
+  // One voice plays every Desktop advisor, so anonymized peer scoring there would be one
+  // model marking its own work seven times. Desktop runs a steelman instead (see below).
+  ['anonymized peer scoring', 'Scored anonymous ranking'],
 ];
 
 // The third edition. Its only guard was a byte budget, so a gutted INSTRUCTIONS.md
@@ -97,13 +110,76 @@ const CHATGPT_POLICY = [
   ['unnamed condition is not agreement', 'is not agreement evidence'],
   ['spread bounds convergence', 'spread is at most'],
   ['condition test scoped to conditional stances', 'where any of those are conditional stances'],
-  ['probability is the seat\'s own position', 'your own position survives'],
+  ['probability is the seat\'s own position, rated as decision quality', 'whether or not an incident happens anyway'],
+  ['seats end with the per-type block', 'output-blocks.md'],
+  ['steelman replaces peer scoring', 'steelman'],
+  ['cross-acceptance, labelled a self-check', 'cross-acceptance (a self-check'],
+  ['action plan is capped', 'at most 5 items'],
+  ['NIS2 entity test', 'entity test'],
   ['obligation omission gate', 'GATE B'],
   ['determination pass runs first', 'NOT TRIGGERED'],
   ['anti-anchoring on house positions', 'defaults, not doctrine'],
   ['forced debate needs a pre-mortem', 'pre-mortem'],
   ['no false consensus', 'the conflict is the product'],
 ];
+
+// The seven council personas. A persona is where the stale v2 definition survived the
+// v2.2.0 fix: the orchestrator was corrected, the persona files still told every seat
+// its number meant "this recommendation survives", and nothing compared them. They now
+// point at the block the orchestrator injects instead of restating it, and they carry a
+// web-only tool list. Claude Code ignores an unrecognised frontmatter key without an
+// error, so a misspelt `tools:` silently restores every tool: the key is checked by name.
+const AGENTS = path.join(ROOT, '.claude', 'agents');
+const COUNCIL_PERSONAS = ['ciso', 'security-architect', 'offensive-security', 'security-operations',
+  'compliance-analyst', 'dpo', 'risk-manager'];
+const PERSONA_FORBIDDEN = [
+  ['the v2 probability definition', 'survives a 12-month look-back'],
+  ['the v2 probability definition', 'this recommendation survives'],
+  ['a restated confidence word', 'STANCE / CONFIDENCE / PROBABILITY'],
+];
+// Seats that must not restate notification clocks: the determination pass owns them.
+const CLOCK_FREE = ['ciso', 'security-operations'];
+
+function checkPersonas(failures) {
+  console.log('\ncouncil persona contract:');
+  for (const name of COUNCIL_PERSONAS) {
+    const file = path.join(AGENTS, name + '.md');
+    if (!fs.existsSync(file)) { failures.push('persona ' + name + ' is missing'); continue; }
+    const raw = fs.readFileSync(file, 'utf8');
+    const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const keys = {};
+    if (fm) for (const line of fm[1].split(/\r?\n/)) {
+      const kv = line.match(/^([A-Za-z]+):\s*(.*)$/);
+      if (kv) keys[kv[1]] = kv[2].trim();
+    }
+    const problems = [];
+    if (keys.tools !== 'WebSearch, WebFetch') problems.push('frontmatter `tools` must be exactly "WebSearch, WebFetch" (got ' + JSON.stringify(keys.tools) + ')');
+    if (keys.omitClaudeMd !== 'true') problems.push('frontmatter `omitClaudeMd: true` is missing');
+    const body = raw.slice(fm ? fm[0].length : 0);
+    for (const [label, needle] of PERSONA_FORBIDDEN) {
+      if (body.includes(needle)) problems.push('still carries ' + label + ' ("' + needle + '")');
+    }
+    if (!body.includes('output block the orchestrator hands you')) problems.push('does not point at the injected output block');
+    if (CLOCK_FREE.includes(name) && /\b(24h|72h)\b/.test(body)) problems.push('restates a notification clock the determination pass owns');
+    if (problems.length) failures.push('persona ' + name + ': ' + problems.join('; '));
+    else console.log('  ok: ' + name);
+  }
+}
+
+// The per-type blocks are the one stretch of text the CLI and Desktop editions must hold
+// byte for byte: the CLI injects them into every seat, Desktop states them inline, and a
+// needle check on a few phrases would pass with a whole block missing.
+function checkOutputBlocks(councilRaw, desktopRaw, failures) {
+  const grab = function (s) {
+    const m = s.match(/<!-- OUTPUT-BLOCKS:BEGIN -->[\s\S]*?<!-- OUTPUT-BLOCKS:END -->/);
+    return m ? m[0].replace(/\r\n/g, '\n') : null;
+  };
+  const a = grab(councilRaw), b = grab(desktopRaw);
+  if (!a) failures.push('council SKILL.md has no OUTPUT-BLOCKS markers');
+  else if (!b) failures.push('desktop/SKILL.md has no OUTPUT-BLOCKS markers');
+  else if (a !== b) failures.push('the OUTPUT-BLOCKS text differs between the council and desktop SKILL.md; copy it across verbatim');
+  else console.log('  ok: output blocks identical across council and desktop');
+}
 
 function main() {
   for (const f of [COUNCIL, DESKTOP]) {
@@ -118,8 +194,10 @@ function main() {
   const norm = function (s) {
     return s.toLowerCase().replace(/[*`_]/g, '').replace(/\s+/g, ' ');
   };
-  const council = norm(fs.readFileSync(COUNCIL, 'utf8'));
-  const desktop = norm(fs.readFileSync(DESKTOP, 'utf8'));
+  const councilRaw = fs.readFileSync(COUNCIL, 'utf8');
+  const desktopRaw = fs.readFileSync(DESKTOP, 'utf8');
+  const council = norm(councilRaw);
+  const desktop = norm(desktopRaw);
 
   console.log("council/desktop policy parity:");
   const failures = [];
@@ -138,6 +216,9 @@ function main() {
         ', missing from ' + (inCouncil ? 'desktop/SKILL.md' : '.claude/skills/infosec-council/SKILL.md'));
     }
   }
+
+  checkOutputBlocks(councilRaw, desktopRaw, failures);
+  checkPersonas(failures);
 
   if (!fs.existsSync(CHATGPT)) {
     failures.push('chatgpt/INSTRUCTIONS.md is missing');

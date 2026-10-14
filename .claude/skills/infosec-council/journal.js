@@ -15,6 +15,7 @@
  *   node journal.js pending [days]      # ungraded runs, ripe after N days (default 30)
  *   node journal.js grade [days]        # the same runs, as pasteable outcome commands
  *   node journal.js lookback <text...>  # comparable past runs (for pre-flight)
+ *   node journal.js converge            # convergence tests for a Round-2 matrix on stdin
  *   node journal.js path                # print the journal file path
  *
  * Environment:
@@ -72,6 +73,174 @@ const rest = process.argv.slice(3);
 // string it finds: a fourth spelling does not add a shade, it splits the meter, and
 // neither bucket then shows the track record you think you are reading.
 const CONFIDENCE_VALUES = ['low', 'medium', 'high'];
+
+// v3: the word is no longer a second judgement beside the number, it is a band OF the
+// number. The chairman logged "high" at 65% twice under v2, which is what two
+// independently chosen values drift into. One source, one derivation, no drift.
+function confidenceBand(p) {
+  if (typeof p !== 'number' || !isFinite(p)) return null;
+  if (p >= 75) return 'high';
+  if (p >= 55) return 'medium';
+  return 'low';
+}
+
+// What PROBABILITY means on a record. v2 asked whether a position "survives a 12-month
+// look-back", and every probed seat read that as "and no incident happens", so the seat
+// whose job is to expect breaches scored lowest and the spread gate measured pessimism.
+// v3 asks whether a reviewer would still choose this course over the alternatives with
+// hindsight, incident or not. The two numbers are different quantities; records written
+// before this carry no basis and are kept apart in `meta` rather than migrated.
+const PROBABILITY_BASIS = 'decision-quality';
+const PROTOCOL = '3.0.0';
+const QUESTION_TYPES = ['decision', 'choice', 'plan'];
+const ACTION_PLAN_MAX = 5;
+const SECONDARIES_MAX = 2;
+const CONDITIONAL_STANCES = ['conditional-go', 'defer', 'reframe'];
+// A conditional stance "satisfied" by a placeholder is the defect v2.2.0 closed in prose;
+// the convergence function must apply the same reading, or the arithmetic reopens it.
+const PLACEHOLDER = /^\s*(none|n\/?a|nil|null|nothing|-+|tbd)?\s*\.?\s*$/i;
+const SPREAD_MAX = 20;
+
+function isMissing(m) { return !!m && (m.stance === 'missing' || m.missing === true); }
+// Labels are compared normalised. A chairman writing "Option A" for one seat and "a" for
+// the next did not record two blocs, and a split manufactured by spelling would make `log`
+// reject an honest `after-challenge`. A choice is compared by its leading label token.
+function norm(s) { return typeof s === 'string' ? s.trim().toLowerCase().replace(/\s+/g, ' ') : s; }
+function labelOf(m, type) {
+  if (type === 'choice') {
+    const k = String(m.choice == null ? '' : m.choice).match(/^\s*(?:option\s*)?([a-z0-9]+)\b/i);
+    return k ? k[1].toLowerCase() : null;
+  }
+  if (type === 'plan') return m.first;
+  return norm(m.stance);
+}
+function named(s) { return typeof s === 'string' && !PLACEHOLDER.test(s); }
+
+// The three convergence tests as a pure function of what the seats returned, so the
+// chairman stops being the only judge of whether seven seats agreed. `acceptance` is the
+// Round-2 matrix: acceptance[a][b] === true means seat a accepts seat b's Round-1
+// CONDITION (for a plan, b's FIRST). A seat whose condition changed in Round 2 loses
+// every acceptance it had, because what was accepted is no longer what it asks for.
+//
+// Returns { label, condition, spread, outcome, allowed, aligned, detail }. `outcome` is
+// what the tests imply: `split`, `label-only`, or `converged`; `allowed` lists the
+// `converged` values a record may carry given that outcome.
+function convergence(input) {
+  const type = (input && input.question_type) || 'decision';
+  const members = ((input && input.members) || []).filter(m => m && typeof m === 'object');
+  const acc = (input && input.acceptance) || {};
+  const n = members.length;
+  const present = members.filter(m => !isMissing(m));
+  const accepts = function (a, b) {
+    if (a === b) return true;
+    if (isMissing(a) || isMissing(b) || b.condition_changed_r2) return false;
+    const row = acc[a.name];
+    return !!(row && row[b.name] === true);
+  };
+  const need = n - 1;   // >= 6 of 7; a missing seat stays in the denominator
+  const detail = [];
+
+  let aligned = [];
+  let label = false;
+  if (type === 'plan') {
+    let best = [];
+    for (const s of present) {
+      if (!named(s.first)) continue;
+      const backers = [s].concat(present.filter(t => t !== s && accepts(t, s)));
+      if (backers.length > best.length) best = backers;
+    }
+    aligned = best;
+    label = n >= 2 && best.length >= need;
+    detail.push('largest backing for one FIRST: ' + best.length + ' of ' + n + ' (need ' + need + ')');
+  } else {
+    const counts = {};
+    for (const m of present) {
+      const l = labelOf(m, type);
+      if (!named(l)) continue;
+      counts[l] = (counts[l] || 0) + 1;
+    }
+    const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+    aligned = top == null ? [] : present.filter(m => labelOf(m, type) === top);
+    label = n >= 2 && aligned.length >= need;
+    detail.push('largest ' + (type === 'choice' ? 'CHOICE' : 'STANCE') + ' bloc: '
+      + (top == null ? 'none' : '"' + top + '" ') + aligned.length + ' of ' + n + ' (need ' + need + ')');
+  }
+
+  // Test 2. For a plan the aligned set already rests on acceptance, so the test is that
+  // its members accept EACH OTHER's first action, not merely the leading one.
+  let condition = true;
+  let pairs = [];
+  if (type === 'plan') {
+    pairs = aligned;
+  } else {
+    // A CHOICE carries a condition only when the seat names one; a STANCE is conditional
+    // by its label, and then an unnamed condition fails the test below.
+    pairs = aligned.filter(m => type === 'choice' ? named(m.condition)
+      : CONDITIONAL_STANCES.includes(norm(m.stance)));
+    for (const m of pairs) {
+      if (!named(m.condition)) {
+        condition = false;
+        detail.push(m.name + ': conditional position with no named condition, not agreement evidence');
+      }
+    }
+  }
+  for (const a of pairs) for (const b of pairs) {
+    if (a !== b && !accepts(a, b)) {
+      condition = false;
+      detail.push(a.name + ' does not accept ' + b.name + (b.condition_changed_r2 ? ' (condition changed in Round 2)' : ''));
+    }
+  }
+
+  // Test 3, scoped to the aligned seats, as in v2.2.0.
+  const ps = aligned.map(m => m.probability);
+  const spread = ps.length > 0 && ps.every(p => typeof p === 'number')
+    && (Math.max.apply(null, ps) - Math.min.apply(null, ps)) <= SPREAD_MAX;
+  if (ps.length && !spread) detail.push('probability spread among aligned seats exceeds ' + SPREAD_MAX + ' or a number is missing');
+
+  const outcome = !label ? 'split' : (!condition || !spread) ? 'label-only' : 'converged';
+  const allowed = outcome === 'converged' ? ['after-challenge', 'forced-debate'] : [outcome];
+  return { label, condition, spread, outcome, allowed, aligned: aligned.map(m => m.name), detail };
+}
+
+function validateAlternatives(v) {
+  if (!Array.isArray(v) || !v.length || !v.every(a => typeof a === 'string' && a.trim())) {
+    return 'alternatives must be a non-empty array of strings: the courses the call was chosen over. '
+      + 'Grading asks whether you would still choose this course over them, so without the list '
+      + 'the probability has nothing to be graded against';
+  }
+  return null;
+}
+function validateActionPlan(v) {
+  if (v == null) return null;
+  if (!Array.isArray(v)) return 'action_plan must be an array of {action, owner, due}';
+  if (v.length > ACTION_PLAN_MAX) {
+    return 'action_plan holds at most ' + ACTION_PLAN_MAX + ' items (got ' + v.length + '); drop the rest '
+      + 'deliberately and say what was dropped. Statutory actions belong in obligations, outside the cap';
+  }
+  for (const a of v) {
+    if (!a || typeof a !== 'object') return 'every action_plan item must be an object {action, owner, due}';
+    for (const k of ['action', 'owner', 'due']) {
+      if (typeof a[k] !== 'string' || !a[k].trim()) {
+        return 'every action_plan item needs a non-empty "' + k + '"' + (k === 'owner'
+          ? ' (write "unassigned (<duty>)" when the role map names nobody)' : '');
+      }
+    }
+  }
+  return null;
+}
+function validateSecondaries(v) {
+  if (v == null) return null;
+  if (!Array.isArray(v)) return 'secondaries must be an array of {question, call}';
+  if (v.length > SECONDARIES_MAX) {
+    return 'a bundle carries at most ' + SECONDARIES_MAX + ' secondary questions (got ' + v.length + ')';
+  }
+  for (const s of v) {
+    if (!s || typeof s.question !== 'string' || !s.question.trim() || typeof s.call !== 'string' || !s.call.trim()) {
+      return 'every secondaries entry needs a non-empty "question" and "call"';
+    }
+  }
+  return null;
+}
 
 // `blind_spots` is logged as the list itself, each entry tagged with the round it first
 // surfaced in, rather than as a bare "how many came from Round 2" count. A count freezes
@@ -135,15 +304,86 @@ function cmdLog() {
   // "high" and " high " all pass the guard and then land in three separate
   // calibration buckets, and `high_confidence_misses` (which compares === 'high')
   // silently skips the ones that were not already lowercase.
-  const confidence = (input.confidence == null || input.confidence === '')
+  let confidence = (input.confidence == null || input.confidence === '')
     ? input.confidence
     : String(input.confidence).trim().toLowerCase();
+
+  // v3 fields. A record that declares another basis was written by something other than
+  // this protocol; stamping it decision-quality would put it in the wrong calibration pool.
+  if (input.probability_basis != null && input.probability_basis !== PROBABILITY_BASIS) {
+    die('log: probability_basis "' + input.probability_basis + '" is not this protocol\'s ("'
+      + PROBABILITY_BASIS + '"). Omit the field; log stamps it.');
+  }
+  // A number Brier and ECE cannot use is a number that silently drops out of calibration,
+  // so a present-but-unusable probability is refused rather than stored.
+  const badP = function (p) { return p != null && (typeof p !== 'number' || !isFinite(p) || p < 0 || p > 100); };
+  if (badP(input.probability)) die('log: probability must be a number from 0 to 100 (got ' + JSON.stringify(input.probability) + ').');
+  for (const m of (Array.isArray(input.members) ? input.members : [])) {
+    if (m && typeof m === 'object' && !isMissing(m) && badP(m.probability)) {
+      die('log: member ' + (m.name || '?') + ' probability must be a number from 0 to 100 (got ' + JSON.stringify(m.probability) + ').');
+    }
+  }
+  const band = confidenceBand(input.probability);
+  if (band) {
+    if (confidence && confidence !== band) {
+      die('log: confidence "' + confidence + '" contradicts probability ' + input.probability
+        + ' (bands: low < 55, medium 55-74, high >= 75, so this is "' + band + '").\n'
+        + '  The word is derived from the number. Omit confidence or set it to "' + band + '".');
+    }
+    confidence = band;
+  }
+  const qtype = input.question_type == null ? 'decision' : String(input.question_type);
+  if (!QUESTION_TYPES.includes(qtype)) {
+    die('log: question_type must be one of ' + QUESTION_TYPES.join(' | ') + ' (got "' + qtype + '").\n'
+      + '  A bundle is logged as its primary question\'s type, with the rest in "secondaries".');
+  }
+  for (const [err, field] of [
+    [validateAlternatives(input.alternatives), 'alternatives'],
+    [validateActionPlan(input.action_plan), 'action_plan'],
+    [validateSecondaries(input.secondaries), 'secondaries']]) {
+    if (err) die('log: ' + err + '.  (field: ' + field + ')');
+  }
+  const members = Array.isArray(input.members) ? input.members.map(function (m) {
+    if (!m || typeof m !== 'object' || isMissing(m)) return m;
+    const mb = confidenceBand(m.probability);
+    const mc = m.confidence == null || m.confidence === '' ? null : String(m.confidence).trim().toLowerCase();
+    if (mb && mc && mc !== mb) {
+      die('log: member ' + (m.name || '?') + ' has confidence "' + mc + '" at probability ' + m.probability
+        + ', which is band "' + mb + '". Seats write only the number; derive the word from it.');
+    }
+    return mb ? Object.assign({}, m, { confidence: mb }) : m;
+  }) : [];
+
+  // The convergence label is no longer the chairman's word alone. With the Round-2
+  // matrix on the record, the three tests are arithmetic, and a recorded outcome the
+  // arithmetic contradicts is rejected rather than stored as fact.
+  let converged = input.converged;
+  let convergenceTests;
+  if (input.acceptance && typeof input.acceptance === 'object' && input.mode !== 'quick') {
+    convergenceTests = convergence({ members, acceptance: input.acceptance, question_type: qtype });
+    if (converged == null || converged === '') {
+      if (convergenceTests.outcome !== 'converged') converged = convergenceTests.outcome;
+    } else if (!convergenceTests.allowed.includes(converged)) {
+      die('log: converged "' + converged + '" contradicts the acceptance matrix, which gives "'
+        + convergenceTests.outcome + '" (allowed: ' + convergenceTests.allowed.join(' | ') + ').\n  '
+        + convergenceTests.detail.join('\n  '));
+    }
+  }
+
   const record = Object.assign({}, input, {
     sha, family, ts, confidence,
     mode: input.mode || 'standard',
-    members: Array.isArray(input.members) ? input.members : [],
+    question_type: qtype,
+    probability_basis: PROBABILITY_BASIS,
+    protocol: PROTOCOL,
+    members,
     outcome: input.outcome || { recorded: false }
   });
+  if (converged !== undefined) record.converged = converged;
+  if (convergenceTests) {
+    record.convergence_tests = { label: convergenceTests.label, condition: convergenceTests.condition,
+      spread: convergenceTests.spread, outcome: convergenceTests.outcome };
+  }
   fs.appendFileSync(JOURNAL, JSON.stringify(record) + '\n');
   console.log('logged run ' + sha + ' (family ' + family + ')');
 }
@@ -305,25 +545,34 @@ function cmdMeta() {
     return out;
   }
 
-  const byConf = {};
-  for (const r of recs) {
-    const c = r.confidence || 'unknown';
-    (byConf[c] = byConf[c] || []).push(r);
+  // Calibration is computed per probability basis. A v2 number answered "will this hold
+  // AND will nothing bad happen", a v3 number answers "would we still choose this with
+  // hindsight". Averaging the two into one Brier score would grade neither.
+  const isDQ = r => r.probability_basis === PROBABILITY_BASIS;
+  const current = recs.filter(isDQ);
+  const legacy = recs.filter(r => !isDQ(r));
+
+  function calibrationOf(list) {
+    const byConf = {};
+    for (const r of list) {
+      const c = r.confidence || 'unknown';
+      (byConf[c] = byConf[c] || []).push(r);
+    }
+    return Object.keys(byConf).sort().map(c => {
+      const g = byConf[c];
+      const o = g.filter(r => r.outcome && r.outcome.recorded);
+      return {
+        confidence: c,
+        runs: g.length,
+        outcomes_recorded: o.length,
+        correct: o.filter(r => r.outcome.result === 'correct').length,
+        partial: o.filter(r => r.outcome.result === 'partial').length,
+        wrong: o.filter(r => r.outcome.result === 'wrong').length,
+        not_tested: o.filter(r => r.outcome.result === 'not-tested').length,
+        brier: brierOf(g)
+      };
+    });
   }
-  const calibration = Object.keys(byConf).sort().map(c => {
-    const g = byConf[c];
-    const o = g.filter(r => r.outcome && r.outcome.recorded);
-    return {
-      confidence: c,
-      runs: g.length,
-      outcomes_recorded: o.length,
-      correct: o.filter(r => r.outcome.result === 'correct').length,
-      partial: o.filter(r => r.outcome.result === 'partial').length,
-      wrong: o.filter(r => r.outcome.result === 'wrong').length,
-      not_tested: o.filter(r => r.outcome.result === 'not-tested').length,
-      brier: brierOf(g)
-    };
-  });
 
   // Delivery rate is a governance metric, not a calibration one. A run graded
   // `not-tested` means the analysis was never put to the test because nobody
@@ -342,7 +591,8 @@ function cmdMeta() {
 
   const highMisses = recs
     .filter(r => r.confidence === 'high' && r.outcome && (r.outcome.result === 'wrong' || r.outcome.result === 'partial'))
-    .map(r => ({ sha: r.sha, question: r.question, result: r.outcome.result, note: r.outcome.note || '', probability: r.probability }));
+    .map(r => ({ sha: r.sha, question: r.question, result: r.outcome.result, note: r.outcome.note || '',
+      probability: r.probability, basis: isDQ(r) ? PROBABILITY_BASIS : 'legacy' }));
 
   const appearances = {};
   for (const r of recs) for (const m of (r.members || [])) {
@@ -357,10 +607,20 @@ function cmdMeta() {
     with_outcome: withOutcome.length,
     pending: recs.length - withOutcome.length,
     delivery,
-    brier_overall: brierOf(recs),
-    ece_overall: eceOf(recs),
+    probability_basis: PROBABILITY_BASIS,
+    brier_overall: brierOf(current),
+    ece_overall: eceOf(current),
     round2_value: round2ValueOf(recs),
-    calibration_by_confidence: calibration,
+    calibration_by_confidence: calibrationOf(current),
+    legacy_basis: {
+      runs: legacy.length,
+      with_outcome: legacy.filter(r => r.outcome && r.outcome.recorded).length,
+      brier: brierOf(legacy),
+      ece: eceOf(legacy),
+      calibration_by_confidence: calibrationOf(legacy),
+      note: 'records written before v3.0.0: their probability read as "right call AND no incident", '
+        + 'a different quantity, so they are scored apart and never pooled with the current basis'
+    },
     high_confidence_misses: highMisses,
     member_appearances
   };
@@ -378,6 +638,7 @@ function cmdJournal() {
       confidence: r.confidence || 'n/a',
       probability: (typeof r.probability === 'number') ? r.probability : null,
       converged: r.converged || null,
+      basis: r.probability_basis === PROBABILITY_BASIS ? PROBABILITY_BASIS : 'legacy',
       question: String(r.question || '').slice(0, 80),
       outcome: (r.outcome && r.outcome.result) || 'pending'
     }));
@@ -468,6 +729,17 @@ function cmdGrade() {
     console.log('    Decision: ' + shown(r.question));
     console.log('    Call:     ' + shown(r.recommendation));
     console.log('    Rests on: ' + shown(r.key_assumption));
+    // The grading question follows the record's basis. A v3 number is a claim about the
+    // choice, so the grader judges the choice against what it was chosen over, with
+    // hindsight, and an incident that would have happened under every option does not
+    // make the call wrong. A legacy number never claimed that, so it keeps its question.
+    if (r.probability_basis === PROBABILITY_BASIS) {
+      const alts = Array.isArray(r.alternatives) && r.alternatives.length ? r.alternatives.join('; ') : null;
+      console.log('    Over:     ' + shown(alts));
+      console.log('    Ask:      knowing what you know now, would you still choose this course over the listed alternatives?');
+    } else {
+      console.log('    Ask:      did the advice hold up? (legacy record, written before v3.0.0)');
+    }
     // The placeholder is single-quoted so that pasting the line unedited fails
     // harmlessly. Unquoted, a shell reads `<correct|...>` as a redirect and a pipe:
     // it errors, exits 127, and leaves a stray file named after the note behind.
@@ -476,15 +748,27 @@ function cmdGrade() {
     console.log('');
   });
 
-  console.log('correct      the advice held up.');
-  console.log('partial      broadly right, but it missed something material or only half worked.');
-  console.log('wrong        the advice did not hold.');
+  console.log('correct      yes, you would still choose this course (legacy: the advice held up).');
+  console.log('partial      you would choose it again, but with a material change it missed.');
+  console.log('wrong        with hindsight, one of the alternatives was the better choice (legacy: the advice did not hold).');
   console.log('not-tested   nobody executed it, so it was never put to the test. The most common');
   console.log('             real outcome, and a delivery signal rather than an accuracy one, so it');
   console.log('             is kept out of the Brier and ECE maths.');
   console.log('');
   console.log('For a run against a documented case rather than a live decision, grade it against');
   console.log('that case\'s published ground truth and start the note with "exercise:".');
+  console.log('Only the decision owner grades. The council never records an outcome on its own advice.');
+}
+
+// `converge` exposes the convergence tests to the orchestrator, so the chairman reads
+// the Round-2 result off arithmetic instead of composing it. Same function `log` uses.
+function cmdConverge() {
+  let raw = '';
+  try { raw = fs.readFileSync(0, 'utf8'); } catch (_) { raw = ''; }
+  let input;
+  try { input = JSON.parse(raw); } catch (_) { die('converge: stdin is not valid JSON {members, acceptance, question_type}'); }
+  if (!Array.isArray(input.members)) die('converge: .members is required');
+  console.log(JSON.stringify(convergence(input), null, 2));
 }
 
 function cmdLookback() {
@@ -508,7 +792,10 @@ function cmdLookback() {
   console.log(JSON.stringify({ query_family: family, matches: scored }, null, 2));
 }
 
-switch (cmd) {
+if (require.main !== module) {
+  module.exports = { convergence, confidenceBand, PROBABILITY_BASIS, PROTOCOL };
+} else switch (cmd) {
+  case 'converge': cmdConverge(); break;
   case 'log': cmdLog(); break;
   case 'outcome': cmdOutcome(); break;
   case 'meta': cmdMeta(); break;
@@ -528,6 +815,7 @@ switch (cmd) {
       '  node journal.js pending [days]      ungraded runs, ripe after N days (default 30)',
       '  node journal.js grade [days]        the same runs as pasteable outcome commands',
       '  node journal.js lookback <text>     comparable past runs (pre-flight)',
+      '  node journal.js converge            convergence tests from {members, acceptance, question_type} on stdin',
       '  node journal.js path                print the journal file path',
       '',
       'Environment: COUNCIL_HOME (default ~/.infosec-council), COUNCIL_ORG (per-org subfolder)'

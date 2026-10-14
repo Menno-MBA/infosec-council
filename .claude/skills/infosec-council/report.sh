@@ -157,6 +157,7 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + (if ((.subtitle // "")|length)>0 then "<p class=\"subtitle\">" + (.subtitle|e) + "</p>" else "" end)
 + "<p class=\"intro\">A panel of security advisors reviewed this decision. This dossier gives you the recommendation and a short executive summary first, then the full analysis underneath: the risks, where the advisors agreed and disagreed, and each advisor in their own words.</p>"
 + "<div class=\"meta\"><span><b>Depth</b>&nbsp;&nbsp;" + (.mode|e|ascii_upcase) + "</span>"
++ (if (.question_type // "")|length>0 then "<span><b>Question</b>&nbsp;&nbsp;" + ({"decision":"Decision","choice":"Option choice","plan":"Action plan"}[.question_type] // .question_type | e) + "</span>" else "" end)
 + "<span><b>Reference</b>&nbsp;&nbsp;" + (.sha // "draft" | e) + "</span>"
 + (if (.ts // "")|length>0 then "<span>" + (.ts|e) + "</span>" else "" end) + "</div>"
 
@@ -164,15 +165,30 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
 + "<p class=\"lead\">The bottom-line advice, and how strongly the panel backs it.</p>"
 + "<p class=\"rec\">" + (.recommendation|e) + "</p>"
 + "<p><span class=\"pill " + (.confidence|conf_class) + "\">Confidence: " + (.confidence|e) + "</span>"
-+ (if (.probability|type)=="number" then "<span class=\"pill prob\">" + (.probability|tostring) + "% it survives a 12-month review</span>" else "" end)
++ (if (.probability|type)=="number" then "<span class=\"pill prob\">" + (.probability|tostring) + (if .probability_basis == "decision-quality" then "% a reviewer would still choose this in a year" else "% it survives a 12-month review" end) + "</span>" else "" end)
 + "</p>"
-+ "<p class=\"note\">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>"
++ (if .probability_basis == "decision-quality"
+   then "<p class=\"note\">Confidence is a band of the percentage (Low under 55, Medium 55 to 74, High 75 and above). The percentage is how likely the panel thinks a reviewer, a year from now, would still choose this course over the alternatives, whether or not an incident happens anyway.</p>"
+   else "<p class=\"note\">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>" end)
 + ((.converged|converged_label) as $cl | if ($cl|length)>0 then "<p class=\"note\">Panel outcome: " + $cl + ".</p>" else "" end)
 + (if (.key_assumption // "")|length>0 then "<p class=\"assume\"><strong>This advice depends on:</strong> " + (.key_assumption|e) + "</p>" else "" end)
++ (if ((.alternatives|type)=="array" and (.alternatives|length)>0) then "<p class=\"assume\"><strong>Chosen over:</strong> " + (.alternatives|join("; ")|e) + "</p>" else "" end)
 + (if ((.verified|type)=="array" and (.verified|length)>0) then "<p class=\"assume\"><strong>Checked against a primary source this run:</strong> " + (.verified|join("; ")|e) + "</p>" else "" end)
 + (if ((.unverified|type)=="array" and (.unverified|length)>0) then "<p class=\"assume\"><strong>Not independently verified (check before relying):</strong> " + (.unverified|join("; ")|e) + "</p>" else "" end)
 + (if (.next_step // "")|length>0 then "<p class=\"assume\"><strong>Do this next:</strong> " + (.next_step|e) + "</p>" else "" end)
 + "</div>"
+
++ (if ((.action_plan|type)=="array" and (.action_plan|length)>0)
+   then "<section class=\"block\"><h2>Action plan</h2><p class=\"lead\">At most five actions, each with an owner and a date. An owner shown as unassigned is a duty nobody in the organization holds yet.</p>"
+      + "<table class=\"opts\"><thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Due</th></tr></thead><tbody>"
+      + ([ .action_plan | to_entries[] | "<tr><td>" + ((.key + 1)|tostring) + "</td><td>" + (.value.action // ""|e) + "</td><td>" + (.value.owner // ""|e) + "</td><td>" + (.value.due // ""|e) + "</td></tr>" ] | join(""))
+      + "</tbody></table></section>"
+   else "" end)
++ (if ((.secondaries|type)=="array" and (.secondaries|length)>0)
+   then "<section class=\"block\"><h2>Related questions</h2><p class=\"lead\">Smaller questions that came with this decision, answered in one line each. They were not debated or scored like the main question.</p><ul>"
+      + ([ .secondaries[] | "<li><b>" + (.question // ""|e) + "</b>: " + (.call // ""|e) + "</li>" ] | join(""))
+      + "</ul></section>"
+   else "" end)
 
 + ((.risk_score // {}) as $rs
    | def sc(o): (o) as $o
@@ -263,8 +279,11 @@ echo "$run" | jq -r --arg logo "$logo_dark" --arg logolight "$logo_light" --arg 
         + "</div>"
         + "<span class=\"pill " + (.confidence|conf_class) + "\">" + (.confidence // "n/a"|e) + (if (.probability|type)=="number" then " &middot; " + (.probability|tostring) + "%" else "" end) + "</span></header>"
         + (if (.stance // "")|length>0 then "<p class=\"stance\">Stance: " + (.stance|e) + "</p>" else "" end)
+        + (if (.choice // "")|length>0 then "<p class=\"stance\">Choice: " + (.choice|e) + "</p>" else "" end)
         + (if (.summary // "")|length>0 then "<p class=\"sum\">" + (.summary|e) + "</p>" else "" end)
         + "<dl>"
+        + (if (.first // "")|length>0 then "<dt>First</dt><dd>" + (.first|e) + "</dd>" else "" end)
+        + (if (.not_now // "")|length>0 then "<dt>Not now</dt><dd>" + (.not_now|e) + "</dd>" else "" end)
         + (if (.condition // "")|length>0 then "<dt>Only if</dt><dd>" + (.condition|e) + "</dd>" else "" end)
         + (if (.assumptions // "")|length>0 then "<dt>What they assume</dt><dd>" + (.assumptions|e) + "</dd>" else "" end)
         + (if (.change_my_mind // "")|length>0 then "<dt>What would change their view</dt><dd>" + (.change_my_mind|e) + "</dd>" else "" end)

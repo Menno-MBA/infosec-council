@@ -84,6 +84,23 @@ function render(cmd, args, overrides) {
   return fs.readFileSync(m[1], 'utf8');
 }
 
+
+// v3 fields. A decision-quality run renders its action plan, its secondary questions,
+// the alternatives, the question type and a probability worded for what it now means;
+// the default fixture above carries no basis, so it must keep the legacy wording.
+const V3 = {
+  probability_basis: 'decision-quality', question_type: 'plan', alternatives: ['Wait a quarter', 'Buy a SIEM'],
+  action_plan: [
+    { action: 'Turn on callback verification for payee changes', owner: 'finance lead', due: '2026-11-01' },
+    { action: 'Name a breach-notification owner', owner: 'unassigned (GDPR breach notification)', due: '2026-11-15' }
+  ],
+  secondaries: [{ question: 'Do we tell the bank?', call: 'Yes, today.' }],
+  members: [
+    { name: 'risk-manager', first: 'Callback verification on payee changes', not_now: 'A SIEM', confidence: 'medium', probability: 66 },
+    { name: 'ciso', choice: 'B', confidence: 'high', probability: 80 }
+  ]
+};
+
 console.log('report.js:');
 const js = render('node', [path.join(SKILL, 'report.js')]);
 assert(/class="vc vr">Not recommended/.test(js), '"Not recommended" renders red (vr), not green');
@@ -111,6 +128,19 @@ assert(/<td><span class="st req">Required<\/span><\/td>/.test(js), 'a triggered 
 assert(js.includes('72h from awareness'), 'triggered obligation shows its determination owner and clock');
 assert(js.includes('Considered and ruled out this deliberation'), 'explicit-negative ledger renders');
 assert(js.includes('entity not in NIS2/Cbw scope at the decision date'), 'a ruled-out obligation shows its one-line reason');
+
+const jsV3 = render('node', [path.join(SKILL, 'report.js')], V3);
+assert(jsV3.includes('68% a reviewer would still choose this in a year') && !jsV3.includes('survives a 12-month review'),
+  'a decision-quality run words its probability as a hindsight judgement on the choice');
+assert(jsV3.includes('<h2>Action plan</h2>') && jsV3.includes('unassigned (GDPR breach notification)'),
+  'the action plan renders, with an unassigned owner shown as-is');
+assert(jsV3.includes('<h2>Related questions</h2>') && jsV3.includes('Do we tell the bank?'), 'secondary questions render');
+assert(jsV3.includes('<strong>Chosen over:</strong> Wait a quarter; Buy a SIEM'), 'the alternatives render');
+assert(jsV3.includes('<b>Question</b>&nbsp;&nbsp;Action plan'), 'the question type renders');
+assert(jsV3.includes('<dt>First</dt><dd>Callback verification') && jsV3.includes('<dt>Not now</dt><dd>A SIEM'),
+  'a plan seat shows FIRST and NOT NOW');
+assert(jsV3.includes('Choice: B'), 'a choice seat shows its choice');
+assert(!js.includes('<h2>Action plan</h2>') && !js.includes('Chosen over'), 'a legacy run renders no empty v3 sections');
 
 // Panel-outcome vocabulary. `label-only` was added when convergence stopped being a
 // stance count: it marks a panel that shared a verdict word while its seats meant
@@ -170,6 +200,14 @@ if (PY) {
     assert(py.includes('Only if') && py.includes('A signed DPA naming the sub-processors.'),
       'report.py renders a seat condition');
     assert(py.includes('<h2>Regulatory obligations</h2>'), 'report.py renders the obligations section');
+    const pyV3 = renderPy(V3);
+    const strip = (h) => h.replace(/council-report-[^"]*/g, '').replace(/data:image[^"]*/g, '');
+    assert(pyV3.includes('<h2>Action plan</h2>') && pyV3.includes('a reviewer would still choose this in a year')
+      && pyV3.includes('<dt>First</dt>') && pyV3.includes('Chosen over') && pyV3.includes('Related questions'),
+      'report.py renders the v3 fields');
+    const span = (h) => { const t = strip(h); return t.slice(t.indexOf('<div class="verdict">'), t.indexOf('<section class="block"><h2>Risk rating')); };
+    assert(span(jsV3).length > 500 && span(pyV3) === span(jsV3),
+      'report.py emits the same verdict, action-plan and related-questions markup as report.js');
     for (const [value, phrase] of CONVERGED_CASES) {
       assert(renderPy({ converged: value }).includes(phrase),
         'report.py renders the "' + value + '" panel outcome');

@@ -31,23 +31,25 @@ Information Security Council by Luméro
 Seven security advisors (CISO, architect, red team, ops, compliance, DPO, risk) debate your security, privacy, compliance or risk decision and return one synthesized verdict, with confidence, key risks and a clear next step. Built for EU SMEs. By Luméro.
 ```
 
-**Instructions**: paste the full contents of `INSTRUCTIONS.md` (5.5k chars, within the 8k limit).
+**Instructions**: paste the full contents of `INSTRUCTIONS.md` (about 7.2k bytes, within the 8000-byte limit).
 
 **Conversation starters**
 
 ```
-Ask the council: should we let an AI note-taker join customer calls and store transcripts? ~25 staff, B2B SaaS, SOC 2 in progress. -deep
-Ask the council: a phishing email led to a compromised Microsoft 365 account with new mailbox forwarding rules. Blast radius, response, and our GDPR/NIS2 notification duties? -deep
+Ask the council: should we let an AI note-taker join customer calls and store transcripts? ~25 staff, B2B SaaS, SOC 2 in progress.
+Ask the council: a phishing email led to a compromised Microsoft 365 account with new mailbox forwarding rules. Blast radius, response, and our GDPR/NIS2 notification duties?
 Ask the council: do we need a DPO, and what are our NIS2 obligations as a 60-person EU SaaS?
-Stress-test this: adopting a US marketing tool that processes customer emails. -deep
+Stress-test this: adopting a US marketing tool that processes customer emails.
 ```
 
 **Knowledge** (upload all of `chatgpt/knowledge/`):
 
 - `council-personas.md`        the seven advisor definitions
+- `output-blocks.md`           the block each advisor ends with, per question type (generated)
 - `frameworks.md`              regulations/standards single source of truth
 - `context.md`                 strategic house-context (blank template, see privacy note)
 - `report.py`                  Python report generator (Code Interpreter)
+- `report-fields.md`           the dossier JSON fields report.py reads
 - `CREDITS.md`                 license + attribution (CC BY-SA 4.0, claude-council)
 - `lumero-logo-black.webp`     report header logo (light)
 - `lumero-logo-white.webp`     report footer logo (dark)

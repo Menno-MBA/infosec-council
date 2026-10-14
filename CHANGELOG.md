@@ -1,5 +1,86 @@
 # Changelog
 
+## v3.0.0 (2026-10-14)
+
+A major version because two things a reader relies on change meaning: what the probability
+number measures, and the shape of every seat's output block. Found by analysing the ten logged
+runs and probing the live persona agents on 2026-10-13, not by reading the code. Plan:
+`docs/plans/2026-10-14-001-feat-council-v3-rebalance-plan.md`.
+
+- **PROBABILITY now rates the choice, not the absence of an incident.** All eight probed seats
+  defined their number as "judged the right call AND no breach afterwards". So the seat whose job
+  is to expect breaches scored lowest (offensive-security averaged 54 against 66 to 75 for the
+  others, lowest in 5 of 10 runs), and the 20-point spread gate measured pessimism rather than
+  disagreement. The number is now **decision quality**: the chance that, with 12 months of
+  hindsight, a reviewer would still choose this course over the alternatives, whether or not an
+  incident happens anyway. Seats write only the number; the confidence word is a fixed band of it
+  (low < 55, medium 55 to 74, high >= 75), and `log` derives it and rejects a contradicting word
+  (v2 logged "high" at 65% twice). Every record now carries the `alternatives` it was chosen over,
+  is stamped `probability_basis: "decision-quality"` and `protocol: "3.0.0"`, and `grade` asks
+  *"knowing what you know now, would you still choose this course over the listed alternatives?"*
+  **Older records are not migrated**: `meta` scores them apart under `legacy_basis`, because the
+  two numbers are different quantities and one Brier score over both would grade neither.
+- **The persona files finally match the orchestrator, and stop restating it.** All seven still
+  said "this recommendation survives a 12-month look-back" and none mentioned CONDITION, so the
+  v2.2.0 fix never reached the seats. They now point at the block the orchestrator injects, which
+  is the only definition that applies. The parity guard checks the persona files too.
+- **Council seats are web-only.** The seven personas declare `tools: WebSearch, WebFetch` and
+  `omitClaudeMd: true`. Before, every seat inherited every tool: probes made up to 17 tool calls
+  and two noticed an earlier dossier in the repository. A seat that reads untrusted web content
+  could also run commands. Seats are dispatched by persona type, unnamed, never as forks (a fork
+  gets the full tool pool), with a defined **seat packet** pasted into the prompt; if seats cannot
+  launch that way, the run falls back to the labelled single-context protocol, never to
+  unrestricted sub-agents. `verify` now warns when an old persona copy in a project or user
+  `agents/` folder would override the shipped one and restore every tool. Pre-approve both web
+  tools, or background seats can stall on an approval prompt.
+- **The CISO is the delivery seat; the Risk Manager owns fraud and process controls.** The runs
+  kept concluding "the gap is execution, not analysis". The CISO now says who executes, in what
+  order, with what capacity, and what gets dropped. Five of ten runs were fraud or impersonation
+  and the fix they kept reaching was a finance process control nobody owned; the Risk Manager now
+  leads that analysis and its financial impact (and still never owns or accepts risk).
+  Notification-clock text left the CISO and Security Operations, because the determination pass
+  owns the clocks. Quick mode always seats offensive-security.
+- **A role map and a capped action plan.** `context.md` gains Part D, who actually holds each duty
+  here (auto-context moves to Part E). Every owner is routed through it, and a duty nobody holds is
+  written `unassigned (<duty>)` and reported as a risk; the council had been assigning duties to a
+  DPO the company did not have. The synthesis ends with at most five owned, dated actions; statutory
+  actions stay in the obligations ledger outside the cap. Upgrades never touch an existing
+  `context.md`, so the orchestrator carries the default duty list.
+- **Question types.** Nine of ten questions were not a single either/or, so 51 of 63 seat positions
+  were `conditional-go` and CONDITION became "my top priority". The pre-flight now classifies the
+  question (or takes `-type=`): **decision** (STANCE), **choice** (CHOICE), **plan** (FIRST and
+  NOT NOW), or **bundle** (one primary question with the full protocol, up to two secondaries in
+  one line per seat, not calibrated). CONDITION is one atomic requirement of at most 25 words.
+- **Seats accept or reject each other's conditions.** In Round 2 each seat marks every other
+  seat's condition (or first action) accept/reject, and that matrix decides convergence test 2
+  (and test 1 for plans); a condition rewritten in Round 2 loses its acceptances. `journal.js
+  converge` computes the three tests, and `log` rejects a recorded `converged` the matrix
+  contradicts. A seat whose block stays malformed after one re-ask is recorded `missing` and never
+  counts as agreeing.
+- **Desktop and ChatGPT swap peer scoring for a steelman.** One model playing every seat makes
+  anonymized peer scoring self-grading. The cross-acceptance matrix stays, labelled a self-check.
+  The ChatGPT per-type blocks moved to a generated knowledge file, `output-blocks.md`.
+- **NIS2 is a per-run entity test.** The in-scope row defaulted to Yes, and the Compliance persona
+  called NIS2 a live driver for a Dutch MKB, though most firms under 50 staff and EUR 10M turnover
+  are outside it. The registry now carries the Cbw entity test with article references, and an
+  unknown size stays `unknown` rather than resolving to in scope.
+- **Register refresh (verified 2026-10-14 against primary sources).** Cbw and Cbb in force since
+  15 Aug 2026 with no transitional period; Wwke in force, first designations made, duties start per
+  designation, and the carve-out covers banking and financial-market infrastructure as well as
+  digital infrastructure; AI Act Digital Omnibus adopted as Reg. (EU) 2026/1744, Art. 50 applies
+  since 2 Aug 2026; CRA Art. 14 reporting applies since 11 Sep 2026 via the ENISA platform; MITRE
+  ATT&CK v20 (13 Oct 2026, no tactic changes); Omnibus IV still not adopted.
+- **An eval you can rerun.** `eval/` holds five cases (UM ransomware, Van Elst invoice fraud, a
+  no-go canary, a go canary, and a hindsight-divergence case) and `scripts/eval-council.js` scores
+  maintainer-generated runs per arm (baseline from tag `v2.2.0`, then v3), refusing runs whose
+  personas were stale or whose seats went missing. `scripts/grading-worksheet.js` sets exercise
+  runs beside their documented outcomes for the maintainer to grade; the council never grades its
+  own advice. The **baseline and v3 arms have not been run yet**; see `eval/README.md`.
+- Reports render the action plan, related questions, the alternatives, the question type, member
+  CHOICE / FIRST / NOT NOW, and a probability worded by its basis, so a re-rendered v2 run keeps
+  its old wording. `report.py` gained the "checked against a primary source" line it was missing.
+- README and docs examples default to Standard depth.
+
 ## v2.2.0 (2026-07-31)
 
 Three measurement holes in the deliberation mechanism, all found by evaluating a real run rather

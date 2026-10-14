@@ -21,12 +21,12 @@ The council **decides**: it weighs a security, privacy, compliance, architecture
 If the request is an operational exercise rather than a decision (for example "emulate this ransomware actor against us" or "here is a breach, respond"), do not decisionify it into a dossier: hand it to the matching team skill. Those skills escalate genuine judgment calls back to the council, so the two layers compose.
 
 ## Members
-- `ciso`: posture, business enablement, budget reality, incident readiness
+- `ciso`: the delivery seat; who executes, in what order, with what capacity, and what gets dropped to make room; posture and budget reality
 - `security-architect`: technical controls, secure-by-design, threat model (build)
 - `offensive-security`: Offensive Security Engineer / red team; attack pre-mortem, exploitation chains (break)
 - `security-operations`: detection, monitoring, incident response; detection pre-mortem (run/survive)
 - `compliance-analyst`: regulatory/guidance/standards compliance/mapping
-- `risk-manager`: quantified risks, risk appetite, residual plus third-party/vendor risk
+- `risk-manager`: quantified risks, risk appetite, residual plus third-party/vendor risk; leads business-process and fraud controls (payment verification, segregation of duties) and financial impact
 - `dpo`: data privacy processing and protection
 
 These three form the core security triad and are deliberate counterweights: the architect (can we *build* it securely), offensive-security (can it be *broken*), and security-operations (can we *see and survive* it failing). Keep all three unless the mode/relevance rules below exclude one. When offensive-security and security-operations disagree on feasible-vs-detectable, surface it, because that tension is signal.
@@ -35,18 +35,18 @@ These three form the core security triad and are deliberate counterweights: the 
 
 Pick a mode from the user's phrasing; default to Standard. The user can force one by appending a depth flag, `-quick`, `-standard`, `-deep`, or `-boardroom`, to their question.
 
-| Mode | Trigger | Members | Retrieval (Round 0c) | Peer review + ranking | Debate | Decision-science pass | Closing check |
+| Mode | Trigger | Members | Retrieval (Round 0c) | Cross-exam, peer ranking + cross-acceptance | Debate | Decision-science pass | Closing check |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quick | `-quick` flag; low-stakes, reversible within a day | 3 most relevant (keep >= 1 adversarial seat) | None, and say so | No | No | No | Chairman self-check |
+| Quick | `-quick` flag; low-stakes, reversible within a day | `offensive-security` + the 2 most relevant | None, and say so | No | No | No | Chairman self-check |
 | Standard | default | all members | Bounded pass | Yes | Only if consensus is suspiciously clean (see convergence rule) | No | Dispatched fidelity check |
 | Deep | `-deep` flag; high-stakes, costly to reverse | all members | Bounded pass + landscape sweep | Yes | Always | Yes | Full synthesis audit |
 | Boardroom | `-boardroom` flag; high-stakes AND you want live cross-talk | all members as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Yes | Full synthesis audit |
 
-- **Quick**: select the 3 members whose mandate is most relevant (e.g. a pure privacy question maps to compliance-analyst, dpo). Always keep at least one adversarial seat (offensive-security or risk-manager) so a 3-seat run is not all-defenders. State which 3 you picked and why. Quick runs **no retrieval**: set `<RETRIEVAL_STATE>` to `OFF (Quick mode)` so the seats do not search either, and say so in the output, so a Quick verdict is never mistaken for a grounded one. A Quick run that let three seats search would be making the claim false.
+- **Quick**: always seat `offensive-security`, plus the 2 members whose mandate is most relevant (e.g. a pure privacy question adds compliance-analyst and dpo). The attacking seat is fixed rather than chosen because a 3-seat run left to relevance alone picks three defenders, and the seat it drops is the one that expects the plan to fail. State which 2 you added and why. Quick runs **no retrieval**: set `<RETRIEVAL_STATE>` to `OFF (Quick mode)` so the seats do not search either, and say so in the output, so a Quick verdict is never mistaken for a grounded one. A Quick run that let three seats search would be making the claim false.
 - **Deep**: after cross-exam, add a decision-science pass. Lay the options in a comparison (cost / risk-reduction / effort / reversibility), do an explicit risk-appetite check, and surface the highest-leverage option. Then run the synthesis audit (see Round 3).
-- **Boardroom**: same as Deep, but members deliberate as live agent-teams teammates who message each other directly instead of the hub-and-spoke fan-out. See "Boardroom mode" below. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; if unavailable, fall back to Deep and say so.
+- **Boardroom**: same as Deep, but from Round 2 members deliberate as live agent-teams teammates who message each other directly instead of the hub-and-spoke fan-out. Round 1 still runs as unnamed sub-agents. See "Boardroom mode" below. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; if unavailable, fall back to Deep and say so.
 
-Every member ends with the required output block (STANCE / CONFIDENCE / PROBABILITY / assumptions / what would change my mind / unknowns) so the verdict is calibrated, not just asserted.
+Every member ends with the output block for this run's question type (see "Required output blocks"), so the verdict is calibrated, not just asserted. Seats write PROBABILITY only; the confidence word is derived from it.
 
 ## Grounding and the volatile-fact rule (load-bearing)
 
@@ -109,12 +109,61 @@ The council's value is precise, current advice, so it must not assert stale regu
 > Challenge them when your mandate warrants it, and state explicitly
 > when you are overriding a house position and why.
 
-**After synthesis (optional).** If the run surfaced durable organizational facts (size, sector, data types, a hard constraint), append them as dated bullets inside the `COUNCIL:AUTO-CONTEXT` markers at the end of the resolved `context.md`. Auto-append observations only; leave strategic positions for the user to promote into Parts A to C by hand.
+**After synthesis (optional).** If the run surfaced durable organizational facts (size, sector, data types, a hard constraint), append them as dated bullets inside the `COUNCIL:AUTO-CONTEXT` markers at the end of the resolved `context.md`. Auto-append observations only; leave strategic positions for the user to promote into Parts A to D by hand.
+
+### Role map (who actually holds each duty here)
+
+The seats are lenses, not staff. An SME rarely has a DPO, a SOC, or a CISO on payroll, so a synthesis that routes an action to "the DPO" can be routing it to nobody. `context.md` Part D maps each duty to whoever carries it in this organization (the managing director, the MSP, an external DPO) or to `nobody`. Route every owner in the synthesis, the action plan and the obligations ledger through it.
+
+A Part D cell that is empty or still holds the template's `_e.g. ..._` example counts as unassigned: the example is not an assignment. Upgrades never overwrite an existing `context.md`, so many installs carry no Part D. Use this default duty list whenever the map is absent, blank, or missing a row, and write the owner as `unassigned (<duty>)`, for example `unassigned (GDPR breach notification)`. An unassigned owner is a finding: name it under Key risks rather than inventing an owner.
+
+| Duty | Seat whose lens covers it |
+|---|---|
+| Security program, delivery and capacity | CISO |
+| Risk acceptance (signs off residual risk) | management, never a seat |
+| Platform configuration and hardening | Security Architect |
+| Detection, response and recovery (incl. MDR / MSP) | Security Operations |
+| Compliance evidence and certification | Compliance Analyst |
+| GDPR breach notification and data-protection advice | DPO |
+| NIS2/Cbw notification (notifier) | CISO lens, execution per Part C |
+| Finance process controls (payment changes, callback verification, segregation of duties) | Risk Manager lens |
+| Supplier and contract management | Risk Manager lens |
+| Backups and tested restore | Security Operations |
+
+## Seat dispatch and the seat packet
+
+**What each seat receives.** A seat sees only what it is handed, and the council seats cannot read files (below), so the orchestrator builds one **seat packet** per seat and pastes it into the prompt. In this order:
+
+1. `frameworks.md` Part A (configuration) and the in-scope regimes table, with this run's NIS2 entity-test result.
+2. The `frameworks.md` Part B rows whose Personas column names this seat.
+3. The determination set from Round 0b.
+4. `context.md` as resolved (including the role map), with the anti-anchoring rule.
+5. The retrieval brief, the resolved `<RETRIEVAL_STATE>`, and the `external-websources.md` Part B source rows naming this seat (Round 0c), with the volatile-fact rule.
+6. The question, the user's context, the mode, the question type, and the matching output block from "Required output blocks", verbatim.
+
+The persona file carries the mandate. The block's definitions come from the packet and nowhere else, so a definition changed here reaches every seat on the next run.
+
+**How seats are dispatched.** The seven council personas declare `tools: WebSearch, WebFetch`, so a seat can retrieve but cannot read the repository, the journal, an earlier dossier, or another seat's output. Isolation is enforced by the tool list, not requested in prose. That holds only for the dispatch paths that honour the list:
+
+- Dispatch every seat with its persona as `subagent_type`. A call without a type gets the general-purpose agent and every tool.
+- Never dispatch a seat as a **fork**: a fork receives the main conversation's full tool pool and its context, which is the opposite of isolation.
+- Do not **name** a seat in Round 1. With agent teams enabled, a named sub-agent launches as a teammate, which adds messaging between seats before independence has been recorded.
+- If the persona types cannot be resolved, or the seats cannot launch with their tool list, fall back to the single-context protocol of the Desktop edition (one model plays each seat in turn, steelman instead of peer scoring) and label the run `single-context fallback` in the synthesis and the first `unverified` entry. Never fall back to unrestricted sub-agents.
+
+**A malformed or missing block.** If a seat's return lacks its output block, or the block breaks the format (a missing PROBABILITY, a conditional stance without CONDITION, a CONDITION over 25 words or joining two requirements), re-ask that seat once, for the format only, quoting the rule it broke. If the second return still fails, record the seat as `stance: "missing"` and carry on. A missing seat counts in the panel and never as agreeing: six aligned seats plus one missing seat is 6 of 7, not 6 of 6.
 
 ## Round 0. Pre-flight (before any member runs)
 
 1. **Command routing.** If the user asked for a journal action (`outcome`, `meta`, `journal`, `pending`, `grade`) or a bare `report <sha>`, handle it (see "Decision journal") and do not run the council. The list must stay in step with the journal's own commands: a command the pre-flight does not recognise convenes seven seats to answer a bookkeeping request.
 2. **Triviality gate.** If the question is factual, trivial, or has an obvious answer, say so and skip the council.
+
+   2b. **Question type.** A go/no-go label only fits a go/no-go question. Classify the question, or take the caller's flag `-type=<decision|choice|plan|bundle>`:
+   - **decision**: one course, yes or no ("should we let the note-taker join calls?"). Seats answer with STANCE.
+   - **choice**: two or more named options ("MDR from vendor A, vendor B, or keep the MSP?"). Seats answer with CHOICE.
+   - **plan**: what to do, in what order ("what do we do about invoice fraud?"). Seats answer with FIRST and NOT NOW.
+   - **bundle**: several decisions in one question ("who do we warn, do we notify, do we compensate?"). Split it: pick the **primary** decision, the one the others depend on or the one that is hardest to reverse, and classify it as decision, choice or plan; it gets the full protocol. Up to **two secondaries** get one line per seat in Round 1 and one line in the synthesis, and are not calibrated. Anything beyond that is named as out of scope for this run, with the suggestion to run it separately.
+
+   State the type in one line before Round 1, with the split for a bundle. Never block on it: the user can re-run with `-type=` if the classification is wrong. In a headless run, or when a team skill escalates into the council, apply the classification and say so at the top of the synthesis. Team-skill escalations are `decision` unless they name options, then `choice`.
 3. **Context-sufficiency gate.** Grounding quality dominates output quality. If the essentials are missing (sector, rough headcount, the data types involved, which regimes are in scope) AND `context.md` is blank, ask ONE compact clarifying question before Round 1. In an unattended/headless run, do not block: state the assumed profile (generic EU SME plus whatever was given) in one line at the top of the synthesis and proceed.
 4. **Journal lookback.** If a journal exists, run `journal.js lookback "<the question>"`. Use the command, do not eyeball the file: it matches on token similarity, which catches a rerun phrased differently. The `family` hash is an exact-question fingerprint and will miss those, so never search on it alone. If a comparable run has a recorded outcome, carry it into your own context and into the chairman synthesis, e.g. "a similar call was rated high confidence and turned out partial; the note said the DPA had gaps." Past calibration on this kind of decision is a first-class input, not trivia.
 
@@ -123,9 +172,11 @@ The council's value is precise, current advice, so it must not assert stale regu
    **Sharpen when it goes stale.** If three or more runs are ripe, or the oldest ripe run is past 60 days, say the count and the oldest date and point at `grade`, which renders them as pasteable commands: "5 decisions ripe for grading, the oldest 84 days old; run `grade` for the commands." Still one line. Still **never blocking**, because a nagging mechanism that interrupts gets suppressed, and the first thing suppressed during an incident is the one you most needed later. Say it once and move to Round 1.
 
 6. **Ungraded prior run: ask before deliberating.** If step 4 found a comparable prior run that is **still pending**, ask the user for its outcome now, before Round 1. That result is the single highest-value input available to this run, and asking later wastes the deliberation. Offer the four values and their plain meanings:
-   - `correct`: the advice held up.
-   - `partial`: broadly right, but it missed something material or only half worked.
-   - `wrong`: the advice did not hold.
+   - `correct`: knowing what they know now, they would still choose that course.
+   - `partial`: they would choose it again, but with a material change it missed.
+   - `wrong`: with hindsight, one of the alternatives was the better choice.
+
+   For a run logged before v3.0.0 (no `probability_basis`), the old reading applies: did the advice hold up. `grade` prints the right question per record.
    - `not-tested`: **nobody executed it, so it was never put to the test.** This is the most common real outcome and the one people otherwise stay silent about, because the other three do not fit. It is not a failure of the panel; it is a delivery signal, and it is excluded from the calibration maths for exactly that reason.
 
    Ask once. If the user does not know yet, or does not want to answer, proceed without it and say so in the synthesis. **Never block the council on this**, and never hold up a live incident to collect bookkeeping.
@@ -141,9 +192,11 @@ TRIGGERED:     <action> | determine=<owner> | execute=<owner(s)> | clock=<clock>
 NOT TRIGGERED: <obligation id>, reason: <one line it does not apply>
 ```
 
+**NIS2 is an entity test, run per run.** Before any NIS2/Cbw row is evaluated, its determination owner applies the entity test in `frameworks.md` (size cap, sector, and the exceptions that bring a small entity into scope) to this organization and writes the result as one line: `NIS2 entity test: in scope as <essential|important> because <reason>` or `NIS2 entity test: out of scope because <reason>; supply-chain exposure via <customer>` where a customer in scope will push duties down by contract. An unknown size or sector is `unknown`, which the synthesis lists in `unverified`; it is never resolved to Yes by default.
+
 The forced NOT-TRIGGERED line is the point: absence becomes a decision on the record, not a silent omission. For a general SME most rows return NOT TRIGGERED, which is the correct, auditable default. Determination is a compliance judgement (owned by Compliance or the DPO); **execution** is operational and often lands on a different seat or an out-of-council role (CISO as notifier, or Legal & Comms), which the registry names and the Chairman routes to.
 
-**Inject the resulting determination set into every member's Round-1 prompt** alongside `frameworks.md` and `context.md`, so the panel deliberates against a live obligation set; knowing the 72h GDPR clock is already running, for instance, shapes a containment recommendation. Carry every TRIGGERED action and every NOT-TRIGGERED line into the synthesis: TRIGGERED actions become required actions with an owner and clock, and NOT-TRIGGERED lines become the explicit-negative ledger (Round 3, step 9c). The determination pass never overrides the panel's judgement on the security call, but a TRIGGERED statutory action is a gate the synthesis cannot silently drop (Gate B).
+**Inject the resulting determination set into every member's Round-1 prompt** alongside `frameworks.md` and `context.md`, so the panel deliberates against a live obligation set; knowing the 72h GDPR clock is already running, for instance, shapes a containment recommendation. **The determination pass owns the clocks.** Seats reason against the determination set; they do not re-derive notification clocks from their own mandates, and a persona that restated a clock would be a second, unsynchronised source for the same deadline. Carry every TRIGGERED action and every NOT-TRIGGERED line into the synthesis: TRIGGERED actions become required actions with an owner and clock, and NOT-TRIGGERED lines become the explicit-negative ledger (Round 3, step 9c). The determination pass never overrides the panel's judgement on the security call, but a TRIGGERED statutory action is a gate the synthesis cannot silently drop (Gate B).
 
 ## Round 0c. Retrieval pass (grounding, before any member deliberates)
 
@@ -196,15 +249,19 @@ response is itself worth recording.
 ## Protocol
 
 ### Round 1. Independent analysis
-Dispatch the question to the selected members IN PARALLEL via the Task tool. Same prompt to each: the decision, the user's context, the mode, the injected `frameworks.md` + `context.md` + the determination set (Round 0b) + the retrieval brief, the resolved `<RETRIEVAL_STATE>`, and the seat's Part B rows (Round 0c) + anti-anchoring rule + volatile-fact rule, and the instruction to answer in their persona's output contract AND to end with the required output block below. Members must NOT see each other's answers yet. Isolation here is the point: it is the main defence against the panel converging by conformity instead of by reasoning.
+Dispatch the question to the selected members IN PARALLEL, each with its own seat packet (see "Seat dispatch and the seat packet") and the instruction to answer in its persona's output contract AND to end with the output block for this run's question type. Members must NOT see each other's answers yet. Isolation here is the point: it is the main defence against the panel converging by conformity instead of by reasoning.
+
+**Check each block as it lands.** One atomic CONDITION of at most 25 words: a condition that joins two requirements ("MFA and a tested restore") is two conditions, and the pairwise test below cannot tell which one a seat accepted. PROBABILITY is a number. For a bundle, each seat adds one line per secondary question. Re-ask once for format, then record `missing`, as above.
 
 **Frame challenge (do this first)** if the decision as posed may be the wrong question: a materially better alternative exists that isn't on the table (different architecture, build/buy/defer, or a control that removes the need entirely), then state it under a "FRAME CHALLENGE" heading before your analysis. Challenge the frame through your own mandate's lens, then evaluate the question as asked.
 
 ### Round 2. Anonymized cross-examination (skip in Quick)
 
-**Mediate, do not dump.** Do not paste six full Round-1 answers into each member. Compress Round 1 into a per-member anonymized brief with three parts: (a) the claims from other seats that conflict with this member's position, (b) the claims no one has yet challenged, and (c) each other position's STANCE and PROBABILITY, labelled "Expert A..G" with identities hidden. Mediated summaries let members deliberate without anchoring on a specific voice, and anonymization is not cosmetic: it measurably reduces the tendency to defer to a named peer. Keep the author labels stripped throughout, and **rotate the order** in which the positions are listed from one member's brief to the next (do not always lead with Expert A), so no position gains an advantage from a fixed slot; order/position bias is a known LLM-judge failure mode and rotating the presentation neutralizes it. Compress each position to a comparable length so a longer write-up does not read as a stronger one.
+**Mediate, do not dump.** Do not paste six full Round-1 answers into each member. Compress Round 1 into a per-member anonymized brief with three parts: (a) the claims from other seats that conflict with this member's position, (b) the claims no one has yet challenged, and (c) each other position's STANCE (or CHOICE, or FIRST), its CONDITION verbatim, and its PROBABILITY, labelled "Expert A..G" with identities hidden. A seat cannot accept or reject a condition it was not shown, so the condition goes in word for word, never summarised. Include the member's own Round-1 return in its brief too: a freshly dispatched sub-agent has no memory of Round 1, and it cannot restate a block it never sees. Mediated summaries let members deliberate without anchoring on a specific voice, and anonymization is not cosmetic: it measurably reduces the tendency to defer to a named peer. Keep the author labels stripped throughout, and **rotate the order** in which the positions are listed from one member's brief to the next (do not always lead with Expert A), so no position gains an advantage from a fixed slot; order/position bias is a known LLM-judge failure mode and rotating the presentation neutralizes it. Compress each position to a comparable length so a longer write-up does not read as a stronger one.
 
-**Cross-examine.** Ask each member: "Here are the other positions (sources hidden). Where are they wrong, what blind spot did they miss, and does any of it change your position? Restate your STANCE, CONDITION and PROBABILITY (they may change)."
+**Cross-examine.** Ask each member: "Here are the other positions (sources hidden). Where are they wrong, what blind spot did they miss, and does any of it change your position? Restate your block (STANCE, CHOICE or FIRST; CONDITION; PROBABILITY); it may change."
+
+**Cross-acceptance.** In the same pass, each member marks every other position's Round-1 CONDITION (for a plan, its FIRST) `accept` or `reject`, with a reason only for a reject. The question is the one convergence test 2 asks: *if that condition were executed, would my own position be satisfied?* Put the answers in a matrix keyed by persona name (`acceptance[seat][other] = true|false`). Map the anonymous labels back to names only after the round closes. A member that rewrites its own CONDITION in Round 2 is marked `condition_changed_r2`, and every acceptance its old condition collected is void, because what was accepted is no longer what it asks for.
 
 **Keep the before-picture.** Hold each seat's Round-1 STANCE and PROBABILITY alongside its restated pair, and log both (`stance_r1`, `probability_r1` per member). This round is the protocol's most expensive one, and until now nothing recorded whether it moved anybody, so its value rested on argument rather than evidence. Costs two fields; `journal.js meta` turns them into a measured answer over enough runs.
 
@@ -212,9 +269,11 @@ Dispatch the question to the selected members IN PARALLEL via the Task tool. Sam
 
 **Convergence detection and early stopping.** A shared STANCE label is necessary for convergence and not sufficient. `conditional-go` absorbs any condition, so seven seats can return the same word while asking for seven different things, and a stance count would read that as consensus. Test all three:
 
-1. **Label.** >= 6 of 7 on the same stance.
-2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), their named CONDITION lines must materially agree, **every pair of them**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. The test is a question with an answer: *would executing seat A's condition satisfy seat B, and B's satisfy A?* A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
-3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. This is well defined precisely because the test is scoped that way: each seat rates its own position, and these seats share one, so their numbers are estimates of the same thing. Across the whole panel they would not be, and the test would be arithmetic on incommensurable quantities. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
+1. **Label.** >= 6 of 7 on the same STANCE (for a choice, the same CHOICE). A `missing` seat stays in the count and never matches. For a **plan** this test reads the matrix: one seat's FIRST is backed, by its author plus the seats that accepted it, by at least 6 of 7.
+2. **Condition.** Where any of those aligned seats returned a conditional stance (`conditional-go`, `defer`, `reframe`), or a choice with a condition, every pair of them must have accepted each other's CONDITION in the matrix, **every pair**, not merely a majority cluster, since one unmet condition is unmet whoever holds it. For a plan, every pair in the aligned set must have accepted each other's FIRST. The seats answered the test's question themselves (*would executing seat A's condition satisfy seat B, and B's satisfy A?*); the chairman no longer judges it. A conditional stance whose condition is missing, or filled with a placeholder like "none" or "n/a", is not agreement evidence; treat that seat as not agreeing. Reading silence as assent is the same defect one level down.
+3. **Spread.** Among **those same aligned seats**, not the whole panel, the highest and lowest PROBABILITY differ by at most 20 points. Each seat rates its own position, and these seats share one, so their numbers are estimates of the same thing. Across the whole panel they would not be, and the test would be arithmetic on incommensurable quantities. Identical labels over a 45-to-90 spread is disagreement about how sure, and that is disagreement. Scope matters: test 1 deliberately forgives one dissenter, so measuring across the panel would let that same forgiven seat fail test 3 and stamp an ordinary 6-of-7 run `label-only` when nothing was hidden at all.
+
+**Compute, do not judge.** Pipe `{members, acceptance, question_type}` to `node "<skill_dir>/journal.js" converge`. It returns the three test results, the aligned seats, and the outcome they imply, with a line per failure (who rejected whom). Route on that output. `log` runs the same function and rejects a recorded `converged` value the matrix contradicts. Without Node, apply the three tests by hand from the matrix and say so in the synthesis.
 
 Then route on the result. **Check in this order and take the first match.** The branches overlap by design, and reading top-down is what makes them deterministic.
 
@@ -238,14 +297,16 @@ Then route on the result. **Check in this order and take the first match.** The 
 4. **Live conflicts**: unresolved disagreements as tradeoffs, not mush.
 5. **Blind spots caught**: what cross-exam/debate/ranking surfaced that Round 1 missed. Log the list itself, each entry tagged with the round it **first** surfaced in (`{"text": "...", "round": 1}` or `2`). Anything from the forced debate or the closing check counts as round 2, since none of it existed before the cross-exam. That tag is what measures the cross-exam's unique contribution rather than mere churn, and logging the list rather than a count means the judgement stays inspectable and re-derivable instead of frozen into a number. It is still your own attribution, so `meta` reports it apart from the seats' arithmetic movement and with its denominator. Tag honestly, including a run where nothing came from Round 2.
 6. **Minority report**: the strongest dissent worth preserving even if outvoted, including the pre-mortem story if the forced debate ran.
-7. **Recommendation**: a clear call WITH a calibrated confidence (low/med/high), a PROBABILITY it survives a 12-month look-back, the key assumption it rests on, and any `UNVERIFIED` load-bearing fact it depends on.
+7. **Recommendation**: a clear call WITH a PROBABILITY and the confidence word derived from it (low < 55, medium 55 to 74, high >= 75), the **alternatives** it was chosen over, the key assumption it rests on, and any `UNVERIFIED` load-bearing fact it depends on. PROBABILITY is decision quality: the chance that, with 12 months of hindsight, a reviewer would still choose this course over those alternatives, **whether or not an incident happens anyway**. It is not the chance that nothing bad happens. An incident that would have happened under every option does not make the call wrong, and a lucky quiet year does not make a poor call right.
 
-   **State the measured reliability beside the asserted one.** If the journal holds graded outcomes, run `journal.js meta` and add one plain line next to the confidence, e.g. "medium confidence, 70%; historically this panel's medium calls came right 6 times in 10 across 11 graded runs." If too few outcomes are graded to say anything, say that instead: "no measured track record yet, 2 of 9 runs graded." This is the same discipline as Gate C. Do not assert a number you cannot show, and do not let an unmeasured confidence read as a measured one.
+   **State the measured reliability beside the asserted one.** If the journal holds graded outcomes, run `journal.js meta` and add one plain line next to the confidence, e.g. "medium confidence, 70%; historically this panel's medium calls came right 6 times in 10 across 11 graded runs." If too few outcomes are graded to say anything, say that instead: "no measured track record yet, 2 of 9 runs graded." Quote the current-basis figures only. `meta` reports records written before v3.0.0 under `legacy_basis`; their numbers meant "right call and no incident", a different quantity, so never let them stand in for this one. This is the same discipline as Gate C. Do not assert a number you cannot show, and do not let an unmeasured confidence read as a measured one.
 8. **Executive summary**: 3 to 5 plain sentences for a busy decision-maker, naming the problem, the call, and why.
 9. **Key risks**: the main risks of the decision, in plain language (a non-expert reads this section first).
 9b. **Risk rating**: score the decision on the qualitative impact x likelihood 5x5 scale in `frameworks.md` (impact: negligible/minor/moderate/major/severe; likelihood: rare/unlikely/possible/likely/almost certain). Score it **twice**: the **inherent** exposure (current state, before your recommended response) and the **residual** exposure (what remains after the recommendation is executed as intended), each with a one-line rationale. The report draws both as two markers on the exposure bar, so the gap between them is the visible value of the recommendation. **Anchoring rule:** if an adverse impact is already observed or confirmed (files encrypted, an outage under way, data exposed), the risk has materialized, so its likelihood is **Almost certain**, not Possible; never rate an already-observed impact below Likely. Residual may be lower only to the extent the recommendation actually reduces it; be honest when a tail (probable prior exfiltration, persistence that survives recovery, irreversible loss) keeps residual at inherent. It rates the decision or change, not only a vulnerability.
 9c. **Obligations ledger**: from the determination pass (Round 0b), list every TRIGGERED obligation as a required action with its determination owner, execution owner(s), clock, recipient, and statutory ref; and list every NOT-TRIGGERED obligation with its one-line reason as the explicit-negative ledger (what was assessed, and why it was or was not acted on). Render both in the report via the `obligations` field. For Luméro this ledger is direct client value: a defensible "what we assessed and why we did or did not act" trail, usable as ISO 27001 Annex A / NIS2 governance evidence.
-10. **One next step**: the single most useful concrete action.
+10. **Action plan**: at most **five** items, each with an action, an owner taken from the role map (or `unassigned (<duty>)`), and a due date. Five is a capacity limit, not a style rule: the CISO seat's job is to say what an SME can actually carry, and a twelve-item plan is a plan nobody executes. Say what was dropped to stay within five. TRIGGERED statutory actions from Gate B stay in the obligations ledger (9c), outside the cap, because a legal duty is not something to trade against capacity.
+11. **One next step**: the first action-plan item, stated so someone can start it today.
+12. **Secondary questions** (bundle only): one line per secondary, the call and the seats that disagreed with it. Not calibrated and not convergence-tested; say so.
 
 **Gate C (provenance).** Before the synthesis closes, every entry in `verified` must resolve to a Part B ref **and** the lookup that produced it in this run. An entry you cannot attribute that way moves to `unverified`. Do not argue the fact is true; the question is not whether you know it, it is whether this run checked it. The dossier renders this list as "checked against a primary source", so an unattributable entry makes the report assert a provenance the run cannot show, which is worse than saying nothing: `unverified` tells a reader to check, `verified` tells them not to. Same shape as Gate B, one level down: Gate B forces a silently omitted duty onto the record, Gate C keeps a silently assumed source off it.
 
@@ -276,7 +337,9 @@ Fold the findings in before finalising. If nothing is flagged, say so in one lin
 
 Boardroom is Deep with live cross-talk instead of hub-and-spoke. It requires the experimental agent-teams feature (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`); if that is not enabled, run Deep and tell the user Boardroom was unavailable.
 
-- Spawn the seven persona definitions as teammates. Keep the SAME discipline: each still writes an independent Round-1 position with its output block BEFORE reading any teammate's position (independence first), then teammates cross-examine each other directly via messages.
+- Run Round 1 exactly as in Deep: seven **unnamed** sub-agents, dispatched by persona type, each writing an independent position with its output block. Independence is recorded before any messaging exists.
+- From Round 2, spawn the seven persona definitions as teammates, each seeded with its own Round-1 return, and let them cross-examine each other directly via messages. Teammates gain messaging and task tools on top of their persona's web-only list; that is the price of live cross-talk, and the reason it starts only after Round 1 is on the record.
+- The cross-acceptance matrix and the convergence computation are the same as in Deep.
 - You remain chairman: you do not join the argument, you run the convergence/round-cap rules, you demand the pre-mortem artifact when consensus is thin, and you write the synthesis and run the synthesis audit.
 - Keep anonymization where you can (refer to positions, not personalities) and hold the round cap; live peer exchange is exactly where conformity compounds, so the caps matter more here, not less.
 - Boardroom costs materially more tokens than Deep. Use it when live rebuttal genuinely adds value, not by default.
@@ -301,27 +364,36 @@ A journal records each run and lets the user record how the decision actually tu
 echo '{
   "question": "<the decision, one line>",
   "mode": "<quick|standard|deep|boardroom>",
-  "confidence": "<low|medium|high>",
-  "probability": <0-100>,
+  "question_type": "<decision|choice|plan>",            // a bundle logs its primary's type
+  "probability": <0-100>,                                // decision quality; confidence is derived
   "recommendation": "<your one-line call>",
+  "alternatives": ["<a course the call was chosen over>", "..."],   // required, every mode
   "key_assumption": "<the load-bearing assumption>",
-  "converged": "<after-challenge|label-only|split|forced-debate>",
+  "converged": "<after-challenge|label-only|split|forced-debate>",  // log fills or checks it from acceptance
   "blind_spots": [ {"text":"<the blind spot>","round":<1 or 2, the round it FIRST surfaced in>} ],   // omit in Quick
+  "action_plan": [ {"action":"...","owner":"<role-map owner or unassigned (duty)>","due":"<date>"} ],  // at most 5
+  "secondaries": [ {"question":"...","call":"..."} ],   // bundle only, at most 2
+  "acceptance": { "ciso": {"dpo": true, "risk-manager": false, ...}, ... },   // Round-2 matrix; omit in Quick
 
-  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe>","condition":"<the seat's CONDITION line verbatim, or omit for a plain go/no-go>","confidence":"<low|medium|high>","probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
+  "members": [ {"name":"ciso","stance":"<go|conditional-go|no-go|defer|reframe|missing>","choice":"<choice runs>","first":"<plan runs>","not_now":"<plan runs>","condition":"<the seat's CONDITION line verbatim, or omit for a plain go/no-go>","condition_changed_r2":<true if rewritten in Round 2>,"probability":<0-100>,"stance_r1":"<the same seat's stance BEFORE cross-exam; omit in Quick>","probability_r1":<its probability before cross-exam; omit in Quick>}, ... ]
 }' | node "<skill_dir>/journal.js" log
 ```
-`confidence` must be one of `low`, `medium`, `high`. The log rejects anything else, including compounds like `medium-high`, because `meta` buckets calibration by this value and a fourth spelling silently splits the meter. If the log command fails, correct the value and re-run the line; do not skip the logging.
+Leave `confidence` out: `log` derives it from `probability` for the run and for every seat (low < 55, medium 55 to 74, high >= 75), and rejects a word that contradicts its number, because two values chosen independently drift apart (v2 logged "high" at 65%). It stamps `probability_basis: "decision-quality"` and `protocol: "3.0.0"`, requires a non-empty `alternatives`, caps `action_plan` at five owned, dated items and `secondaries` at two, and, when `acceptance` is present, recomputes convergence and rejects a `converged` value the matrix contradicts. If the log command fails, fix what it names and re-run the line; do not skip the logging.
 
-**Grading a run against a documented case.** A run on an example brief (the UM 2019 ransomware case, the MKB invoice-fraud brief) will never come true in the world, but it can be graded now against that case's published ground truth, and it enters the same pool as a live decision. Start the outcome note with `exercise:` so the record shows which grades came from a case whose answers were already known. Be straight about what that pooling costs: the Brier score then mixes "we were right about a documented past event" with "our advice held up in practice", which are different claims. The prefix keeps the mix visible even though the maths does not separate it.
+**Never record an outcome yourself.** Grading is the decision owner's call, made with hindsight the council does not have; a council that grades its own advice turns its calibration numbers into a self-assessment. Route a user's `outcome` command to the journal, offer `grade` when the ledger is ripe, and stop there.
+
+**Grading a run against a documented case.** A run on an example brief (the UM 2019 ransomware case, the MKB invoice-fraud brief) will never come true in the world, but the maintainer can grade it against that case's published ground truth with `node scripts/grading-worksheet.js` in the repository, which sets each run's call beside the case's answer. The grade enters the same pool as a live decision. Start the outcome note with `exercise:` so the record shows which grades came from a case whose answers were already known. Be straight about what that pooling costs: the Brier score then mixes "we chose well on a documented past event" with "our choice held up in practice", which are different claims. The prefix keeps the mix visible even though the maths does not separate it.
 
 Tell the user the run's sha so they can record the outcome later. The `probability` fields let `meta` compute a Brier score, which is a real calibration measure rather than a bucket hit-rate. The `_r1` fields and the round-tagged `blind_spots` list are what let `meta` say whether the cross-exam moves anyone; leave them out of a Quick run, which has no Round 2 to measure, rather than writing them as unchanged. An untagged blind spot is rejected at log time, because the tag is what gives the attribution a denominator. If neither Node nor jq is present, skip logging silently and mention once that journaling needs Node (or jq).
 
 **HTML report.** Two generators sit beside the journal scripts and produce the identical branded dossier: `report.js` (Node, zero dependencies, **preferred**) and `report.sh` (bash, needs `jq`). **Use `report.js` by default** (no `jq`, and it base64-embeds the brand logos so header/footer always render). Only fall back to `report.sh` if Node is unavailable. **Never hand-roll your own report generator**; if one script errors, switch to the other. After synthesis, offer (or, if the user asked for a report, produce) the dossier. Build a rich JSON object with these fields and pipe it to the generator:
 ```
 echo '{
-  "question": "...", "subtitle": "...", "mode": "...", "confidence": "...", "probability": <0-100>,
-  "recommendation": "...", "executive_summary": "...", "key_assumption": "...", "next_step": "...",
+  "question": "...", "subtitle": "...", "mode": "...", "question_type": "<decision|choice|plan>",
+  "confidence": "<derived band>", "probability": <0-100>, "probability_basis": "decision-quality",
+  "recommendation": "...", "alternatives": ["..."], "executive_summary": "...", "key_assumption": "...", "next_step": "...",
+  "action_plan": [ {"action":"...","owner":"...","due":"..."} ],
+  "secondaries": [ {"question":"...","call":"..."} ],
   "verified": ["<load-bearing fact this run actually retrieved, with its source>"],
   "unverified": ["<any load-bearing fact you could not verify>"],
   "converged": "<after-challenge|label-only|split|forced-debate>",
@@ -332,7 +404,7 @@ echo '{
   "ranking": [ {"position":"Expert A (dpo)","score":4.2,"note":"..."} ],
   "options": [ {"option":"A. ...","effort":"...","risk_reduction":"...","cost":"...","reversibility":"...","verdict":"..."} ],
   "risk_appetite": "...", "highest_leverage": "...",
-  "members": [ {"name":"dpo","stance":"...","condition":"<what this seat requires, for a conditional stance>","confidence":"...","probability":<0-100>,"summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
+  "members": [ {"name":"dpo","stance":"...","choice":"<choice runs>","first":"<plan runs>","not_now":"<plan runs>","condition":"<what this seat requires, for a conditional stance>","confidence":"<derived band>","probability":<0-100>,"summary":"...","assumptions":"...","change_my_mind":"..."}, ... ]
 }' | node "<skill_dir>/report.js"      # preferred; or: | bash "<skill_dir>/report.sh"
 ```
 On Windows, write the JSON to a temp file and run `node "<skill_dir>/report.js" < input.json` rather than fighting shell quoting in a single `echo`.
@@ -353,21 +425,57 @@ report renders the friendly role title and what that seat covers automatically.
 
 **Deep mode adds the decision-science pass.** Populate `options` (the realistic choices, each with effort, risk_reduction, cost, reversibility, and a one-line verdict), `risk_appetite` (the explicit owner risk-appetite check: which option fits which posture, who accepts the residual risk), and `highest_leverage` (the single move that shrinks risk most). These render as an option-comparison table plus a risk-appetite callout, so do not drop them from a deep run.
 
+**The action plan.** Populate `action_plan` with the synthesis's five-or-fewer owned, dated items; the report renders it as a table under the recommendation. Owners come from the role map; an `unassigned (<duty>)` owner renders as-is, because hiding it would hide the finding. For a bundle, `secondaries` renders as a short list after it.
+
 **The obligation ledger.** Populate `obligations` from the determination pass (Round 0b): `triggered` is the required actions (each with `label`, `action`, `determination`, `execution`, `clock`, `recipient`, `ref`) and `ruled_out` is the explicit-negative ledger (each with `label` and a one-line `reason`). The report renders a Regulatory obligations section, a required-actions table plus a considered-and-ruled-out list, directly under the risk rating. Omit the whole field only on a run with no registered obligations in play; otherwise include the ruled-out rows even when nothing triggered, because the auditable value is showing what was assessed and consciously set aside.
 The script writes `council-report-<timestamp>-<sha>.html` and prints the path. The user can override the logos with `LUMERO_LOGO_LIGHT` (header) and `LUMERO_LOGO` (footer); otherwise the bundled Luméro wordmark logos are used. Route a bare `report <sha>` request to `node "<skill_dir>/report.js" --sha <sha>` (or `bash "<skill_dir>/report.sh" --sha <sha>`); both render from the journal.
 
-## Required output block
-Every member must end their response with:
+## Required output blocks
+
+The seat packet carries the block for this run's question type, verbatim. These definitions are the only ones that apply: the persona files point here rather than restating them, so a definition changed here reaches every seat. The desktop and ChatGPT editions take their copy from the text between the markers.
+
+<!-- OUTPUT-BLOCKS:BEGIN -->
+**PROBABILITY, in every block.** Your estimate, 0 to 100, that with 12 months of hindsight a reviewer would still choose the course in YOUR OWN position over the alternatives, **whether or not an incident happens anyway**. It rates the choice, not the weather. A breach that would have happened under every option does not lower it; a quiet year after a poor choice does not raise it. Not the council's eventual recommendation, which you have not seen. Write the number only: the orchestrator derives the confidence word from it (low < 55, medium 55 to 74, high >= 75).
+
+**CONDITION.** One atomic condition, at most 25 words: the one thing that must be true or must happen for you to move to go. One requirement, not two joined by "and" and not a list. If you need several things, name the one whose absence would change your position most, and put the rest under ASSUMPTIONS. Write "keys issued to the payroll staff first", not "keys issued, sessions revoked and the portal behind SSO". Never write "none" or "n/a" on a conditional position: a placeholder reads as a named condition and passes a comparison it should have failed.
+
+**Decision** (`-type=decision`):
 ```
 STANCE: <go | conditional-go | no-go | defer | reframe>
-CONDITION: <required when your stance is conditional-go, defer or reframe: the one thing that must be true or must happen for you to move to go. Omit this line entirely for a plain go or no-go. Never write "none" or "n/a" on a conditional stance: a placeholder reads as a named condition and passes a comparison it should have failed.>
-CONFIDENCE: <low | medium | high>
-PROBABILITY: <0-100>%  (your estimate that YOUR OWN position, as stated above, would survive a 12-month look-back. Not the council's eventual recommendation, which you have not seen and may disagree with.)
+CONDITION: <required for conditional-go, defer or reframe; omit the line for a plain go or no-go>
+PROBABILITY: <0-100>%
 ASSUMPTIONS: <the load-bearing assumptions behind my view>
 WHAT WOULD CHANGE MY MIND: <the evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>
 ```
-STANCE, CONDITION and PROBABILITY are not optional. STANCE makes the convergence and debate triggers mechanical rather than a judgment call. CONDITION is what stops a shared label from passing as agreement: without it, seven seats asking for seven different things all read as `conditional-go`, and the convergence test has nothing to compare. PROBABILITY (a number, not just a word) is far better calibrated to track over time than a bare low/med/high; keep the word-label too, for the business reader.
+
+**Option choice** (`-type=choice`):
+```
+CHOICE: <the option I would pick, by its label>
+CONDITION: <only if the choice holds only under a condition; otherwise omit the line>
+PROBABILITY: <0-100>%
+ASSUMPTIONS: <...>
+WHAT WOULD CHANGE MY MIND: <...>
+UNKNOWNS: <...>
+```
+
+**Action plan** (`-type=plan`):
+```
+FIRST: <the one action to start first, with who does it>
+NOT NOW: <the one action to drop or defer to make room, and why>
+PROBABILITY: <0-100>%
+ASSUMPTIONS: <...>
+WHAT WOULD CHANGE MY MIND: <...>
+UNKNOWNS: <...>
+```
+
+**Bundle**: the block for the primary question's type, then one line per secondary question:
+```
+SECONDARY <n>: <my one-line answer>
+```
+<!-- OUTPUT-BLOCKS:END -->
+
+STANCE (or CHOICE, or FIRST), CONDITION and PROBABILITY are not optional. They make the convergence and debate triggers mechanical rather than a judgment call. CONDITION is what stops a shared label from passing as agreement: without it, seven seats asking for seven different things all read as `conditional-go`, and the convergence test has nothing to compare. PROBABILITY (a number, not just a word) is far better calibrated to track over time than a bare low/med/high; the word is still shown, derived, for the business reader.
 
 ## Rules
 - Never collapse disagreement into false consensus. Conflict is the product.
@@ -378,3 +486,5 @@ STANCE, CONDITION and PROBABILITY are not optional. STANCE makes the convergence
 - Surface hard legal/regulatory stoppers (e.g. GDPR, NIS2/Cbw) as gates, not opinions.
 - Scale advice to SME reality: limited budget, limited capacity (headcount), IT-suppliers reliance.
 - Keep the final verdict tight. Long enough to be defensible, short enough to act on.
+- Route every owner through the role map; an unassigned duty is a finding, never a guess.
+- Never record an outcome on the council's own advice; only the decision owner grades.
