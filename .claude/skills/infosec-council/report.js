@@ -326,6 +326,32 @@ function rankingBlock() {
   return html;
 }
 
+// ---- action plan + secondary questions (v3) --------------------------------
+// The plan is capped at five owned, dated items by the journal, so the table is the
+// whole plan, not a highlight reel. An "unassigned (<duty>)" owner prints as-is:
+// hiding it would hide the finding that nobody in the organization holds the duty.
+function actionPlanBlock() {
+  if (!(Array.isArray(run.action_plan) && run.action_plan.length > 0)) return '';
+  return '<section class="block"><h2>Action plan</h2><p class="lead">At most five actions, each with an owner and a date. An owner shown as unassigned is a duty nobody in the organization holds yet.</p>'
+    + '<table class="opts"><thead><tr><th>#</th><th>Action</th><th>Owner</th><th>Due</th></tr></thead><tbody>'
+    + run.action_plan.map(function (a, i) {
+        return '<tr><td>' + (i + 1) + '</td><td>' + e(g(a, 'action')) + '</td><td>' + e(g(a, 'owner')) + '</td><td>' + e(g(a, 'due')) + '</td></tr>';
+      }).join('')
+    + '</tbody></table></section>';
+}
+function secondariesBlock() {
+  if (!(Array.isArray(run.secondaries) && run.secondaries.length > 0)) return '';
+  return '<section class="block"><h2>Related questions</h2><p class="lead">Smaller questions that came with this decision, answered in one line each. They were not debated or scored like the main question.</p><ul>'
+    + run.secondaries.map(function (s) { return '<li><b>' + e(g(s, 'question')) + '</b>: ' + e(g(s, 'call')) + '</li>'; }).join('')
+    + '</ul></section>';
+}
+const QTYPE_LABEL = { decision: 'Decision', choice: 'Option choice', plan: 'Action plan' };
+function qtypeLabel(t) { return Object.prototype.hasOwnProperty.call(QTYPE_LABEL, t) ? QTYPE_LABEL[t] : String(t); }
+// The percentage means different things on either side of v3.0.0, so the dossier says
+// which: a decision-quality number is about the choice, a legacy number was about the
+// choice AND the absence of an incident. Re-rendering an old run must not relabel it.
+const DQ = run && run.probability_basis === 'decision-quality';
+
 // ---- members block ----------------------------------------------------------
 function membersBlock() {
   if (!(Array.isArray(run.members) && run.members.length > 0)) return '';
@@ -337,12 +363,15 @@ function membersBlock() {
     a += '</div>';
     a += '<span class="pill ' + confClass(m.confidence) + '">' + e(m.confidence != null ? m.confidence : 'n/a') + (typeof m.probability === 'number' ? ' &middot; ' + m.probability + '%' : '') + '</span></header>';
     if (len(g(m, 'stance')) > 0) a += '<p class="stance">Stance: ' + e(m.stance) + '</p>';
+    if (len(g(m, 'choice')) > 0) a += '<p class="stance">Choice: ' + e(m.choice) + '</p>';
     if (len(g(m, 'summary')) > 0) a += '<p class="sum">' + e(m.summary) + '</p>';
     a += '<dl>';
     // The condition is what a conditional stance actually requires, and it is what the
     // convergence test compares. Without it on the page a "label-only" outcome is a
     // word the reader has to take on trust: they can see that the panel agreed on a
     // verdict and not on what it demanded, but not on what each seat demanded.
+    if (len(g(m, 'first')) > 0) a += '<dt>First</dt><dd>' + e(m.first) + '</dd>';
+    if (len(g(m, 'not_now')) > 0) a += '<dt>Not now</dt><dd>' + e(m.not_now) + '</dd>';
     if (len(g(m, 'condition')) > 0) a += '<dt>Only if</dt><dd>' + e(m.condition) + '</dd>';
     if (len(g(m, 'assumptions')) > 0) a += '<dt>What they assume</dt><dd>' + e(m.assumptions) + '</dd>';
     if (len(g(m, 'change_my_mind')) > 0) a += '<dt>What would change their view</dt><dd>' + e(m.change_my_mind) + '</dd>';
@@ -363,21 +392,27 @@ let out = '<!doctype html><html lang="en"><head><meta charset="utf-8">'
   + (len(g(run, 'subtitle')) > 0 ? '<p class="subtitle">' + e(run.subtitle) + '</p>' : '')
   + '<p class="intro">A panel of security advisors reviewed this decision. This dossier gives you the recommendation and a short executive summary first, then the full analysis underneath: the risks, where the advisors agreed and disagreed, and each advisor in their own words.</p>'
   + '<div class="meta"><span><b>Depth</b>&nbsp;&nbsp;' + e(mode).toUpperCase() + '</span>'
+  + (len(g(run, 'question_type')) > 0 ? '<span><b>Question</b>&nbsp;&nbsp;' + e(qtypeLabel(run.question_type)) + '</span>' : '')
   + '<span><b>Reference</b>&nbsp;&nbsp;' + e(sha) + '</span>'
   + (len(ts) > 0 ? '<span>' + e(ts) + '</span>' : '') + '</div>'
   + '<div class="verdict"><h2>What we recommend</h2>'
   + '<p class="lead">The bottom-line advice, and how strongly the panel backs it.</p>'
   + '<p class="rec">' + e(g(run, 'recommendation')) + '</p>'
   + '<p><span class="pill ' + confClass(run.confidence) + '">Confidence: ' + e(g(run, 'confidence')) + '</span>'
-  + (typeof run.probability === 'number' ? '<span class="pill prob">' + run.probability + '% it survives a 12-month review</span>' : '')
+  + (typeof run.probability === 'number' ? '<span class="pill prob">' + run.probability + (DQ ? '% a reviewer would still choose this in a year' : '% it survives a 12-month review') + '</span>' : '')
   + '</p>'
-  + '<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>'
+  + (DQ
+    ? '<p class="note">Confidence is a band of the percentage (Low under 55, Medium 55 to 74, High 75 and above). The percentage is how likely the panel thinks a reviewer, a year from now, would still choose this course over the alternatives, whether or not an incident happens anyway.</p>'
+    : '<p class="note">Confidence shows how strongly the panel stands behind this advice given what is still unknown (High, Medium or Low); the percentage is how likely the panel thinks this call still looks right a year from now.</p>')
   + (len(convergedLabel(g(run, 'converged'))) > 0 ? '<p class="note">Panel outcome: ' + convergedLabel(run.converged) + '.</p>' : '')
   + (len(g(run, 'key_assumption')) > 0 ? '<p class="assume"><strong>This advice depends on:</strong> ' + e(run.key_assumption) + '</p>' : '')
+  + (Array.isArray(run.alternatives) && run.alternatives.length > 0 ? '<p class="assume"><strong>Chosen over:</strong> ' + e(run.alternatives.join('; ')) + '</p>' : '')
   + (Array.isArray(run.verified) && run.verified.length > 0 ? '<p class="assume"><strong>Checked against a primary source this run:</strong> ' + e(run.verified.join('; ')) + '</p>' : '')
   + (Array.isArray(run.unverified) && run.unverified.length > 0 ? '<p class="assume"><strong>Not independently verified (check before relying):</strong> ' + e(run.unverified.join('; ')) + '</p>' : '')
   + (len(g(run, 'next_step')) > 0 ? '<p class="assume"><strong>Do this next:</strong> ' + e(run.next_step) + '</p>' : '')
   + '</div>'
+  + actionPlanBlock()
+  + secondariesBlock()
   + riskBlock()
   + obligationsBlock()
   + (len(g(run, 'executive_summary')) > 0 ? '<section class="exec"><h2>Executive summary</h2><p>' + e(run.executive_summary) + '</p></section>' : '')

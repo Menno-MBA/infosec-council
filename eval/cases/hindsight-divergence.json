@@ -1,0 +1,16 @@
+{
+  "id": "hindsight-divergence",
+  "title": "Hindsight divergence: one option clearly better, an incident near-certain either way",
+  "question_type": "choice",
+  "question": "Our staff credentials are on sale in an infostealer log: do we (A) reset every password and roll out phishing-resistant MFA now, or (B) wait four months for the planned identity-provider migration that brings it anyway?",
+  "brief": "eval/cases/hindsight-divergence.md",
+  "invocation": "ask the infosec-council -type=choice -standard: <paste eval/cases/hindsight-divergence.md>",
+  "expect": {
+    "choice": "A",
+    "min_probability_aligned": 65,
+    "offsec_min_probability": 55,
+    "note": "This case separates the two readings of PROBABILITY. Some account-takeover attempt within 12 months is near-certain under either option, so a seat that reads its number as 'no incident afterwards' rates A low even while choosing it. Read as decision quality, A is a high-probability call. The offensive-security seat is the one v2 dragged down most."
+  },
+  "ground_truth": "A is the better choice under any reasonable hindsight: the credentials are live and the exposure window under B is four months. An incident attempt is expected regardless of the option; that does not make A wrong.",
+  "grading_hint": "correct if A is chosen; wrong if B. The probability is graded on the choice, not on whether an attempt happened."
+}

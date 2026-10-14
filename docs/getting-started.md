@@ -29,7 +29,14 @@ from the latest release. Then in the app:
    Upload skill** → choose the file.
 3. Toggle it on.
 
-Then in any chat: `ask the infosec-council: <your decision> -deep`.
+Then in any chat: `ask the infosec-council: <your decision>`. Standard depth is the default;
+add `-deep` when the call is expensive to get wrong.
+
+The seven council seats run with web tools only (`WebSearch`, `WebFetch`), so a seat cannot
+read your files, the journal, or another seat's answer. Pre-approve both tools in your Claude
+Code permissions; otherwise seats running in the background can stall on an approval prompt.
+If you installed an earlier version globally, run `npx github:Menno-MBA/infosec-council verify`:
+it warns when an old persona copy in `~/.claude/agents` would override the new ones.
 
 On Free/Pro/Max the Skills upload lives under **Customize → Skills**; on Team/Enterprise an
 owner must enable Skills org-wide first.
@@ -47,7 +54,7 @@ npx github:Menno-MBA/infosec-council build-desktop   # cross-platform, no bash/z
 
 Nothing to install. Open **[Information Security Council by
 Luméro](https://chatgpt.com/g/g-6a3c32a5a78c8191b28254c342c1bd08-infosec-council-by-lumero)**,
-type your decision, add `-deep` for the full treatment.
+type your decision; add `-deep` for the full treatment.
 
 Requires a ChatGPT account. Keep *Code Interpreter* on so it can generate the HTML report.
 

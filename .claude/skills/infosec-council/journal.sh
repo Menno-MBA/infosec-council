@@ -47,6 +47,9 @@ case "$cmd" in
       | .mode    = (.mode    // "standard")
       | .members = (.members // [])
       | .outcome = (.outcome // {recorded: false})
+      | .question_type     = (.question_type // "decision")
+      | .probability_basis = "decision-quality"
+      | .protocol          = "3.0.0"
     ')"
     printf '%s\n' "$record" >> "$JOURNAL"
     echo "logged run $s (family $family)"
@@ -79,6 +82,8 @@ case "$cmd" in
   meta)
     need_jq; ensure
     [ -s "$JOURNAL" ] || die "journal is empty - nothing to analyze yet"
+    # Same basis split as journal.js: a pre-3.0 number meant "right AND no incident",
+    # a 3.0 number means "would still choose it", and one Brier over both grades neither.
     jq -s '
       def actual: {"correct":1,"partial":0.5,"wrong":0}[.];
       def brier(list):
@@ -89,10 +94,16 @@ case "$cmd" in
       {
         total_runs:    length,
         with_outcome:  ([.[] | select(.outcome.recorded == true)] | length),
-        brier_overall: brier(.),
+        probability_basis: "decision-quality",
+        brier_overall: brier([.[] | select(.probability_basis == "decision-quality")]),
+        legacy_basis: {
+          runs:  ([.[] | select(.probability_basis != "decision-quality")] | length),
+          brier: brier([.[] | select(.probability_basis != "decision-quality")])
+        },
 
         calibration_by_confidence: (
-          group_by(.confidence // "unknown")
+          [.[] | select(.probability_basis == "decision-quality")]
+          | group_by(.confidence // "unknown")
           | map({
               confidence:        (.[0].confidence // "unknown"),
               runs:              length,
@@ -107,7 +118,8 @@ case "$cmd" in
         high_confidence_misses: [
           .[]
           | select(.confidence == "high" and (.outcome.result == "wrong" or .outcome.result == "partial"))
-          | {sha, question, result: .outcome.result, note: (.outcome.note // ""), probability}
+          | {sha, question, result: .outcome.result, note: (.outcome.note // ""), probability,
+             basis: (if .probability_basis == "decision-quality" then "decision-quality" else "legacy" end)}
         ],
 
         member_appearances: (
@@ -127,6 +139,7 @@ case "$cmd" in
       confidence: (.confidence // "n/a"),
       probability: (.probability // null),
       converged: (.converged // null),
+      basis:      (if .probability_basis == "decision-quality" then "decision-quality" else "legacy" end),
       question:   (.question[0:80]),
       outcome:    (.outcome.result // "pending")
     }'
@@ -166,6 +179,9 @@ infosec-council decision journal (bash + jq). Prefer journal.js (Node, no deps).
   journal.sh log
       Read one run as JSON from stdin and append it. Salts the sha so reruns of the
       same question are distinct; also stores a stable "family" id per question.
+      Stamps probability_basis "decision-quality" and protocol "3.0.0", but does NOT
+      validate: confidence bands, alternatives, the action-plan and secondaries caps,
+      and the convergence-vs-matrix check run in journal.js only.
 
   journal.sh outcome <sha> <correct|partial|wrong|not-tested> [note]
       Record how the decision actually turned out, later. `not-tested` means nobody
@@ -188,8 +204,9 @@ Environment:
   COUNCIL_HOME   journal directory (default: ~/.infosec-council)
   COUNCIL_ORG    per-org subfolder (keeps one client's journal out of another's)
 
-Not implemented here (journal.js only): pending, grade, Expected Calibration Error,
-the reliability curve, the delivery rate, and the round-2 statistics.
+Not implemented here (journal.js only): pending, grade, converge, log-time validation,
+Expected Calibration Error, the reliability curve, the delivery rate, and the round-2
+statistics.
 USAGE
     ;;
 
@@ -200,6 +217,6 @@ USAGE
   # prevent. Better to name the gap than to hide it behind a usage screen.
   *)
     die "unknown command '$cmd'. journal.sh implements: log, outcome, meta, journal, lookback, path, help.
-  pending, grade, ECE and the round-2 statistics are journal.js-only; use Node for those."
+  pending, grade, converge, ECE and the round-2 statistics are journal.js-only; use Node for those."
     ;;
 esac

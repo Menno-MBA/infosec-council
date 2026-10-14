@@ -1,0 +1,15 @@
+{
+  "id": "go-canary",
+  "title": "Go canary: passkeys for the admin accounts",
+  "question_type": "decision",
+  "question": "Should we enforce phishing-resistant MFA (passkeys) on our four Microsoft 365 global-admin accounts this month, using licences we already pay for and about two hours of MSP time?",
+  "brief": "eval/cases/go-canary.md",
+  "invocation": "ask the infosec-council -type=decision -standard: <paste eval/cases/go-canary.md>",
+  "expect": {
+    "majority": "go",
+    "min_probability_aligned": 70,
+    "note": "A cheap, reversible, standard-practice control. A panel that conditions it into a project, or rates it below 70, is over-conditioning."
+  },
+  "ground_truth": "Settled practice: phishing-resistant MFA on privileged accounts is a baseline control (CISA, Microsoft, CIS Controls IG1 safeguard 6.5). Cost and reversibility make it close to a free call.",
+  "grading_hint": "correct if the call is go (a condition about break-glass accounts is fine); partial if it is made conditional on a larger programme; wrong if deferred or refused."
+}

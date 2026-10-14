@@ -23,12 +23,18 @@ It writes a self-contained `.html` and returns its path. Offer that file as a do
 | `question` | the decision, one line |
 | `subtitle` | optional detail line, keeps the title from running on |
 | `mode` | `quick` / `standard` / `deep` |
-| `confidence` | `low` / `medium` / `high` |
-| `probability` | 0-100, the chance the recommendation survives a 12-month look-back |
+| `question_type` | `decision` / `choice` / `plan` (a bundle uses its primary's type) |
+| `probability` | 0-100, decision quality: the chance a reviewer with 12 months of hindsight would still choose this course over the alternatives, incident or not |
+| `probability_basis` | always `decision-quality`; the report words the percentage by it |
+| `confidence` | derived from `probability`: `low` under 55, `medium` 55-74, `high` 75 and above |
 | `recommendation` | the call, one line |
+| `alternatives` | array of the courses the call was chosen over |
+| `action_plan` | array of at most 5 `{action, owner, due}`; owner from the role map or `unassigned (<duty>)` |
+| `secondaries` | bundle only: array of at most 2 `{question, call}` |
 | `executive_summary` | 3-5 plain sentences: problem, call, why |
 | `key_assumption` | the load-bearing assumption |
-| `next_step` | the single most useful concrete action |
+| `next_step` | the first action-plan item |
+| `verified` | array of load-bearing facts this run actually retrieved, with source |
 | `unverified` | array of load-bearing facts you could not verify |
 | `converged` | `after-challenge` / `label-only` / `split` / `forced-debate` |
 | `risks` | array, plain language, never empty |
@@ -36,7 +42,7 @@ It writes a self-contained `.html` and returns its path. Offer that file as a do
 | `conflicts` | array of unresolved trade-offs |
 | `blind_spots` | array of what cross-examination surfaced that Round 1 missed |
 | `minority_report` | the strongest dissent worth preserving |
-| `ranking` | array of `{position, score, note}` from the peer scoring |
+| `ranking` | omit in this edition: the steelman replaces peer scoring |
 
 ## Risk rating
 
@@ -62,7 +68,8 @@ that stays level with inherent is a real answer, not a failure to fill the field
 ## Advisors
 
 `members` is an array of
-`{name, stance, condition, confidence, probability, summary, assumptions, change_my_mind}`.
+`{name, stance, condition, confidence, probability, summary, assumptions, change_my_mind}`,
+with `choice` instead of `stance` on a choice run, and `first` plus `not_now` on a plan run.
 
 - `name` is the persona key from `council-personas.md` (`ciso`, `security-architect`,
   `offensive-security`, `security-operations`, `compliance-analyst`, `dpo`,

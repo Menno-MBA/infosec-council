@@ -1,0 +1,15 @@
+{
+  "id": "van-elst-invoice-fraud",
+  "title": "Van Elst invoice fraud: a bundle with a plan at its centre",
+  "question_type": "plan",
+  "question": "Fraudulent invoices built from our leaked client list have been paid by three clients: what do we do first, and what can wait?",
+  "brief": ".claude/skills/infosec-shared/examples/mkb-invoice-fraud-2026/council-brief.md (everything above 'Useful ground truth for a facilitator')",
+  "invocation": "ask the infosec-council -type=bundle -standard: <paste the brief above the ground-truth section>",
+  "expect": {
+    "action_plan_matches": ["callback|verif|bank[- ]detail|payee|four[- ]eyes|segregation"],
+    "seat_present": ["risk-manager"],
+    "note": "The bundle should split with the response plan as primary and at most two secondaries. The fix the v2 runs kept landing on was a finance process control (callback verification, segregation of duties); v3 gives that analysis to the Risk Manager, so the action plan should carry it with an owner."
+  },
+  "ground_truth": "Per the brief's facilitator section: the infostealer on the bookkeeper's laptop is the source (the platform was not breached); 61 clients were targeted, not 10; a fourth client paid EUR 8,400 on Day 7 and has not noticed. A sound first action warns every client that received an invoice in the window, not only the ten known, and rotates the bookkeeper's credentials; the GDPR Art. 33 clock runs on the organisation as controller.",
+  "grading_hint": "correct if FIRST covers warning the targeted clients broadly and the plan carries the credential rotation and a payment-verification control; partial if it warns only the known ten; wrong if it waits for the source to be resolved before warning anyone."
+}

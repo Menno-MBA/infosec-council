@@ -10,6 +10,7 @@
  *   .claude/skills/infosec-council/frameworks.md  -> chatgpt/knowledge/frameworks.md
  *   .claude/skills/infosec-council/context.md     -> chatgpt/knowledge/context.md
  *   .claude/agents/*.md  (in council order)       -> chatgpt/knowledge/council-personas.md
+ *   SKILL.md OUTPUT-BLOCKS markers                -> chatgpt/knowledge/output-blocks.md
  *
  * It also guards `chatgpt/INSTRUCTIONS.md`, which is NOT generated -- it is
  * hand-maintained, because the GPT edition states the protocol in its own condensed
@@ -38,7 +39,7 @@ const PERSONAS_PREAMBLE =
   '# Information Security Council, advisor personas\n\n' +
   'This file defines the seven advisor personas the GPT role-plays. In Round 1 adopt each one\n' +
   'fully and in isolation. Frameworks/versions come from frameworks.md; house-context from context.md.\n' +
-  "(The 'model: sonnet' lines are for the Claude Code CLI edition and can be ignored here.)";
+  "(The 'model', 'tools' and 'omitClaudeMd' lines are for the Claude Code CLI edition and can be ignored here.)";
 
 function buildPersonas() {
   const parts = ORDER.map(function (name) {
@@ -85,10 +86,25 @@ function checkInstructionBudget() {
   return 0;
 }
 
+// The per-question-type output blocks. They live in the orchestrator between markers so
+// one edit reaches all three editions: the CLI injects them into every seat packet, the
+// Desktop copy is parity-checked against them, and the GPT reads this generated file.
+// They moved out of INSTRUCTIONS.md because four blocks do not fit its 8000-byte budget,
+// and cutting a block to fit would cut a rule.
+function buildOutputBlocks() {
+  const src = fs.readFileSync(path.join(SKILL, 'SKILL.md'), 'utf8');
+  const m = src.match(/<!-- OUTPUT-BLOCKS:BEGIN -->\r?\n([\s\S]*?)\r?\n<!-- OUTPUT-BLOCKS:END -->/);
+  if (!m) throw new Error('SKILL.md has no OUTPUT-BLOCKS markers; the GPT edition would ship without its seat blocks');
+  return '# Information Security Council, output blocks\n\n'
+    + "Every advisor ends its turn with the block for this run's question type. Generated from the\n"
+    + 'Claude Code orchestrator (SKILL.md); do not edit by hand.\n\n' + m[1] + '\n';
+}
+
 const targets = [
   { dst: path.join(KNOW, 'frameworks.md'), content: fs.readFileSync(path.join(SKILL, 'frameworks.md'), 'utf8') },
   { dst: path.join(KNOW, 'context.md'), content: fs.readFileSync(path.join(SKILL, 'context.md'), 'utf8') },
-  { dst: path.join(KNOW, 'council-personas.md'), content: buildPersonas() }
+  { dst: path.join(KNOW, 'council-personas.md'), content: buildPersonas() },
+  { dst: path.join(KNOW, 'output-blocks.md'), content: buildOutputBlocks() }
 ];
 
 let drift = 0;

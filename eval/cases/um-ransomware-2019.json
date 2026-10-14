@@ -1,0 +1,14 @@
+{
+  "id": "um-ransomware-2019",
+  "title": "UM-style ransomware: pay or rebuild without paying",
+  "question_type": "choice",
+  "question": "Domain-wide Clop encryption, online backups encrypted too, attacker held domain admin for weeks: do we (A) pay the ransom for the decryptor while rebuilding the domain, or (B) refuse and rebuild from what survives?",
+  "brief": ".claude/skills/infosec-shared/examples/um-ransomware-2019/part-a-blue-starting-point.md",
+  "brief_injects": ".claude/skills/infosec-shared/examples/um-ransomware-2019/part-b-red-ground-truth.md (release beats 3 and 5 from the README: domain admin weeks before detonation; backups encrypted)",
+  "invocation": "ask the infosec-council -type=choice -standard: <paste Part A plus the two injects>, then pose the question above",
+  "expect": {
+    "note": "No fixed right answer is asserted for the scorer: pay/no-pay is genuinely contested. The case measures protocol behaviour (atomic conditions, the offensive-security gap, cross-acceptance, obligations) on the hardest realistic SME decision. The maintainer grades the call against the documented outcome with the worksheet."
+  },
+  "ground_truth": "Publicly documented (Fox-IT investigation report and the university's own account, early 2020): Maastricht University paid a ransom of about EUR 200,000 in bitcoin in late December 2019, judging that the loss of research, education and staff data outweighed the objection to paying, and rebuilt and hardened the domain alongside. Part of the ransom was later recovered by Dutch police. Maintainer: confirm these figures against the Fox-IT report before grading [VERIFY].",
+  "grading_hint": "Grade the choice with what the documented case shows: would you still choose this course over the alternative, knowing the backups were gone and the data loss was otherwise near-total? Prefix the note with 'exercise:'."
+}

@@ -54,56 +54,72 @@ Append a depth flag to your question, or let the council pick. Default is Standa
 
 | Mode | When | Members | Retrieval | Peer review | Debate | Closing check |
 |---|---|---|---|---|---|---|
-| **`-quick`** | Low-stakes, reversible in a day | 3 most relevant (keeps >= 1 adversarial seat) | None, and it says so | No | No | Chairman self-check |
+| **`-quick`** | Low-stakes, reversible in a day | Offensive Security + the 2 most relevant | None, and it says so | No | No | Chairman self-check |
 | **`-standard`** | Default | All 7 | Bounded pass | Yes | Only if consensus is suspiciously clean | Dispatched fidelity check |
 | **`-deep`** | High-stakes, costly to reverse | All 7 + decision-science pass | Bounded pass + landscape sweep | Yes | Always | Full synthesis audit |
-| **`-boardroom`** | High-stakes, and you want live cross-talk | All 7 as agent-teams teammates | Bounded pass + landscape sweep | Yes (live) | Always | Full synthesis audit |
+| **`-boardroom`** | High-stakes, and you want live cross-talk | All 7; Round 1 as sub-agents, teammates from Round 2 | Bounded pass + landscape sweep | Yes (live) | Always | Full synthesis audit |
 
 **Boardroom mode** runs the panel as live
 [agent-teams](https://code.claude.com/docs/en/agent-teams) teammates who cross-examine each
 other directly instead of through the chairman. It needs the experimental flag
 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; without it, `-boardroom` falls back to Deep.
-Independence still comes first, since each seat commits its own position before reading the
-others, and the round cap still holds, because live peer exchange is exactly where
+Independence still comes first: Round 1 runs as ordinary isolated sub-agents, and the seats
+become teammates only once every position is on the record. The round cap still holds, because live peer exchange is exactly where
 agreement-by-conformity compounds.
 
 ---
 
-## The required output block
+## Question types and output blocks
 
-Every member ends with the same block, so the verdict is calibrated rather than asserted:
+Most questions are not a single yes or no, so the council first decides what kind of answer
+fits, or takes `-type=` from you:
+
+| Type | Example | Each seat answers with |
+|---|---|---|
+| `decision` | Should we let the note-taker join calls? | STANCE (go, conditional-go, no-go, defer, reframe) |
+| `choice` | MDR from vendor A, vendor B, or keep the MSP? | CHOICE (the option it would pick) |
+| `plan` | What do we do about invoice fraud? | FIRST (one action to start) and NOT NOW (one to drop) |
+| `bundle` | Who do we warn, do we notify, do we compensate? | Split: one primary question gets the full protocol; up to two secondaries get one line per seat |
+
+Every block also carries:
 
 ```
-STANCE       go | conditional-go | no-go | defer | reframe
-CONDITION    what this stance actually requires (conditional stances only)
-CONFIDENCE   low | medium | high
-PROBABILITY  0-100, that THIS SEAT'S OWN position survives a 12-month look-back
+CONDITION    one requirement, at most 25 words (conditional positions only)
+PROBABILITY  0-100: would a reviewer, with 12 months of hindsight, still choose
+             this course over the alternatives, whether or not an incident happens
 ASSUMPTIONS  the load-bearing assumptions
 WHAT WOULD CHANGE MY MIND
 UNKNOWNS
 ```
 
-The **stance** makes the convergence and debate triggers mechanical rather than a judgment
-call. The **condition** is what a conditional stance actually requires, so a shared label
-cannot pass as agreement. The **probability** is a number rather than a word, which is what
-the decision journal can score over time.
+**PROBABILITY rates the choice, not the weather.** Before v3.0.0 it asked whether a position
+would "survive a 12-month look-back", and every seat probed read that as "and nothing bad
+happens". The seat whose job is to expect breaches therefore scored lowest even when it agreed,
+and the spread test measured pessimism instead of disagreement. Now a breach that would have
+happened under every option does not lower the number. Seats write only the number; the
+confidence word is a fixed band of it (low under 55, medium 55 to 74, high 75 and above).
+
+**CONDITION is one requirement.** "MFA and a tested restore" is two conditions, and the
+convergence test below could not tell which one another seat agreed to.
 
 ---
 
 ## How the room converges
 
-After the anonymized cross-examination, each seat scores the others on how well their position
-would survive scrutiny (1 to 5). Convergence then takes three things, not one:
+In the cross-examination each seat reads the others' positions without names, says where they
+are wrong, scores their reasoning (1 to 5), and marks every other seat's condition **accept** or
+**reject**: *if that were done, would my own position be satisfied?* That matrix, not the
+chairman's reading, decides the condition test. Convergence takes three things:
 
-1. At least **six of seven on the same stance**.
-2. Their **stated conditions materially agreeing**, every pair of them, not just a majority cluster.
+1. At least **six of seven on the same stance** (or choice; for a plan, one first action backed by six).
+2. Every pair of aligned conditional seats **accepted each other's condition**. A condition rewritten in the cross-examination loses the acceptances it had.
 3. A **probability spread of no more than 20 points** among those aligned seats.
 
-A shared label alone is not enough. `conditional-go` absorbs any condition, so seven seats can
-return the same word while asking for seven different things. When the label agrees and the
-substance does not, the run is marked **`label-only`** and goes to the forced debate instead of
-stopping. That outcome is recorded, so the failure mode is countable across runs rather
-than a judgement nobody can see afterwards.
+`journal.js converge` computes the three tests from the matrix, and the journal rejects a
+recorded outcome the matrix contradicts. A shared label alone is not enough: `conditional-go`
+absorbs any condition, so seven seats can return the same word while asking for seven
+different things. When the label agrees and the substance does not, the run is marked
+**`label-only`** and goes to the forced debate instead of stopping.
 
 Routing is first-match-wins, in this order:
 
@@ -121,6 +137,20 @@ this failed, here is the story."* Generic contrarianism does not count.
 Deliberation is capped at Round 1, the cross-examination, and at most one forced debate (one
 further exchange in Deep and Boardroom). More rounds trade tokens for conformity, not accuracy.
 The dissenting seat always reaches the minority report, whatever the outcome.
+
+The Desktop and ChatGPT editions play every seat in one context, so peer scoring there would be
+one model marking its own work. They run a **steelman** instead (the strongest honest case for
+the most opposed position), and keep the accept/reject matrix labelled as a self-check.
+
+## Who does the work: the role map and the action plan
+
+The seats are lenses, not staff. Most SMEs have no DPO, no SOC and no CISO on payroll, so the
+synthesis routes every owner through a **role map** in `context.md` (who holds each duty here:
+the managing director, the MSP, an external DPO, or nobody). A duty nobody holds is written as
+`unassigned (<duty>)` and reported as a risk. The synthesis ends with an **action plan of at most
+five items**, each with an owner and a date; the CISO seat's job is to say what an SME can
+actually carry and what gets dropped. Statutory actions stay in the obligations ledger, outside
+the cap.
 
 ---
 
@@ -152,13 +182,13 @@ Cybersecurity Skills Framework (ECSF) role profiles.
 
 | Seat | Skill | Mandate | Anchors to |
 |---|---|---|---|
-| CISO | Council | Posture vs. business enablement, budget, incident readiness | ISO 27001 (ISMS), NIST CSF, CIS Controls (IG1) |
+| CISO | Council | Delivery: who executes, in what order, with what capacity; posture and budget | ISO 27001 (ISMS), NIST CSF, CIS Controls (IG1) |
 | Security Architect | Council | Secure-by-design & default; hardens bought SaaS, identity-first (build) | STRIDE, secure-by-design, CIS Benchmarks, zero trust |
 | Offensive Security (Red Team) | Council | Attacker's view, attack pre-mortem, exploitation chains (break) | MITRE ATT&CK |
 | Security Operations | Council | Detection, response & recovery (run/survive) | NIST CSF, NIST IR guidance, MITRE ATT&CK, tested backups |
 | Compliance Analyst | Council | Mandatory EU law vs chosen attestations; evidence + crosswalks | GDPR, NIS2, EU AI Act, DORA/CRA/PCI DSS where applicable, ISO 27001, SOC 2 |
 | DPO / Privacy | Council | Lawful, fair, transparent processing; advises & monitors | GDPR (lawful basis, ROPA, DPIA, transfers), ePrivacy, EU AI Act |
-| Risk Manager | Council | Frames risk two-sidedly; third-party risk | ISO 31000/27005, CIS RAM, NIST small-business guidance, cyber insurance |
+| Risk Manager | Council | Frames risk two-sidedly; third-party risk; business-process and fraud controls, financial impact | ISO 31000/27005, CIS RAM, NIST small-business guidance, cyber insurance |
 | Threat Intelligence | Red team | Selects a realistic adversary, maps its TTPs, sets objectives and flags | ECSF CTI Specialist; MITRE ATT&CK |
 | Penetration Tester | Red team | Executes the kill chain as atomic tests, scores each detection opportunity | ECSF Penetration Tester; Atomic Red Team / Caldera |
 | Safety Lead | Red team | Authorization, Rules of Engagement, scope, deconfliction; hard veto | ECSF Auditor + Legal; signed RoE, isolated range |

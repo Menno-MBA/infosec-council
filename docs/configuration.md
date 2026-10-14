@@ -25,6 +25,9 @@ propagates to all seats with no per-persona changes.
   standard, MFA standard, default risk posture, quantification depth.
 - **In-scope regimes** toggle: GDPR, ePrivacy, NIS2/Cbw, CER/Wwke, DORA, EU AI Act, CRA,
   PCI DSS, SOC 2. Flip a regime to "in scope" and the relevant seats treat it as live.
+  NIS2/Cbw is the exception: it is a **per-run entity test** (sector plus size, with named
+  exceptions such as DNS and trust-service providers), because most firms under 50 staff and
+  EUR 10M turnover are out of scope and meet NIS2 only through their customers' contracts.
 - **Part B, the reference register**: every subject with its canonical version or level, and a
   cross-reference column showing which personas cite it.
 - **Part C, the obligation registry**: conditional obligations with a trigger, a determination
@@ -90,9 +93,14 @@ is injected into every member too:
   endpoint, not vendor-orchestrated".
 - Categorical **risk-appetite boundaries**: what is out of appetite regardless of ROI.
 - **Prior strategic decisions**, preferred vendors and patterns.
+- A **role map** (Part D): who actually holds each duty here, such as the managing director, the
+  MSP, an external DPO, or nobody. Every owner in the action plan and the obligations ledger is
+  routed through it; a duty nobody holds shows up as `unassigned (<duty>)` and as a risk. An
+  upgrade never overwrites your `context.md`, so if yours predates v3.0.0, copy Part D in from
+  the shipped template; until then every owner reads as unassigned.
 
-It ships as a fill-in template. Fill in Parts A to C with your house positions; the council
-reads it automatically and writes only to the Part D auto-context block, where it appends
+It ships as a fill-in template. Fill in Parts A to D with your house positions; the council
+reads it automatically and writes only to the Part E auto-context block, where it appends
 durable organization facts it learns over time.
 
 **One deliberate guardrail: house positions are defaults, not doctrine.** The orchestrator

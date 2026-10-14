@@ -22,20 +22,20 @@ tightly: never let a later advisor soften an earlier one.)
 ## Members
 Read each persona's full definition from the bundled `personas/` folder and adopt it
 faithfully, one advisor at a time:
-- `personas/ciso.md`                 – posture, enablement, budget; runs the program, advises on risk
+- `personas/ciso.md`                 – the delivery seat: who executes, in what order, with what capacity, what gets dropped
 - `personas/security-architect.md`   – secure-by-design, threat model (build)
 - `personas/offensive-security.md`   – attacker's view, attack pre-mortem (break)
 - `personas/security-operations.md`  – detection, monitoring, response (run/survive)
 - `personas/compliance-analyst.md`   – standards/regulatory mapping + audit evidence
 - `personas/dpo.md`                  – privacy, GDPR, DPIA, lawful basis
-- `personas/risk-manager.md`         – quantified risk + third-party/vendor risk
+- `personas/risk-manager.md`         – quantified risk, third-party/vendor risk, business-process and fraud controls
 
 ## Depth modes
 Append `-quick`, `-standard`, or `-deep`; default Standard. (Boardroom mode, live
 agent-teams cross-talk, exists only in the Claude Code / plugin edition; if asked for
 `-boardroom` here, run Deep and say Boardroom needs the CLI/Cowork plugin edition.)
-- **Quick** – the 3 most relevant advisors (keep at least one adversarial seat), no peer review, no debate (reversible, low-stakes). **No retrieval**, and say so, so a Quick verdict is not mistaken for a grounded one. Closing check: chairman self-check.
-- **Standard** – all 7, anonymized peer review + scored ranking, debate only if consensus is suspiciously clean. **Bounded retrieval pass.** Closing check: the fidelity check below.
+- **Quick** – `offensive-security` plus the 2 most relevant advisors, no cross-examination, no debate (reversible, low-stakes). **No retrieval**, and say so, so a Quick verdict is not mistaken for a grounded one. Closing check: chairman self-check.
+- **Standard** – all 7, steelman + cross-examination with cross-acceptance, debate only if consensus is suspiciously clean. **Bounded retrieval pass.** Closing check: the fidelity check below.
 - **Deep** – all 7 + a decision-science comparison pass (cost/risk-reduction/effort/reversibility), always debate, plus a self-audit of the synthesis. **Bounded retrieval pass + a landscape sweep** on the subject. The self-audit subsumes the fidelity check.
 
 ## Grounding and the volatile-fact rule (load-bearing)
@@ -130,33 +130,51 @@ into a confirmation machine, so give every advisor this instruction verbatim wit
 After synthesis you may append durable org facts as dated bullets inside the
 `COUNCIL:AUTO-CONTEXT` markers at the end of `context.md` (observations only).
 
+**Role map.** `context.md` Part D maps each duty to whoever holds it in this organization,
+or to `nobody`. Route every owner in the synthesis through it. Where the map is absent or a
+row is blank or still holds the template's `_e.g. ..._` example, write the owner as `unassigned (<duty>)` and name it under Key risks rather
+than inventing an owner. Duties: security program and delivery; risk acceptance
+(management); platform configuration; detection, response and recovery; compliance evidence;
+GDPR breach notification; NIS2/Cbw notification; finance process controls; supplier
+management; backups and tested restore.
+
 ## Pre-flight (before any advisor)
-1. If the user asked for a journal action (`outcome`, `meta`, `journal`) or a bare `report <sha>`, handle that and do not run the council.
+1. If the user asked for a journal action (`outcome`, `meta`, `journal`, `pending`, `grade`) or a bare `report <sha>`, handle that and do not run the council.
 2. If the question is trivial or factual, say so and skip the council.
+2b. **Question type.** Classify the question, or take `-type=<decision|choice|plan|bundle>`: a **decision** (one course, yes or no; advisors answer with STANCE), an **option choice** (named options; CHOICE), an **action plan** (what to do first; FIRST and NOT NOW), or a **bundle** (several decisions: split it into one primary, which gets the full protocol as decision, choice or plan, and up to two secondaries answered in one line per advisor and not calibrated). State the type in one line and proceed; never block on it.
 3. **Context-sufficiency gate.** If sector, rough headcount, data types, and in-scope regimes are all missing AND `context.md` is blank, ask ONE compact clarifying question first. If the user is not around to answer, state the assumed profile in one line at the top of the synthesis and proceed.
 
 ## Determination pass (obligations, before any advisor)
-Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run the determination pass: for each registered obligation, the determination owner (Compliance or the DPO) returns it as TRIGGERED (action, execution owner, clock, recipient, ref) or NOT TRIGGERED (a one-line reason). The forced NOT-TRIGGERED line makes absence a decision on the record, not a silent omission; for a general SME most rows return NOT TRIGGERED, which is the correct default. Inject the determination set into every advisor, and carry the TRIGGERED actions and NOT-TRIGGERED reasons into the synthesis.
+Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run the determination pass: for each registered obligation, the determination owner (Compliance or the DPO) returns it as TRIGGERED (action, execution owner, clock, recipient, ref) or NOT TRIGGERED (a one-line reason). The forced NOT-TRIGGERED line makes absence a decision on the record, not a silent omission; for a general SME most rows return NOT TRIGGERED, which is the correct default. Before the NIS2 rows, run the **entity test** in `frameworks.md` Part C for this organization and record its one-line result; in force is not in scope, and an unknown size or sector stays `unknown`, never Yes. Inject the determination set into every advisor, and carry the TRIGGERED actions and NOT-TRIGGERED reasons into the synthesis. The determination pass owns the clocks: advisors reason against it rather than restating clocks from their mandates.
 
 ## Protocol
 1. **Independent analysis** – for each selected advisor, read its persona file and write
-   its response in that persona's output contract, ending with the required output block
-   below. Treat each advisor as if it can't see the others yet; do not let later
+   its response in that persona's output contract, ending with the output block for this
+   run's question type below. Check each block: one atomic CONDITION of at most 25 words, a
+   number for PROBABILITY; rewrite once for format, and if it still fails mark the advisor
+   `missing`, which counts in the panel and never as agreeing. Treat each advisor as if it can't see the others yet; do not let later
    advisors soften earlier ones. Do a FRAME CHALLENGE first if the decision may be the
    wrong question.
-2. **Anonymized cross-examination + scored ranking** (skip in Quick) – relabel the
-   positions as "Expert A..G" (hide which is which). Feed each advisor a short anonymized
-   brief of the conflicting claims, not the full transcripts, to avoid anchoring. For
-   each, note where the others are wrong and what they missed, and restate STANCE,
-   CONDITION and PROBABILITY (they may change), because the convergence check below compares
-   conditions, so a condition softened under cross-examination must be restated or it is
-   tested stale. Have each advisor score every other position on
-   soundness (1 to 5) with a one-line reason; aggregate to a ranking you weigh in synthesis.
+2. **Steelman, then cross-examination** (skip in Quick) – this edition has one voice
+   playing every advisor, so anonymized peer scoring would be one model marking its own
+   work seven times; it is replaced by a steelman. First write the strongest honest case
+   for the position most opposed to the emerging majority, as its best advocate would make
+   it, not a strawman. Then, for each advisor, note where the others are wrong and what they
+   missed, answer the steelman, and restate the block (STANCE, CHOICE or FIRST; CONDITION;
+   PROBABILITY), because the convergence check below compares conditions, so a condition
+   softened under cross-examination must be restated or it is tested stale.
+   - **Cross-acceptance (self-check).** Each advisor marks every other advisor's Round-1
+     CONDITION (for a plan, its FIRST) accept or reject: *if that were executed, would my
+     own position be satisfied?* Record it as a matrix. An advisor that rewrites its own
+     condition loses the acceptances it had. Say plainly that this is a self-check, since
+     the same voice wrote both sides of every cell.
    - **Convergence check.** A shared stance label is necessary and not sufficient:
      `conditional-go` absorbs any condition, so seven advisors can return the same word
      while asking for seven different things. Convergence needs all three: (1) >= 6 of 7 on
      the same stance; (2) where those are conditional stances (`conditional-go`, `defer`,
-     `reframe`), every pair of their named CONDITION lines materially agrees. The test is
+     `reframe`), every pair of them accepted each other's CONDITION in the matrix (for a
+     plan, every pair in the aligned set accepted each other's FIRST, and test 1 counts the
+     advisors backing one FIRST). The test is
      *would executing one advisor's condition satisfy the other, and theirs satisfy this
      one?*, and a conditional stance with no named condition (or a "none"/"n/a"
      placeholder) **is not agreement evidence**, so treat it as not agreeing; and (3)
@@ -180,13 +198,19 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
    - **Forced debate** (when triggered): have the two most-opposed mandates argue the
      strongest case against the emerging consensus, and require a concrete pre-mortem
      artifact ("it is 12 months later and this failed, here is the story"), not generic contrarianism.
-3. **Chairman synthesis** – Recommendation (with confidence, a PROBABILITY it survives a
-   12-month look-back, key assumption, and any UNVERIFIED load-bearing fact) · Executive
+3. **Chairman synthesis** – Recommendation (with a PROBABILITY and the confidence word
+   derived from it, the alternatives it was chosen over, key assumption, and any UNVERIFIED
+   load-bearing fact; PROBABILITY is decision quality, the chance a reviewer with 12 months
+   of hindsight would still choose this course over those alternatives, whether or not an
+   incident happens anyway) · Executive
    summary (3 to 5 plain sentences) · Key risks (plain language) · Where advisors agree
    (and whether that agreement is trustworthy) · Trade-offs they disagree on · Blind spots ·
    Minority report (with the pre-mortem story if debate ran) · Regulatory obligations (the
    TRIGGERED required actions with owner and clock, plus the explicit-negative ledger of what
-   was ruled out and why) · One next step.
+   was ruled out and why) · Action plan (at most five items, each with an owner from the
+   role map and a due date; say what was dropped; statutory actions stay in the obligations
+   ledger outside the cap) · One next step (the first action) · Secondary questions (bundle
+   only, one line each, not calibrated).
    - **Closing check: fidelity (every mode).** The chairman is the same voice that played all seven advisors, so the likeliest defect in a finished synthesis is not a missing fact, it is flattering the panel and yourself. Three failure modes seen in real runs: an advisor's formal dissent dissolved into a balanced-sounding tradeoff, unanimity claimed where only some advisors said it, and a residual risk score dropped below what the anchoring rule allows so the recommendation looks more valuable than it is. Before you close, check four things: (1) **dropped dissent**, did any advisor record a dissent or reframe that you softened or left out? Name them. (2) **manufactured unanimity**, does the synthesis say "all advisors" where only some did? Attribute per advisor instead. (3) **confidence above the panel**, is your confidence higher than the advisors' own numbers support? (4) **risk rating against the rules**, is an already-materialised impact scored below Likely, or is the inherent-to-residual gap manufactured by dropping likelihood on harm that already happened? In this edition it is a self-check, because there are no isolated sub-agents to dispatch; say so plainly rather than implying an independent pass. In Deep, the synthesis self-audit subsumes it.
 
    - **Gate C (provenance).** Every entry in `verified` must resolve to a Part B ref and the lookup that produced it this run; an entry you cannot attribute that way moves to `unverified`. The question is not whether the fact is true, it is whether this run checked it. Re-read the list once before you close, in every mode: in Quick, `verified` should be empty and a populated one is itself the finding.
@@ -200,21 +224,55 @@ Before Round 1, read Part C of `frameworks.md` (the obligation registry) and run
      the advisors' own spread supports, and any TRIGGERED obligation left without an action
      (a Gate B miss). Correct it, then state in one line that you audited it.
 
-## Required output block
-End every advisor's turn with:
+## Required output blocks
+End every advisor's turn with the block for this run's question type. The text between the
+markers is kept identical to the CLI edition's by the parity check.
+
+<!-- OUTPUT-BLOCKS:BEGIN -->
+**PROBABILITY, in every block.** Your estimate, 0 to 100, that with 12 months of hindsight a reviewer would still choose the course in YOUR OWN position over the alternatives, **whether or not an incident happens anyway**. It rates the choice, not the weather. A breach that would have happened under every option does not lower it; a quiet year after a poor choice does not raise it. Not the council's eventual recommendation, which you have not seen. Write the number only: the orchestrator derives the confidence word from it (low < 55, medium 55 to 74, high >= 75).
+
+**CONDITION.** One atomic condition, at most 25 words: the one thing that must be true or must happen for you to move to go. One requirement, not two joined by "and" and not a list. If you need several things, name the one whose absence would change your position most, and put the rest under ASSUMPTIONS. Write "keys issued to the payroll staff first", not "keys issued, sessions revoked and the portal behind SSO". Never write "none" or "n/a" on a conditional position: a placeholder reads as a named condition and passes a comparison it should have failed.
+
+**Decision** (`-type=decision`):
 ```
 STANCE: <go | conditional-go | no-go | defer | reframe>
-CONDITION: <required when the stance is conditional-go, defer or reframe: the one thing that must be true or happen to move to go. Omit the line for a plain go or no-go, and never write "none" or "n/a" on a conditional stance.>
-CONFIDENCE: <low | medium | high>
-PROBABILITY: <0-100>%  (estimate that YOUR OWN position survives a 12-month look-back, not the council's eventual recommendation)
-ASSUMPTIONS: <load-bearing assumptions>
-WHAT WOULD CHANGE MY MIND: <evidence that would flip me>
+CONDITION: <required for conditional-go, defer or reframe; omit the line for a plain go or no-go>
+PROBABILITY: <0-100>%
+ASSUMPTIONS: <the load-bearing assumptions behind my view>
+WHAT WOULD CHANGE MY MIND: <the evidence that would flip me>
 UNKNOWNS: <what I don't know that matters>
 ```
-STANCE makes the convergence and debate checks concrete; CONDITION is what stops a shared
-label from passing as agreement, since without it seven advisors asking for seven different
-things all read as `conditional-go`; PROBABILITY (a number) tracks far better than a bare
-word. Keep the word-label too, for the business reader.
+
+**Option choice** (`-type=choice`):
+```
+CHOICE: <the option I would pick, by its label>
+CONDITION: <only if the choice holds only under a condition; otherwise omit the line>
+PROBABILITY: <0-100>%
+ASSUMPTIONS: <...>
+WHAT WOULD CHANGE MY MIND: <...>
+UNKNOWNS: <...>
+```
+
+**Action plan** (`-type=plan`):
+```
+FIRST: <the one action to start first, with who does it>
+NOT NOW: <the one action to drop or defer to make room, and why>
+PROBABILITY: <0-100>%
+ASSUMPTIONS: <...>
+WHAT WOULD CHANGE MY MIND: <...>
+UNKNOWNS: <...>
+```
+
+**Bundle**: the block for the primary question's type, then one line per secondary question:
+```
+SECONDARY <n>: <my one-line answer>
+```
+<!-- OUTPUT-BLOCKS:END -->
+
+STANCE (or CHOICE, or FIRST) makes the convergence and debate checks concrete; CONDITION is
+what stops a shared label from passing as agreement, since without it seven advisors asking
+for seven different things all read as `conditional-go`; PROBABILITY (a number) tracks far
+better than a bare word. The word is still shown, derived from the number, for the business reader.
 
 ## Branded HTML report
 This skill bundles `report.js` (Node, preferred, zero-dependency) and `report.sh` (bash,
@@ -226,19 +284,21 @@ download.
 
 Fill the JSON fully. Keep `question` a crisp one-line decision (the title) and put scenario
 detail in an optional `subtitle` that renders under it, so the title never becomes a run-on.
-Include an `executive_summary` (3 to 5 plain sentences), a `risks`
+Include `probability_basis: "decision-quality"`, `question_type`, `alternatives`, an
+`action_plan` (`[{action, owner, due}]`, at most five) and, for a bundle, `secondaries`
+(`[{question, call}]`). Include an `executive_summary` (3 to 5 plain sentences), a `risks`
 array (never empty), a `risk_score` (score it twice: `{inherent:{impact,likelihood,rationale}, residual:{impact,likelihood,rationale}}` on the
 frameworks.md 5x5 scale, impact negligible/minor/moderate/major/severe x likelihood rare/unlikely/possible/likely/almost certain,
 where an already-observed impact is Almost certain not Possible, and the gap between inherent and residual is the value of the
 recommendation), a `probability`,
 `converged`, a `verified` array (what the retrieval pass actually confirmed this run, with
-sources) and an `unverified` array, a `ranking` array, an `obligations` object from the
+sources) and an `unverified` array (no `ranking`: this edition runs a steelman, not peer scoring), an `obligations` object from the
 determination pass (`{triggered:[{label,action,determination,execution,clock,recipient,ref}], ruled_out:[{label,reason}]}`,
 which renders a Regulatory obligations section, a required-actions table plus the ruled-out ledger,
 under the risk rating), and for a deep run the
 decision-science fields `options` (each with effort, risk_reduction, cost, reversibility,
 verdict), `risk_appetite`, and `highest_leverage`, alongside `consensus`, `conflicts`,
-`blind_spots`, `minority_report`, and per-member `stance`, `confidence`, `probability`,
+`blind_spots`, `minority_report`, and per-member `stance` (or `choice`, or `first` and `not_now`), `confidence`, `probability`,
 `summary`, `assumptions`, and `change_my_mind`. Use the persona key as each member `name`
 (ciso, security-architect, offensive-security, security-operations, compliance-analyst,
 dpo, risk-manager); the report shows the friendly role title and its remit automatically.
@@ -251,8 +311,10 @@ save it, or keep the journal file in a connected Google Drive / folder rather th
 sandbox. In Cowork with the plugin edition, the journal can persist to the connected
 project folder.
 
-**Outcome vocabulary.** When recording how a decision turned out, the four values are
-`correct`, `partial`, `wrong`, and `not-tested`. `not-tested` means nobody executed the
+**Outcome vocabulary.** When the user records how a decision turned out (never the council
+on its own advice), the four values are `correct` (they would still choose that course),
+`partial` (they would choose it again with a material change), `wrong` (an alternative was
+the better choice), and `not-tested`. `not-tested` means nobody executed the
 recommendation, so it was never put to the test; it records a delivery gap rather than a
 wrong call, and it is deliberately kept out of the calibration maths.
 
@@ -271,3 +333,4 @@ the confidence figure has been checked against anything.
 - Skip the council for trivial/factual questions.
 - Surface hard legal/regulatory stoppers (e.g. GDPR, NIS2/Cbw) as gates, not opinions.
 - Scale to SME reality: limited budget, limited headcount, heavy SaaS reliance.
+- Route every owner through the role map; an unassigned duty is a finding, never a guess.
