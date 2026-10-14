@@ -17,7 +17,7 @@ f9a704861ae2a4ff944e415548c1347c12fe70b004211fe1f567899cb4811d5b  scripts/instal
 02c9b5f48c7779303d28b729484216baae157c758a10cd43ca9bc122e00d3716  scripts/sync-chatgpt.js
 2f4a1e079ea8f0be7a2663bd07f30ce7c028ced63a6a98d69ea4d1f74e9ffffc  scripts/test-eval.js
 f7ab909eeeb3f9a3c013feeb04c45ac59b22f5d6171abd15877bccc5bdf791a9  scripts/test-journal.js
-102244afcd76c0c3037cb7c6c877d3bd8a3cb163ae1a1bada128ab486186eb73  scripts/test-reports.js
+8337fb721ad4dc87f76eca261cff2220e22b0fb35997164ff0c46db53b0e780d  scripts/test-reports.js
 # --- shipped config (advisory: local tuning is expected) ---
 d5f842b3aababf9b1bfb604d4062a897f782e48e6675470775282458a8322490  .claude/skills/infosec-council/external-websources.md
 00faadf999686570cb3e161fafa68279bb11ad0ef02ca2c29809e3c14df3df48  .claude/skills/infosec-council/frameworks.md

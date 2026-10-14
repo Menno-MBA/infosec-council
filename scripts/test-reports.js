@@ -231,6 +231,11 @@ if (cp.spawnSync('bash', ['-c', 'command -v jq'], { encoding: 'utf8' }).stdout.t
     const shLO = render('bash', [path.join(SKILL, 'report.sh')], { converged: 'label-only' });
     assert(jsLO.replace(/\n+$/, '') === shLO.replace(/\n+$/, ''),
       'report.sh matches report.js on the label-only outcome too');
+    // The v3 sections (action plan, related questions, alternatives, question type,
+    // FIRST / NOT NOW / CHOICE, basis-worded probability) are new jq branches; the
+    // default fixture exercises none of them.
+    const shV3 = render('bash', [path.join(SKILL, 'report.sh')], V3);
+    assert(jsV3.replace(/\n+$/, '') === shV3.replace(/\n+$/, ''), 'report.sh matches report.js on a v3 run');
   } catch (e) { assert(false, 'report.sh ran: ' + e.message); }
 } else {
   console.log('report.sh: skipped (jq not available)');
